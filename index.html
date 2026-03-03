@@ -1537,7 +1537,6 @@ const DEFAULT_INVENTORY = [
   { id:"i10", cat:"Spirit", kind:"Vodka", label:"Ketel One", on:true },
   { id:"i11", cat:"Spirit", kind:"Vodka", label:"Berlin Vodka", on:true },
   { id:"i12", cat:"Spirit", kind:"Vodka", label:"Ciroc Vodka", on:true },
-  { id:"i13", cat:"Spirit", kind:"Vodka", label:"Olive Vodka", on:true },
   { id:"i14", cat:"Spirit", kind:"Vodka", label:"Stolichnaya Vanilla", on:true },
   { id:"i15", cat:"Spirit", kind:"Vodka", label:"Van Gogh Acai Blueberry", on:true },
   { id:"i16", cat:"Spirit", kind:"Vodka", label:"Zubrówka Palona", on:true },
@@ -1545,7 +1544,6 @@ const DEFAULT_INVENTORY = [
   // ── RUM ───────────────────────────────────────────────────────────────────
   { id:"i20", cat:"Spirit", kind:"Rum", label:"Calypso Red Rum", on:true },
   { id:"i21", cat:"Spirit", kind:"Rum", label:"El Supremo 8", on:true },
-  { id:"i22", cat:"Spirit", kind:"Rum", label:"Kraken Spiced", on:true },
   { id:"i23", cat:"Spirit", kind:"Rum", label:"Smith & Cross", on:true },
   { id:"i24", cat:"Spirit", kind:"Rum", label:"Takamaka Zepis Kreol", on:true },
   { id:"i25", cat:"Spirit", kind:"Rum", label:"The Kraken Black Spiced", on:true },
@@ -2423,12 +2421,34 @@ function clearRecipeForm() {
 
 // ── SMART ADD ────────────────────────────────────────────────────────────────
 
+function getApiKey() {
+  return localStorage.getItem("vadi_apikey") || "";
+}
+
+function saveApiKey(key) {
+  localStorage.setItem("vadi_apikey", key.trim());
+}
+
 async function smartAddLookup() {
   const input = document.getElementById("smart-add-input");
   const btn = document.getElementById("smart-add-btn");
   const resultEl = document.getElementById("smart-add-result");
   const query = input.value.trim();
   if (!query) { toast("Type a spirit or ingredient name first"); return; }
+
+  // Check for API key
+  let apiKey = getApiKey();
+  if (!apiKey) {
+    resultEl.className = "smart-add-result show";
+    resultEl.innerHTML =
+      "<div style=\"font-size:13px;color:var(--text2);margin-bottom:10px;\">Smart Add needs your Anthropic API key (one-time setup, saved on this device).</div>" +
+      "<div style=\"display:flex;gap:8px;margin-bottom:8px;\">" +
+        "<input id=\"apikey-input\" type=\"password\" class=\"smart-add-input\" placeholder=\"sk-ant-…\" style=\"font-size:12px;\">" +
+        "<button class=\"btn btn-gold\" onclick=\"applyApiKey()\">Save</button>" +
+      "</div>" +
+      "<div style=\"font-size:11px;color:var(--text3);\">Get a key at <a href=\"https://console.anthropic.com\" target=\"_blank\" style=\"color:var(--gold3)\">console.anthropic.com</a> — stored only in your browser, never sent anywhere else.</div>";
+    return;
+  }
 
   btn.textContent = "…";
   btn.disabled = true;
@@ -2438,14 +2458,28 @@ async function smartAddLookup() {
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 400,
-        system: "You are a bar inventory assistant. When given a spirit or ingredient name, respond ONLY with a JSON object (no markdown, no extra text) with these fields: { \"label\": \"full product name\", \"cat\": \"Spirit|Modifier|Syrup|Pantry\", \"kind\": \"the broad category kind (e.g. Gin, Rum, Sweet Vermouth, Amaro, Triple Sec, Grenadine, Angostura Bitters)\", \"desc\": \"one sentence description\", \"country\": \"country of origin\", \"abv\": \"ABV if spirit, else empty string\" }. For cat: spirits go in Spirit, vermouths/liqueurs/aperitifs go in Modifier, syrups/sweeteners go in Syrup, bitters/citrus/eggs/pantry items go in Pantry.",
-        messages: [{ role: "user", content: "Identify and categorize: " + query }]
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 300,
+        system: "You are a bar inventory assistant. When given a spirit or ingredient name, respond ONLY with a JSON object — no markdown, no extra text — with these exact fields: label (full product name as string), cat (one of: Spirit, Modifier, Syrup, Pantry), kind (broad cocktail-recipe kind e.g. Gin, Rum, Vodka, Bourbon, Sweet Vermouth, Amaro, Triple Sec, Grenadine, Angostura Bitters), desc (one sentence), country (origin), abv (string, empty if not a spirit). Spirits go in Spirit. Vermouths, liqueurs, aperitifs go in Modifier. Syrups and sweeteners go in Syrup. Bitters, fresh juices, eggs go in Pantry.",
+        messages: [{ role: "user", content: "Categorize for a home bar: " + query }]
       })
     });
+
+    if (!response.ok) {
+      const err = await response.json();
+      if (err.error && err.error.type === "authentication_error") {
+        localStorage.removeItem("vadi_apikey");
+        throw new Error("Invalid API key — please re-enter it.");
+      }
+      throw new Error(err.error?.message || "API error " + response.status);
+    }
 
     const data = await response.json();
     let text = (data.content || []).find(b => b.type === "text")?.text || "";
@@ -2462,19 +2496,31 @@ async function smartAddLookup() {
         (info.abv ? "<span class=\"smart-add-tag\">" + info.abv + " ABV</span>" : "") +
       "</div>" +
       "<div class=\"smart-add-desc\">" + info.desc + "</div>" +
-      "<div style=\"display:flex;gap:10px;\">" +
+      "<div style=\"display:flex;gap:10px;flex-wrap:wrap;\">" +
         "<button class=\"btn btn-gold\" onclick=\"confirmSmartAdd(this)\" data-info=\"" + infoStr + "\">Add to Bar</button>" +
         "<button class=\"btn btn-outline\" onclick=\"document.getElementById('smart-add-result').className='smart-add-result'\">Cancel</button>" +
+        "<button class=\"btn btn-outline\" style=\"font-size:10px;color:var(--text3);\" onclick=\"localStorage.removeItem('vadi_apikey');toast('API key cleared')\">Clear Key</button>" +
       "</div>";
 
   } catch(err) {
     resultEl.innerHTML =
-      "<div style=\"color:var(--red);font-size:13px;\">Could not look up that item. Try adding manually below.</div>" +
-      "<button class=\"btn btn-outline\" style=\"margin-top:10px;\" onclick=\"document.getElementById('smart-add-result').className='smart-add-result'\">Dismiss</button>";
+      "<div style=\"color:var(--red);font-size:13px;margin-bottom:10px;\">" + (err.message || "Could not look up that item.") + "</div>" +
+      "<div style=\"display:flex;gap:8px;\">" +
+        "<button class=\"btn btn-outline\" onclick=\"document.getElementById('smart-add-result').className='smart-add-result'\">Dismiss</button>" +
+        "<button class=\"btn btn-outline\" onclick=\"localStorage.removeItem('vadi_apikey');document.getElementById('smart-add-result').className='smart-add-result';toast('API key cleared — re-enter on next lookup')\">Reset Key</button>" +
+      "</div>";
   }
 
   btn.textContent = "Look Up";
   btn.disabled = false;
+}
+
+function applyApiKey() {
+  const val = document.getElementById("apikey-input")?.value?.trim();
+  if (!val || !val.startsWith("sk-")) { toast("That doesn't look like a valid key (should start with sk-)"); return; }
+  saveApiKey(val);
+  document.getElementById("smart-add-result").className = "smart-add-result";
+  toast("API key saved! Now try your lookup again.");
 }
 
 function confirmSmartAdd(btn) {
