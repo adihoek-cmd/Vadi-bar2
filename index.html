@@ -1568,6 +1568,78 @@
     text-transform: uppercase; margin-bottom: 20px;
   }
 
+
+  /* ── RECIPE DETAIL MODAL ── */
+  .rdetail-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.88); backdrop-filter: blur(12px);
+    z-index: 500; display: flex; align-items: flex-end; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .rdetail-overlay.open { opacity: 1; pointer-events: all; }
+  .rdetail-sheet {
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 20px 20px 0 0; width: 100%; max-width: 680px;
+    max-height: 90vh; overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+    scrollbar-width: thin; scrollbar-color: var(--bg3) transparent;
+    padding-bottom: 24px;
+  }
+  .rdetail-overlay.open .rdetail-sheet { transform: translateY(0); }
+  .rdetail-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 12px auto 0; }
+  .rdetail-header {
+    padding: 20px 24px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  }
+  .rdetail-source { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold3); margin-bottom: 5px; }
+  .rdetail-name { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: var(--cream); font-weight: 500; line-height: 1.2; }
+  .rdetail-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .rdetail-meta-tag {
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 4px;
+    background: rgba(201,168,76,0.1); color: var(--gold3); border: 1px solid var(--border);
+  }
+  .rdetail-body { padding: 20px 24px 0; }
+  .rdetail-section-title {
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text3); margin-bottom: 12px; margin-top: 20px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .rdetail-section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .rdetail-ing-list { list-style: none; padding: 0; margin: 0 0 4px; }
+  .rdetail-ing-item {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 9px 0; border-bottom: 1px solid rgba(201,168,76,0.07); font-size: 14px;
+  }
+  .rdetail-ing-item:last-child { border-bottom: none; }
+  .rdetail-ing-name { color: var(--cream2); }
+  .rdetail-ing-amt { color: var(--gold3); font-size: 12px; letter-spacing: 0.05em; }
+  .rdetail-steps { padding: 0; margin: 0; list-style: none; counter-reset: steps; }
+  .rdetail-step {
+    display: flex; gap: 14px; padding: 10px 0;
+    border-bottom: 1px solid rgba(201,168,76,0.07); font-size: 13px;
+    color: var(--text2); line-height: 1.6; counter-increment: steps;
+  }
+  .rdetail-step:last-child { border-bottom: none; }
+  .rdetail-step::before {
+    content: counter(steps); flex-shrink: 0;
+    width: 22px; height: 22px; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--gold); margin-top: 1px;
+    display: grid; place-items: center;
+  }
+  .rdetail-actions { padding: 20px 24px 0; display: flex; gap: 10px; }
+  .rdetail-loading { text-align: center; padding: 40px; color: var(--text3); font-size: 13px; }
+  /* Make result cards tappable for preview */
+  .recipe-result-card { position: relative; }
+  .recipe-result-card-preview {
+    font-size: 11px; letter-spacing: 0.08em; color: var(--text3);
+    margin-top: 8px; cursor: pointer; text-align: center;
+    padding: 6px; border-top: 1px solid var(--border);
+  }
+  .recipe-result-card-preview:hover { color: var(--gold3); }
+
 </style>
 </head>
 <body>
@@ -1893,6 +1965,23 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- ── RECIPE DETAIL MODAL ── -->
+<div class="rdetail-overlay" id="rdetail-overlay" onclick="closeRDetail(event)">
+  <div class="rdetail-sheet">
+    <div class="rdetail-handle"></div>
+    <div class="rdetail-header">
+      <div style="flex:1;">
+        <div class="rdetail-source" id="rdetail-source"></div>
+        <div class="rdetail-name" id="rdetail-name"></div>
+        <div class="rdetail-meta" id="rdetail-meta"></div>
+      </div>
+      <button class="modal-close" onclick="closeRDetail()">×</button>
+    </div>
+    <div class="rdetail-body" id="rdetail-body"></div>
+    <div class="rdetail-actions" id="rdetail-actions"></div>
+  </div>
+</div>
 
 <script>
 
@@ -2860,28 +2949,34 @@ async function recipeSearch() {
 
   var html = '<div class="recipe-results-grid">';
   all.forEach(function(r) {
-    // Link-only cards (e.g. Liquor.com fallback) — show as external link, never as addable
+    var encoded = encodeURIComponent(JSON.stringify(r));
+
+    // Link-only fallback card
     if (r.isLink) {
       html += '<div class="recipe-result-card">';
       html += '<div class="recipe-result-card-source">' + r.source + '</div>';
       html += '<div class="recipe-result-card-name">Browse ' + r.source + '</div>';
-      html += '<div class="recipe-result-card-ings" style="color:var(--text3)">Search results available on their website</div>';
-      html += '<a href="' + r.url + '" target="_blank" style="display:block;margin-top:12px;">';
-      html += '<button class="recipe-result-card-add" style="background:var(--bg3);color:var(--gold);border:1px solid var(--border2);">Open ' + r.source + ' ↗</button>';
-      html += '</a></div>';
+      html += '<div class="recipe-result-card-ings" style="color:var(--text3)">Tap to search on their site</div>';
+      html += '<a href="' + r.url + '" target="_blank"><button class="recipe-result-card-add" style="background:var(--bg3);color:var(--gold);border:1px solid var(--border2);margin-top:10px;">Open ' + r.source + ' ↗</button></a>';
+      html += '</div>';
       return;
     }
+
     var alreadyHave = state.cocktails.some(function(c){ return c.name.toLowerCase() === r.name.toLowerCase(); });
-    var ingsPreview = r.ingredients.slice(0,5).join(', ') + (r.ingredients.length > 5 ? '…' : '');
-    var encoded = encodeURIComponent(JSON.stringify(r));
-    html += '<div class="recipe-result-card">';
+    var ingsPreview = r.ingredients.slice(0,4).map(function(i){
+      // Show just the ingredient name, strip leading amount
+      return i.replace(/^[\d\s\/\.½¼¾]+(?:oz|cl|ml|tsp|tbsp|dashes?|dash)\.?\s*/i, '').split(',')[0].trim();
+    }).join(' · ');
+
+    html += '<div class="recipe-result-card" onclick="openRDetail(\'' + encoded + '\')" style="cursor:pointer;">';
     html += '<div class="recipe-result-card-source">' + r.source + '</div>';
     html += '<div class="recipe-result-card-name">' + r.name + '</div>';
     html += '<div class="recipe-result-card-ings">' + ingsPreview + '</div>';
+    // Stop propagation on button so card tap doesn't also trigger add
     if (alreadyHave) {
-      html += '<button class="recipe-result-card-add saved" disabled>✓ In Collection</button>';
+      html += '<button class="recipe-result-card-add saved" disabled onclick="event.stopPropagation()">✓ In Collection</button>';
     } else {
-      html += '<button class="recipe-result-card-add" onclick="oneClickAddRecipe(\'' + encoded + '\', this)">+ Add to My Bar</button>';
+      html += '<button class="recipe-result-card-add" onclick="event.stopPropagation();oneClickAddRecipe(\'' + encoded + '\', this)">+ Add to My Bar</button>';
     }
     html += '</div>';
   });
@@ -2921,115 +3016,167 @@ async function searchCocktailDB(q) {
   });
 }
 
-// Liquor.com via CORS proxy — we scrape their search page
+// ── LIQUOR.COM ── fetch search page, extract recipe URLs, parse JSON-LD ────────
 async function searchLiquorCom(q) {
+  // Two-step: (1) search page → recipe URLs, (2) fetch each URL → JSON-LD
+  var PROXY = 'https://api.allorigins.win/raw?url=';
+  var searchUrl = 'https://www.liquor.com/?s=' + encodeURIComponent(q);
   try {
-    var proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://www.liquor.com/search/?q=' + encodeURIComponent(q) + '&type=recipe');
-    var resp = await fetch(proxyUrl);
-    if (!resp.ok) throw new Error('proxy failed');
+    var resp = await fetch(PROXY + encodeURIComponent(searchUrl));
+    if (!resp.ok) throw new Error('search fetch failed');
     var html = await resp.text();
-
-    // Parse recipe cards from liquor.com HTML
-    var results = [];
     var parser = new DOMParser();
     var doc = parser.parseFromString(html, 'text/html');
 
-    // liquor.com search results use structured article cards
-    var cards = doc.querySelectorAll('[data-tax-cocktail-spirit], .card--recipe, .recipe-listing, article.card');
-    if (!cards.length) {
-      // Fallback: look for any links with cocktail-style URLs
-      var links = doc.querySelectorAll('a[href*="/recipe/"]');
-      var seen = new Set();
-      links.forEach(function(a) {
-        var name = a.textContent.trim() || a.getAttribute('aria-label') || '';
-        name = name.replace(/\s+/g, ' ').trim();
-        if (name.length > 3 && !seen.has(name) && results.length < 5) {
-          seen.add(name);
-          results.push({
-            name: name,
-            source: 'Liquor.com',
-            glass: 'Rocks',
-            method: 'Shake',
-            garnish: '',
-            notes: '',
-            ingredients: ['See full recipe on Liquor.com'],
-            steps: ['Visit Liquor.com for full instructions.'],
-            mood: [],
-            url: 'https://www.liquor.com' + (a.getAttribute('href') || '')
-          });
-        }
-      });
-    } else {
-      cards.forEach(function(card) {
-        if (results.length >= 5) return;
-        var nameEl = card.querySelector('h2, h3, .card__title, [class*="title"]');
-        var name = nameEl ? nameEl.textContent.trim() : '';
-        if (!name || name.length < 3) return;
-        var href = card.querySelector('a') ? card.querySelector('a').getAttribute('href') : '';
-        results.push({
-          name: name,
-          source: 'Liquor.com',
-          glass: 'Rocks', method: 'Shake',
-          garnish: '', notes: '',
-          ingredients: ['See full recipe on Liquor.com'],
-          steps: ['Visit Liquor.com for full instructions.'],
-          mood: [],
-          isLink: true,
-          url: href ? (href.startsWith('http') ? href : 'https://www.liquor.com' + href) : ''
-        });
-      });
-    }
+    // Collect recipe page links
+    var urls = [];
+    var seen = new Set();
+    // liquor.com recipe pages live at /recipes/<slug>/
+    doc.querySelectorAll('a[href]').forEach(function(a) {
+      var href = a.href || a.getAttribute('href') || '';
+      if (!href.includes('/recipes/')) return;
+      // Normalise
+      if (!href.startsWith('http')) href = 'https://www.liquor.com' + href;
+      // Strip trailing query/hash, keep only path
+      var clean = href.split('?')[0].split('#')[0].replace(/\/$/, '');
+      if (clean.includes('/recipes/') && !seen.has(clean) && clean !== 'https://www.liquor.com/recipes') {
+        seen.add(clean);
+        urls.push(clean);
+      }
+    });
 
-    // If we have URLs, try to fetch the first recipe detail
-    if (results.length && results[0].url) {
-      try {
-        var detail = await fetchLiquorComRecipe(results[0].url);
-        if (detail) Object.assign(results[0], detail);
-      } catch(e) {}
-    }
+    if (!urls.length) throw new Error('no recipe URLs found');
 
+    // Fetch up to 4 recipe pages in parallel
+    var results = await Promise.all(urls.slice(0, 4).map(function(url) {
+      return fetchLiquorComRecipe(url).catch(function() { return null; });
+    }));
+    results = results.filter(Boolean);
+    if (!results.length) throw new Error('no recipes parsed');
     return results;
+
   } catch(e) {
-    return [{ 
-      name: 'Search on Liquor.com',
-      source: 'Liquor.com',
-      isLink: true,
-      url: 'https://www.liquor.com/search/?q=' + encodeURIComponent(q) + '&type=recipe',
-      ingredients: [], steps: [], mood: [],
-      glass: 'Rocks', method: 'Shake', garnish: '', notes: ''
+    // Hard fallback: return a link card
+    return [{
+      name: 'Browse Liquor.com', source: 'Liquor.com', isLink: true,
+      url: 'https://www.liquor.com/?s=' + encodeURIComponent(q),
+      ingredients: [], steps: [], mood: [], glass: 'Rocks', method: 'Shake', garnish: '', notes: ''
     }];
   }
 }
 
 async function fetchLiquorComRecipe(url) {
-  try {
-    var proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-    var resp = await fetch(proxyUrl);
-    if (!resp.ok) return null;
-    var html = await resp.text();
-    var parser = new DOMParser();
-    var doc = parser.parseFromString(html, 'text/html');
+  var PROXY = 'https://api.allorigins.win/raw?url=';
+  var resp = await fetch(PROXY + encodeURIComponent(url));
+  if (!resp.ok) return null;
+  var html = await resp.text();
+  var parser = new DOMParser();
+  var doc = parser.parseFromString(html, 'text/html');
 
-    var ings = [];
-    doc.querySelectorAll('[class*="ingredient"], .structured-ingredients__list-item, li[class*="ingredient"]').forEach(function(el) {
-      var t = el.textContent.trim().replace(/\s+/g, ' ');
-      if (t) ings.push(t);
-    });
+  // ── Prefer JSON-LD structured data (most reliable) ──────────────────────
+  var jsonLd = null;
+  doc.querySelectorAll('script[type="application/ld+json"]').forEach(function(s) {
+    try {
+      var obj = JSON.parse(s.textContent);
+      // Could be an array or single object
+      var arr = Array.isArray(obj) ? obj : [obj];
+      arr.forEach(function(o) {
+        if (!jsonLd && (o['@type'] === 'Recipe' || (Array.isArray(o['@type']) && o['@type'].includes('Recipe')))) {
+          jsonLd = o;
+        }
+      });
+    } catch(e) {}
+  });
 
+  if (jsonLd) {
+    // Parse ingredients: either array of strings or HowToSupply objects
+    var ings = (jsonLd.recipeIngredient || []).map(function(i) {
+      return typeof i === 'string' ? i.trim() : (i.name || JSON.stringify(i));
+    }).filter(Boolean);
+
+    // Parse steps: HowToStep or string
     var steps = [];
-    doc.querySelectorAll('[class*="instruction"] li, [class*="direction"] li, .recipe-steps li').forEach(function(el) {
+    var rawSteps = jsonLd.recipeInstructions || [];
+    if (typeof rawSteps === 'string') {
+      steps = rawSteps.split(/\.\s+/).filter(Boolean).map(function(s){ return s.trim().replace(/\.$/, '') + '.'; });
+    } else {
+      rawSteps.forEach(function(s) {
+        if (typeof s === 'string') { steps.push(s.trim()); }
+        else if (s.text) { steps.push(s.text.trim()); }
+        else if (s.itemListElement) {
+          s.itemListElement.forEach(function(sub){ if (sub.text) steps.push(sub.text.trim()); });
+        }
+      });
+    }
+
+    var name = (jsonLd.name || '').trim();
+    if (!name) return null;
+
+    var garnish = '';
+    var glassStr = '';
+    // Some recipes have keywords or description with glass info
+    var desc = (jsonLd.description || '') + ' ' + (jsonLd.keywords || '');
+    var glassMatch = desc.match(/\b(highball|rocks|coupe|martini|mug|nick.*nora|collins)\b/i);
+    if (glassMatch) glassStr = glassMatch[1];
+
+    return {
+      name: name,
+      source: 'Liquor.com',
+      url: url,
+      glass: normalizeGlass(glassStr),
+      method: guessMethod('', steps.join(' ')),
+      garnish: garnish,
+      notes: '',
+      ingredients: ings,
+      steps: steps,
+      mood: [],
+      isLink: false
+    };
+  }
+
+  // ── CSS fallback if no JSON-LD ──────────────────────────────────────────
+  var ings = [];
+  var selectors = [
+    '.structured-ingredients__list-item',
+    '[class*="ingredient__item"]',
+    '.recipe-ingredients li',
+    '.wprm-recipe-ingredient',
+    'li[class*="ingredient"]',
+    '.ingredientsList li',
+    '.Ingredients li'
+  ];
+  for (var si = 0; si < selectors.length && !ings.length; si++) {
+    doc.querySelectorAll(selectors[si]).forEach(function(el) {
+      var t = el.textContent.trim().replace(/\s+/g, ' ');
+      if (t && t.length > 2) ings.push(t);
+    });
+  }
+  if (!ings.length) return null;
+
+  var steps = [];
+  var stepSelectors = [
+    '.structured-project__steps li',
+    '[class*="instruction"] li',
+    '.wprm-recipe-instruction-text',
+    '.recipe-steps li',
+    '.stepsList li'
+  ];
+  for (var ss = 0; ss < stepSelectors.length && !steps.length; ss++) {
+    doc.querySelectorAll(stepSelectors[ss]).forEach(function(el) {
       var t = el.textContent.trim().replace(/\s+/g, ' ');
       if (t) steps.push(t);
     });
+  }
 
-    var garnishEl = doc.querySelector('[class*="garnish"]');
-    var garnish = garnishEl ? garnishEl.textContent.trim() : '';
+  var nameEl = doc.querySelector('h1.article-heading, h1[class*="title"], h1.recipe-title, h1');
+  var name = nameEl ? nameEl.textContent.trim() : url.split('/').filter(Boolean).pop().replace(/-/g,' ');
 
-    var glassEl = doc.querySelector('[class*="glass"]');
-    var glass = glassEl ? normalizeGlass(glassEl.textContent) : 'Rocks';
-
-    return ings.length ? { ingredients: ings, steps: steps, garnish: garnish, glass: glass, notes: url } : null;
-  } catch(e) { return null; }
+  return {
+    name: name, source: 'Liquor.com', url: url,
+    glass: 'Rocks', method: guessMethod('', steps.join(' ')),
+    garnish: '', notes: '',
+    ingredients: ings, steps: steps, mood: [], isLink: false
+  };
 }
 
 function normalizeGlass(str) {
@@ -3428,6 +3575,66 @@ function confirmSmartAdd(btn) {
 
   toast(info.label + " added to " + info.kind + " ✓");
 }
+
+// RECIPE DETAIL MODAL
+
+function openRDetail(encoded) {
+  var r = JSON.parse(decodeURIComponent(encoded));
+  document.getElementById('rdetail-source').textContent = r.source || '';
+  document.getElementById('rdetail-name').textContent = r.name;
+  var metaHtml = '';
+  if (r.glass) metaHtml += '<span class="rdetail-meta-tag">' + r.glass + '</span>';
+  if (r.method) metaHtml += '<span class="rdetail-meta-tag">' + r.method + '</span>';
+  if (r.garnish) metaHtml += '<span class="rdetail-meta-tag">Garnish: ' + r.garnish + '</span>';
+  document.getElementById('rdetail-meta').innerHTML = metaHtml;
+  var bodyHtml = '';
+  if (r.ingredients && r.ingredients.length) {
+    bodyHtml += '<div class="rdetail-section-title">Ingredients</div>';
+    bodyHtml += '<ul class="rdetail-ing-list">';
+    r.ingredients.forEach(function(ing) {
+      var m = ing.match(/^([\d\s\/\.\u00bd\u00bc\u00be]+(?:oz|cl|ml|tsp|tbsp|dashes?|dash|parts?|whole)?\s*)(.+)$/i);
+      var amt = m ? m[1].trim() : '';
+      var name = m ? m[2].trim() : ing.trim();
+      bodyHtml += '<li class="rdetail-ing-item"><span class="rdetail-ing-name">' + name + '</span>';
+      if (amt) bodyHtml += '<span class="rdetail-ing-amt">' + amt + '</span>';
+      bodyHtml += '</li>';
+    });
+    bodyHtml += '</ul>';
+  }
+  if (r.steps && r.steps.length) {
+    bodyHtml += '<div class="rdetail-section-title">Instructions</div>';
+    bodyHtml += '<ol class="rdetail-steps">';
+    r.steps.forEach(function(step) { bodyHtml += '<li class="rdetail-step">' + step + '</li>'; });
+    bodyHtml += '</ol>';
+  } else {
+    bodyHtml += '<div style="color:var(--text3);font-size:13px;font-style:italic;padding:12px 0;">No instructions available.</div>';
+  }
+  if (r.url) {
+    bodyHtml += '<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);"><a href="' + r.url + '" target="_blank" style="font-size:12px;color:var(--text3);text-decoration:none;">View on ' + r.source + ' ↗</a></div>';
+  }
+  document.getElementById('rdetail-body').innerHTML = bodyHtml;
+  var alreadyHave = state.cocktails.some(function(c){ return c.name.toLowerCase() === r.name.toLowerCase(); });
+  var encodedSafe = encodeURIComponent(JSON.stringify(r));
+  var actionsHtml = alreadyHave
+    ? '<button class="btn btn-outline" disabled style="opacity:0.5;">✓ Already in Collection</button>'
+    : '<button class="btn btn-gold" onclick="oneClickAddRecipeFromDetail(\'' + encodedSafe + '\', this)">+ Add to My Bar</button>';
+  actionsHtml += '<button class="btn btn-outline" onclick="closeRDetail()">Close</button>';
+  document.getElementById('rdetail-actions').innerHTML = actionsHtml;
+  document.getElementById('rdetail-overlay').classList.add('open');
+}
+
+function closeRDetail(e) {
+  if (!e || e.target === document.getElementById('rdetail-overlay')) {
+    document.getElementById('rdetail-overlay').classList.remove('open');
+  }
+}
+
+function oneClickAddRecipeFromDetail(encoded, btn) {
+  oneClickAddRecipe(encoded, btn);
+  if (btn) { btn.textContent = '✓ Added!'; btn.classList.add('saved'); btn.disabled = true; }
+  setTimeout(closeRDetail, 1200);
+}
+
 
 function exportData() {
   const data = { inventory: state.inventory, cocktails: state.cocktails };
