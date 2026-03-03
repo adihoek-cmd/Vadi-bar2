@@ -2283,9 +2283,9 @@ function renderInventory() {
         <div class="tree-type-bottles">`;
 
       bottles.forEach(item => {
-        html += `<div class="tree-bottle ${item.on ? '' : 'off'}" id="bottle-${item.id}">
-          <span class="tree-bottle-name" onclick="openBottleModal('${item.id}')" style="cursor:pointer;flex:1;">${item.label}</span>
-          <div class="tree-bottle-actions">
+        html += `<div class="tree-bottle ${item.on ? '' : 'off'}" id="bottle-${item.id}" onclick="openBottleModal('${item.id}')" style="cursor:pointer;">
+          <span class="tree-bottle-name">${item.label}</span>
+          <div class="tree-bottle-actions" onclick="event.stopPropagation()">
             <div class="toggle ${item.on ? 'on' : ''}" onclick="toggleInv('${item.id}')"></div>
             <button class="tree-bottle-del" onclick="deleteInvItem('${item.id}')" title="Remove">×</button>
           </div>
@@ -2979,121 +2979,125 @@ const KIND_TO_COCKTAILDB = {
 };
 
 async function openBottleModal(itemId) {
-  const item = state.inventory.find(i => i.id === itemId);
-  if (!item) return;
-
-  document.getElementById("bottle-modal-name").textContent = item.label;
-  document.getElementById("bottle-modal-kind").textContent = item.cat + " · " + item.kind;
-
-  // Build body
-  const body = document.getElementById("bottle-modal-body");
-
-  // ── YOUR BAR cocktails that use this kind ──────────────────────────────
-  const yours = state.cocktails.filter(c =>
-    c.ingredients.some(i => i.kind === item.kind)
-  );
-
-  let html = '<div class="bottle-section">';
-  html += '<div class="bottle-section-title">In Your Collection</div>';
-  if (yours.length) {
-    html += '<div class="bottle-cocktail-grid">';
-    yours.forEach(c => {
-      const cm = canMake(c);
-      html += `<div class="bottle-cocktail-card" onclick="openBottleCocktail('${c.id}')">
-        <div class="bottle-cocktail-card-name">${c.name}</div>
-        <div class="bottle-cocktail-card-meta">${GLASS_ICON[c.glass] || "🍹"} ${c.method} · <span style="color:${cm ? "var(--green)" : "var(--red)"}">${cm ? "Can make" : "Missing items"}</span></div>
-        <div class="bottle-cocktail-card-ings">${c.ingredients.slice(0,4).map(i => `<span>${i.amount} ${i.name}</span>`).join("")}</div>
-      </div>`;
-    });
-    html += "</div>";
-  } else {
-    html += `<div class="bottle-empty">No recipes in your collection use ${item.kind} yet.</div>`;
-  }
-  html += "</div>";
-
-  // ── DISCOVER section (loading placeholder) ─────────────────────────────
-  html += `<div class="bottle-section" id="discover-section">
-    <div class="bottle-section-title">Discover · TheCocktailDB</div>
-    <div class="discover-loading"><span class="spin-anim">⟳</span> Fetching cocktail ideas…</div>
-  </div>`;
-
-  body.innerHTML = html;
-  document.getElementById("bottle-modal-overlay").classList.add("open");
-
-  // ── Fetch from TheCocktailDB ──────────────────────────────────────────
-  const searchTerm = KIND_TO_COCKTAILDB[item.kind] || item.kind.toLowerCase();
   try {
-    const res = await fetch(`https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(searchTerm)}`);
-    const data = await res.json();
-    const drinks = (data.drinks || []).slice(0, 12);
+    const item = state.inventory.find(function(i){ return i.id === itemId; });
+    if (!item) { toast("Bottle not found: " + itemId); return; }
 
-    if (!drinks.length) {
-      document.getElementById("discover-section").innerHTML =
-        `<div class="bottle-section-title">Discover · TheCocktailDB</div>
-         <div class="bottle-empty">No cocktails found online for "${item.kind}".</div>`;
-      return;
+    document.getElementById("bottle-modal-name").textContent = item.label;
+    document.getElementById("bottle-modal-kind").textContent = item.cat + " \u00b7 " + item.kind;
+
+    const body = document.getElementById("bottle-modal-body");
+    if (!body) { toast("Modal body element missing"); return; }
+
+    // Your cocktails that use this kind
+    const yours = state.cocktails.filter(function(c){
+      return c.ingredients.some(function(i){ return i.kind === item.kind; });
+    });
+
+    let html = '<div class="bottle-section">';
+    html += '<div class="bottle-section-title">In Your Collection</div>';
+    if (yours.length) {
+      html += '<div class="bottle-cocktail-grid">';
+      yours.forEach(function(c) {
+        const cm = canMake(c);
+        const gi = GLASS_ICON[c.glass] || "\uD83C\uDF79";
+        const ingsHtml = c.ingredients.slice(0,4).map(function(i){
+          return '<span>' + i.amount + ' ' + i.name + '</span>';
+        }).join('');
+        html += '<div class="bottle-cocktail-card" onclick="openBottleCocktail(\'' + c.id + '\')">';
+        html += '<div class="bottle-cocktail-card-name">' + c.name + '</div>';
+        html += '<div class="bottle-cocktail-card-meta">' + gi + ' ' + c.method + ' &middot; ';
+        html += '<span style="color:' + (cm ? 'var(--green)' : 'var(--red)') + '">' + (cm ? 'Can make' : 'Missing items') + '</span></div>';
+        html += '<div class="bottle-cocktail-card-ings">' + ingsHtml + '</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div class="bottle-empty">No recipes in your collection use ' + item.kind + ' yet.</div>';
     }
+    html += '</div>';
 
-    // Fetch full details for first 6
-    const details = await Promise.all(
-      drinks.slice(0, 6).map(d =>
-        fetch(`https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i=${d.idDrink}`)
-          .then(r => r.json())
-          .then(r => r.drinks?.[0])
-          .catch(() => null)
-      )
-    );
+    html += '<div class="bottle-section" id="discover-section">';
+    html += '<div class="bottle-section-title">Discover \u00b7 TheCocktailDB</div>';
+    html += '<div class="discover-loading"><span class="spin-anim">\u27F3</span> Fetching cocktail ideas\u2026</div>';
+    html += '</div>';
 
-    const discoverHtml = details.filter(Boolean).map(d => {
-      // Extract ingredients
-      const ings = [];
-      for (let n = 1; n <= 15; n++) {
-        const ing = d["strIngredient" + n];
-        const msr = d["strMeasure" + n];
-        if (ing && ing.trim()) ings.push((msr ? msr.trim() + " " : "") + ing.trim());
+    body.innerHTML = html;
+    document.getElementById("bottle-modal-overlay").classList.add("open");
+
+    // Fetch from TheCocktailDB
+    const searchTerm = (KIND_TO_COCKTAILDB[item.kind] || item.kind).toLowerCase();
+    try {
+      const res = await fetch('https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=' + encodeURIComponent(searchTerm));
+      const data = await res.json();
+      const drinks = (data.drinks || []).slice(0, 6);
+
+      if (!drinks.length) {
+        document.getElementById("discover-section").innerHTML =
+          '<div class="bottle-section-title">Discover \u00b7 TheCocktailDB</div>' +
+          '<div class="bottle-empty">No online results for "' + item.kind + '".</div>';
+        return;
       }
 
-      // Check if already in collection
-      const alreadyHave = state.cocktails.some(c =>
-        c.name.toLowerCase() === d.strDrink.toLowerCase()
-      );
-
-      const encoded = encodeURIComponent(JSON.stringify({
-        name: d.strDrink,
-        glass: d.strGlass || "Rocks",
-        method: d.strCategory || "Shake",
-        ingredients: ings,
-        instructions: d.strInstructions || "",
-        source: "TheCocktailDB"
+      const details = await Promise.all(drinks.map(function(d){
+        return fetch('https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i=' + d.idDrink)
+          .then(function(r){ return r.json(); })
+          .then(function(r){ return r.drinks ? r.drinks[0] : null; })
+          .catch(function(){ return null; });
       }));
 
-      return `<div class="discover-card">
-        <div class="discover-source-badge">TheCocktailDB</div>
-        <div class="discover-card-name">${d.strDrink}</div>
-        <div class="discover-card-ings">${ings.slice(0, 5).join(" · ")}${ings.length > 5 ? " · …" : ""}</div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <button class="discover-add-btn" onclick="importDiscoveredCocktail('${encoded}')"
-            ${alreadyHave ? 'disabled style="opacity:0.4;cursor:default;"' : ""}>
-            ${alreadyHave ? "✓ In Collection" : "+ Add to My Bar"}
-          </button>
-          <a href="https://www.thecocktaildb.com/cocktail/${d.idDrink}" target="_blank"
-            style="font-size:11px;color:var(--text3);text-decoration:none;letter-spacing:0.08em;">
-            View recipe ↗
-          </a>
-        </div>
-      </div>`;
-    }).join("");
+      let discoverHtml = '';
+      details.filter(Boolean).forEach(function(d) {
+        const ings = [];
+        for (let n = 1; n <= 15; n++) {
+          const ing = d['strIngredient' + n];
+          const msr = d['strMeasure' + n];
+          if (ing && ing.trim()) ings.push((msr ? msr.trim() + ' ' : '') + ing.trim());
+        }
+        const alreadyHave = state.cocktails.some(function(c){
+          return c.name.toLowerCase() === d.strDrink.toLowerCase();
+        });
+        const payload = {
+          name: d.strDrink,
+          glass: d.strGlass || 'Rocks',
+          method: d.strCategory || 'Shake',
+          ingredients: ings,
+          instructions: (d.strInstructions || '').slice(0, 400),
+          source: 'TheCocktailDB'
+        };
+        const encoded = encodeURIComponent(JSON.stringify(payload));
 
-    document.getElementById("discover-section").innerHTML =
-      `<div class="bottle-section-title">Discover · TheCocktailDB</div>
-       <div class="discover-grid">${discoverHtml}</div>`;
+        discoverHtml += '<div class="discover-card">';
+        discoverHtml += '<div class="discover-source-badge">TheCocktailDB</div>';
+        discoverHtml += '<div class="discover-card-name">' + d.strDrink + '</div>';
+        discoverHtml += '<div class="discover-card-ings">' + ings.slice(0,5).join(' \u00b7 ') + (ings.length > 5 ? ' \u00b7 \u2026' : '') + '</div>';
+        discoverHtml += '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">';
+        if (alreadyHave) {
+          discoverHtml += '<button class="discover-add-btn" disabled style="opacity:0.45;cursor:default;">\u2713 In Collection</button>';
+        } else {
+          discoverHtml += '<button class="discover-add-btn" onclick="importDiscoveredCocktail(\'' + encoded + '\')">+ Add to My Bar</button>';
+        }
+        discoverHtml += '<a href="https://www.thecocktaildb.com/cocktail/' + d.idDrink + '" target="_blank" style="font-size:11px;color:var(--text3);text-decoration:none;">';
+        discoverHtml += 'View recipe \u2197</a>';
+        discoverHtml += '</div></div>';
+      });
 
-  } catch(e) {
-    document.getElementById("discover-section").innerHTML =
-      `<div class="bottle-section-title">Discover · TheCocktailDB</div>
-       <div class="bottle-empty">Couldn't load online suggestions — check your connection.</div>`;
+      document.getElementById("discover-section").innerHTML =
+        '<div class="bottle-section-title">Discover \u00b7 TheCocktailDB</div>' +
+        '<div class="discover-grid">' + discoverHtml + '</div>';
+
+    } catch(fetchErr) {
+      const ds = document.getElementById("discover-section");
+      if (ds) ds.innerHTML = '<div class="bottle-section-title">Discover</div><div class="bottle-empty">Couldn\'t load online suggestions.</div>';
+    }
+
+  } catch(err) {
+    toast("Error: " + err.message);
+    console.error("openBottleModal error:", err);
   }
 }
+
+
 
 function importDiscoveredCocktail(encoded) {
   const raw = JSON.parse(decodeURIComponent(encoded));
