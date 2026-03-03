@@ -1855,6 +1855,13 @@ const DEFAULT_COCKTAILS = [
 
 // ── STATE ────────────────────────────────────────────────────────────────────
 
+// Version bump forces localStorage to reset when default inventory changes
+const INV_VERSION = "v4";
+if (localStorage.getItem('vadi_inv_version') !== INV_VERSION) {
+  localStorage.removeItem('vadi_inv');
+  localStorage.setItem('vadi_inv_version', INV_VERSION);
+}
+
 let state = {
   inventory: JSON.parse(localStorage.getItem('vadi_inv')) || JSON.parse(JSON.stringify(DEFAULT_INVENTORY)),
   cocktails: JSON.parse(localStorage.getItem('vadi_cocktails')) || JSON.parse(JSON.stringify(DEFAULT_COCKTAILS)),
