@@ -2234,7 +2234,13 @@ const DEFAULT_COCKTAILS = [
 // ── STATE ────────────────────────────────────────────────────────────────────
 
 // Version bump forces localStorage to reset when default inventory changes
-const INV_VERSION = "v4";
+const INV_VERSION = "v5";
+// Clean up any accidentally-added placeholder cocktails
+const savedCocktails = JSON.parse(localStorage.getItem('vadi_cocktails'));
+if (savedCocktails) {
+  const cleaned = savedCocktails.filter(function(c){ return c.name !== 'Search on Liquor.com'; });
+  if (cleaned.length !== savedCocktails.length) localStorage.setItem('vadi_cocktails', JSON.stringify(cleaned));
+}
 if (localStorage.getItem('vadi_inv_version') !== INV_VERSION) {
   localStorage.removeItem('vadi_inv');
   localStorage.setItem('vadi_inv_version', INV_VERSION);
@@ -2854,6 +2860,17 @@ async function recipeSearch() {
 
   var html = '<div class="recipe-results-grid">';
   all.forEach(function(r) {
+    // Link-only cards (e.g. Liquor.com fallback) — show as external link, never as addable
+    if (r.isLink) {
+      html += '<div class="recipe-result-card">';
+      html += '<div class="recipe-result-card-source">' + r.source + '</div>';
+      html += '<div class="recipe-result-card-name">Browse ' + r.source + '</div>';
+      html += '<div class="recipe-result-card-ings" style="color:var(--text3)">Search results available on their website</div>';
+      html += '<a href="' + r.url + '" target="_blank" style="display:block;margin-top:12px;">';
+      html += '<button class="recipe-result-card-add" style="background:var(--bg3);color:var(--gold);border:1px solid var(--border2);">Open ' + r.source + ' ↗</button>';
+      html += '</a></div>';
+      return;
+    }
     var alreadyHave = state.cocktails.some(function(c){ return c.name.toLowerCase() === r.name.toLowerCase(); });
     var ingsPreview = r.ingredients.slice(0,5).join(', ') + (r.ingredients.length > 5 ? '…' : '');
     var encoded = encodeURIComponent(JSON.stringify(r));
@@ -2957,6 +2974,7 @@ async function searchLiquorCom(q) {
           ingredients: ['See full recipe on Liquor.com'],
           steps: ['Visit Liquor.com for full instructions.'],
           mood: [],
+          isLink: true,
           url: href ? (href.startsWith('http') ? href : 'https://www.liquor.com' + href) : ''
         });
       });
@@ -2973,12 +2991,12 @@ async function searchLiquorCom(q) {
     return results;
   } catch(e) {
     return [{ 
-      name: 'Search on Liquor.com', source: 'Liquor.com',
-      glass: 'Rocks', method: 'Shake', garnish: '', notes: '',
-      ingredients: ['Open Liquor.com to view full recipe'],
-      steps: ['Visit liquor.com to see the full recipe for "' + q + '".'],
-      mood: [],
-      url: 'https://www.liquor.com/search/?q=' + encodeURIComponent(q) + '&type=recipe'
+      name: 'Search on Liquor.com',
+      source: 'Liquor.com',
+      isLink: true,
+      url: 'https://www.liquor.com/search/?q=' + encodeURIComponent(q) + '&type=recipe',
+      ingredients: [], steps: [], mood: [],
+      glass: 'Rocks', method: 'Shake', garnish: '', notes: ''
     }];
   }
 }
