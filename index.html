@@ -1474,6 +1474,100 @@
   .btn-cart:hover { background:rgba(201,168,76,0.2); }
   .btn-cart.in-cart { color:var(--green); border-color:var(--green); background:rgba(74,140,92,0.1); }
 
+
+  /* ── RECIPE SEARCH ── */
+  .recipe-search-box {
+    display: flex; gap: 8px; margin-bottom: 8px;
+  }
+  .recipe-search-input {
+    flex: 1;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 10px; padding: 13px 16px;
+    color: var(--text); font-family: 'Jost', sans-serif;
+    font-size: 15px; font-weight: 300; outline: none;
+    transition: border-color 0.2s;
+  }
+  .recipe-search-input:focus { border-color: var(--gold); }
+  .recipe-search-btn {
+    padding: 13px 20px; border-radius: 10px;
+    background: var(--gold3); border: none; color: var(--bg);
+    font-family: 'Jost', sans-serif; font-size: 13px;
+    font-weight: 500; letter-spacing: 0.08em; cursor: pointer;
+    transition: background 0.2s; white-space: nowrap;
+  }
+  .recipe-search-btn:hover { background: var(--gold); }
+  .recipe-search-source-tabs {
+    display: flex; gap: 4px; margin-bottom: 16px;
+  }
+  .recipe-search-source-tab {
+    padding: 6px 14px; border-radius: 6px; font-size: 11px;
+    letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--text3); font-family: 'Jost', sans-serif;
+    transition: all 0.2s;
+  }
+  .recipe-search-source-tab.active {
+    background: var(--card2); color: var(--gold); border-color: var(--border2);
+  }
+  .recipe-results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px; margin-bottom: 24px;
+  }
+  .recipe-result-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px; cursor: pointer;
+    transition: all 0.22s; position: relative;
+  }
+  .recipe-result-card:hover { border-color: var(--gold3); background: var(--card2); transform: translateY(-1px); }
+  .recipe-result-card-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 19px; color: var(--cream); margin-bottom: 5px; font-weight: 500;
+  }
+  .recipe-result-card-source {
+    font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--gold3); margin-bottom: 8px;
+  }
+  .recipe-result-card-ings {
+    font-size: 12px; color: var(--text2); line-height: 1.65;
+  }
+  .recipe-result-card-add {
+    margin-top: 12px; width: 100%;
+    padding: 9px; border-radius: 8px;
+    background: var(--gold3); border: none;
+    color: var(--bg); font-family: 'Jost', sans-serif;
+    font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .recipe-result-card-add:hover { background: var(--gold); }
+  .recipe-result-card-add.saved { background: var(--green); }
+  .recipe-search-empty {
+    text-align: center; padding: 40px 20px;
+    color: var(--text3); font-style: italic; font-size: 14px;
+  }
+  .recipe-search-loading {
+    display: flex; align-items: center; gap: 10px;
+    color: var(--text3); font-size: 13px; padding: 30px 0;
+    justify-content: center;
+  }
+  .add-divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 24px 0; color: var(--text3); font-size: 11px;
+    letter-spacing: 0.15em; text-transform: uppercase;
+  }
+  .add-divider::before, .add-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .add-page-section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px; color: var(--cream); font-weight: 400;
+    font-style: italic; margin-bottom: 6px;
+  }
+  .add-page-section-sub {
+    font-size: 12px; color: var(--text3); letter-spacing: 0.1em;
+    text-transform: uppercase; margin-bottom: 20px;
+  }
+
 </style>
 </head>
 <body>
@@ -1672,13 +1766,27 @@
   <!-- ── ADD RECIPE PAGE ── -->
   <div id="page-add" class="page">
     <div class="add-page">
-      <div class="inv-header" style="margin-bottom:28px;">
-        <div>
-          <div class="page-title">New Recipe</div>
-          <div class="page-subtitle">Add to your house collection</div>
-        </div>
-      </div>
 
+      <!-- SEARCH SECTION -->
+      <div class="add-page-section-title">Find a Recipe</div>
+      <div class="add-page-section-sub">Search and add with one tap</div>
+
+      <div class="recipe-search-box">
+        <input type="text" class="recipe-search-input" id="recipe-search-input"
+          placeholder="e.g. Espresso Martini, Clover Club…"
+          onkeydown="if(event.key==='Enter') recipeSearch()">
+        <button class="recipe-search-btn" onclick="recipeSearch()" id="recipe-search-btn">Search</button>
+      </div>
+      <div class="recipe-search-source-tabs">
+        <button class="recipe-search-source-tab active" id="src-tab-all" onclick="setSearchSource('all', this)">All Sources</button>
+        <button class="recipe-search-source-tab" id="src-tab-cdb" onclick="setSearchSource('cdb', this)">TheCocktailDB</button>
+        <button class="recipe-search-source-tab" id="src-tab-liquor" onclick="setSearchSource('liquor', this)">Liquor.com</button>
+      </div>
+      <div id="recipe-search-results"></div>
+
+      <div class="add-divider">or create from scratch</div>
+
+      <!-- MANUAL FORM -->
       <div class="form-row">
         <div class="form-field" style="flex:2;">
           <label>Cocktail Name</label>
@@ -2699,6 +2807,305 @@ function clearRecipeForm() {
   document.getElementById('step-list').innerHTML = '';
   initIngRows();
   initStepRows();
+}
+
+// ── RECIPE SEARCH ─────────────────────────────────────────────────────────────
+
+let searchSource = 'all';
+
+function setSearchSource(src, el) {
+  searchSource = src;
+  document.querySelectorAll('.recipe-search-source-tab').forEach(function(t){ t.classList.remove('active'); });
+  el.classList.add('active');
+  // Re-run search if there's already a query
+  var q = document.getElementById('recipe-search-input').value.trim();
+  if (q) recipeSearch();
+}
+
+async function recipeSearch() {
+  var q = document.getElementById('recipe-search-input').value.trim();
+  if (!q) { toast('Type a cocktail name to search'); return; }
+  var btn = document.getElementById('recipe-search-btn');
+  var res = document.getElementById('recipe-search-results');
+  btn.textContent = '…';
+  btn.disabled = true;
+  res.innerHTML = '<div class="recipe-search-loading"><span class="spin-anim">⟳</span> Searching ' + (searchSource === 'cdb' ? 'TheCocktailDB' : searchSource === 'liquor' ? 'Liquor.com' : 'all sources') + '…</div>';
+
+  var cdbResults = [];
+  var liquorResults = [];
+
+  try {
+    if (searchSource === 'all' || searchSource === 'cdb') {
+      cdbResults = await searchCocktailDB(q);
+    }
+    if (searchSource === 'all' || searchSource === 'liquor') {
+      liquorResults = await searchLiquorCom(q);
+    }
+  } catch(e) { /* handled per-source */ }
+
+  btn.textContent = 'Search';
+  btn.disabled = false;
+
+  var all = cdbResults.concat(liquorResults);
+  if (!all.length) {
+    res.innerHTML = '<div class="recipe-search-empty">No results found for "' + q + '".<br>Try a different spelling or search the other source.</div>';
+    return;
+  }
+
+  var html = '<div class="recipe-results-grid">';
+  all.forEach(function(r) {
+    var alreadyHave = state.cocktails.some(function(c){ return c.name.toLowerCase() === r.name.toLowerCase(); });
+    var ingsPreview = r.ingredients.slice(0,5).join(', ') + (r.ingredients.length > 5 ? '…' : '');
+    var encoded = encodeURIComponent(JSON.stringify(r));
+    html += '<div class="recipe-result-card">';
+    html += '<div class="recipe-result-card-source">' + r.source + '</div>';
+    html += '<div class="recipe-result-card-name">' + r.name + '</div>';
+    html += '<div class="recipe-result-card-ings">' + ingsPreview + '</div>';
+    if (alreadyHave) {
+      html += '<button class="recipe-result-card-add saved" disabled>✓ In Collection</button>';
+    } else {
+      html += '<button class="recipe-result-card-add" onclick="oneClickAddRecipe(\'' + encoded + '\', this)">+ Add to My Bar</button>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  res.innerHTML = html;
+}
+
+async function searchCocktailDB(q) {
+  var url = 'https://www.thecocktaildb.com/api/json/v1/1/search.php?s=' + encodeURIComponent(q);
+  var resp = await fetch(url);
+  var data = await resp.json();
+  if (!data.drinks) return [];
+
+  return data.drinks.slice(0, 8).map(function(d) {
+    var ings = [];
+    for (var n = 1; n <= 15; n++) {
+      var ing = d['strIngredient' + n];
+      var msr = d['strMeasure' + n];
+      if (ing && ing.trim()) ings.push((msr ? msr.trim() + ' ' : '') + ing.trim());
+    }
+    var steps = [];
+    if (d.strInstructions) {
+      // Split instructions into sentences
+      steps = d.strInstructions.split(/\.\s+/).filter(Boolean).map(function(s){ return s.trim().replace(/\.$/, '') + '.'; });
+    }
+    return {
+      name: d.strDrink,
+      source: 'TheCocktailDB',
+      glass: normalizeGlass(d.strGlass || ''),
+      method: guessMethod(d.strCategory || '', d.strInstructions || ''),
+      garnish: '',
+      notes: '',
+      ingredients: ings,
+      steps: steps,
+      mood: []
+    };
+  });
+}
+
+// Liquor.com via CORS proxy — we scrape their search page
+async function searchLiquorCom(q) {
+  try {
+    var proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://www.liquor.com/search/?q=' + encodeURIComponent(q) + '&type=recipe');
+    var resp = await fetch(proxyUrl);
+    if (!resp.ok) throw new Error('proxy failed');
+    var html = await resp.text();
+
+    // Parse recipe cards from liquor.com HTML
+    var results = [];
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(html, 'text/html');
+
+    // liquor.com search results use structured article cards
+    var cards = doc.querySelectorAll('[data-tax-cocktail-spirit], .card--recipe, .recipe-listing, article.card');
+    if (!cards.length) {
+      // Fallback: look for any links with cocktail-style URLs
+      var links = doc.querySelectorAll('a[href*="/recipe/"]');
+      var seen = new Set();
+      links.forEach(function(a) {
+        var name = a.textContent.trim() || a.getAttribute('aria-label') || '';
+        name = name.replace(/\s+/g, ' ').trim();
+        if (name.length > 3 && !seen.has(name) && results.length < 5) {
+          seen.add(name);
+          results.push({
+            name: name,
+            source: 'Liquor.com',
+            glass: 'Rocks',
+            method: 'Shake',
+            garnish: '',
+            notes: '',
+            ingredients: ['See full recipe on Liquor.com'],
+            steps: ['Visit Liquor.com for full instructions.'],
+            mood: [],
+            url: 'https://www.liquor.com' + (a.getAttribute('href') || '')
+          });
+        }
+      });
+    } else {
+      cards.forEach(function(card) {
+        if (results.length >= 5) return;
+        var nameEl = card.querySelector('h2, h3, .card__title, [class*="title"]');
+        var name = nameEl ? nameEl.textContent.trim() : '';
+        if (!name || name.length < 3) return;
+        var href = card.querySelector('a') ? card.querySelector('a').getAttribute('href') : '';
+        results.push({
+          name: name,
+          source: 'Liquor.com',
+          glass: 'Rocks', method: 'Shake',
+          garnish: '', notes: '',
+          ingredients: ['See full recipe on Liquor.com'],
+          steps: ['Visit Liquor.com for full instructions.'],
+          mood: [],
+          url: href ? (href.startsWith('http') ? href : 'https://www.liquor.com' + href) : ''
+        });
+      });
+    }
+
+    // If we have URLs, try to fetch the first recipe detail
+    if (results.length && results[0].url) {
+      try {
+        var detail = await fetchLiquorComRecipe(results[0].url);
+        if (detail) Object.assign(results[0], detail);
+      } catch(e) {}
+    }
+
+    return results;
+  } catch(e) {
+    return [{ 
+      name: 'Search on Liquor.com', source: 'Liquor.com',
+      glass: 'Rocks', method: 'Shake', garnish: '', notes: '',
+      ingredients: ['Open Liquor.com to view full recipe'],
+      steps: ['Visit liquor.com to see the full recipe for "' + q + '".'],
+      mood: [],
+      url: 'https://www.liquor.com/search/?q=' + encodeURIComponent(q) + '&type=recipe'
+    }];
+  }
+}
+
+async function fetchLiquorComRecipe(url) {
+  try {
+    var proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+    var resp = await fetch(proxyUrl);
+    if (!resp.ok) return null;
+    var html = await resp.text();
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(html, 'text/html');
+
+    var ings = [];
+    doc.querySelectorAll('[class*="ingredient"], .structured-ingredients__list-item, li[class*="ingredient"]').forEach(function(el) {
+      var t = el.textContent.trim().replace(/\s+/g, ' ');
+      if (t) ings.push(t);
+    });
+
+    var steps = [];
+    doc.querySelectorAll('[class*="instruction"] li, [class*="direction"] li, .recipe-steps li').forEach(function(el) {
+      var t = el.textContent.trim().replace(/\s+/g, ' ');
+      if (t) steps.push(t);
+    });
+
+    var garnishEl = doc.querySelector('[class*="garnish"]');
+    var garnish = garnishEl ? garnishEl.textContent.trim() : '';
+
+    var glassEl = doc.querySelector('[class*="glass"]');
+    var glass = glassEl ? normalizeGlass(glassEl.textContent) : 'Rocks';
+
+    return ings.length ? { ingredients: ings, steps: steps, garnish: garnish, glass: glass, notes: url } : null;
+  } catch(e) { return null; }
+}
+
+function normalizeGlass(str) {
+  str = str.toLowerCase();
+  if (str.includes('highball') || str.includes('collins')) return 'Highball';
+  if (str.includes('coupe') || str.includes('cocktail')) return 'Coupe';
+  if (str.includes('martini')) return 'Martini';
+  if (str.includes('mug') || str.includes('mule')) return 'Mug';
+  if (str.includes('nick') || str.includes('nora')) return 'Nick & Nora';
+  return 'Rocks';
+}
+
+function guessMethod(category, instructions) {
+  var t = (category + ' ' + instructions).toLowerCase();
+  if (t.includes('build')) return 'Build';
+  if (t.includes('blend')) return 'Blend';
+  if (t.includes('stir')) return 'Stir';
+  return 'Shake';
+}
+
+function oneClickAddRecipe(encoded, btnEl) {
+  var r = JSON.parse(decodeURIComponent(encoded));
+
+  // Check duplicate
+  if (state.cocktails.some(function(c){ return c.name.toLowerCase() === r.name.toLowerCase(); })) {
+    toast(r.name + ' is already in your collection');
+    return;
+  }
+
+  // Parse ingredients into structured objects
+  var parsedIngs = r.ingredients.map(function(s) {
+    // Match "2 oz Gin" or "1/2 oz Sweet Vermouth" patterns
+    var m = s.match(/^([\d\s\/\.]+(?:oz|cl|ml|tsp|tbsp|dashes?|dash|cup|parts?|whole)?\.?)\s*(.+)$/i);
+    var amount = m ? m[1].trim() : '';
+    var name = m ? m[2].trim() : s.trim();
+    // Guess kind from name
+    var kind = guessKindFromName(name);
+    return { name: name, amount: amount, kind: kind };
+  });
+
+  var steps = r.steps && r.steps.length ? r.steps : ['Prepare ingredients.', 'Combine and ' + (r.method || 'shake').toLowerCase() + '.', 'Strain and serve.'];
+
+  var newCocktail = {
+    id: 'c' + Date.now(),
+    name: r.name,
+    glass: r.glass || 'Rocks',
+    method: r.method || 'Shake',
+    liked: false,
+    house: false,
+    garnish: r.garnish || '',
+    source: r.source || '',
+    notes: r.notes || '',
+    mood: r.mood || [],
+    ingredients: parsedIngs,
+    steps: steps
+  };
+
+  state.cocktails.push(newCocktail);
+  save();
+  renderCocktails();
+
+  if (btnEl) {
+    btnEl.textContent = '✓ Added!';
+    btnEl.classList.add('saved');
+    btnEl.disabled = true;
+  }
+  toast(r.name + ' added to your collection 🍹');
+}
+
+function guessKindFromName(name) {
+  var n = name.toLowerCase();
+  var kindMap = [
+    ['gin', 'Gin'], ['vodka', 'Vodka'],
+    ['rum', 'Rum'], ['bourbon', 'Bourbon'], ['rye', 'Rye Whiskey'],
+    ['scotch', 'Blended Scotch'], ['whiskey', 'Bourbon'], ['whisky', 'Blended Scotch'],
+    ['tequila', 'Tequila'], ['mezcal', 'Mezcal'], ['cognac', 'Cognac'],
+    ['brandy', 'Cognac'], ['cachaca', 'Cachaca'],
+    ['sweet vermouth', 'Sweet Vermouth'], ['dry vermouth', 'Dry Vermouth'], ['vermouth', 'Sweet Vermouth'],
+    ['campari', 'Campari'], ['aperol', 'Aperol'],
+    ['triple sec', 'Triple Sec'], ['cointreau', 'Triple Sec'], ['grand marnier', 'Triple Sec'],
+    ['benedictine', 'Herbal Liqueur'], ['chartreuse', 'Herbal Liqueur'], ['drambuie', 'Herbal Liqueur'],
+    ['fernet', 'Amaro'], ['amaro', 'Amaro'],
+    ['coffee liqueur', 'Coffee Liqueur'], ['kahlua', 'Coffee Liqueur'],
+    ['baileys', 'Cream Liqueur'], ['cream liqueur', 'Cream Liqueur'],
+    ['simple syrup', 'Simple Syrup'], ['honey', 'Honey Ginger Syrup'],
+    ['grenadine', 'Grenadine'], ['orgeat', 'Orgeat'],
+    ['lemon juice', 'Lemon Juice'], ['lime juice', 'Lime Juice'],
+    ['angostura', 'Angostura Bitters'], ['bitters', 'Angostura Bitters'],
+    ['egg white', 'Egg White'],
+  ];
+  for (var i = 0; i < kindMap.length; i++) {
+    if (n.includes(kindMap[i][0])) return kindMap[i][1];
+  }
+  return name; // fallback: use name itself as kind
 }
 
 // ── BACKUP ────────────────────────────────────────────────────────────────────
