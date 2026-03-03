@@ -2421,71 +2421,24 @@ function clearRecipeForm() {
 
 // ── SMART ADD ────────────────────────────────────────────────────────────────
 
-function getApiKey() {
-  return localStorage.getItem("vadi_apikey") || "";
-}
-
-function saveApiKey(key) {
-  localStorage.setItem("vadi_apikey", key.trim());
-}
-
-async function smartAddLookup() {
+function smartAddLookup() {
   const input = document.getElementById("smart-add-input");
-  const btn = document.getElementById("smart-add-btn");
   const resultEl = document.getElementById("smart-add-result");
+  const btn = document.getElementById("smart-add-btn");
   const query = input.value.trim();
   if (!query) { toast("Type a spirit or ingredient name first"); return; }
 
-  // Check for API key
-  let apiKey = getApiKey();
-  if (!apiKey) {
-    resultEl.className = "smart-add-result show";
-    resultEl.innerHTML =
-      "<div style=\"font-size:13px;color:var(--text2);margin-bottom:10px;\">Smart Add needs your Anthropic API key (one-time setup, saved on this device).</div>" +
-      "<div style=\"display:flex;gap:8px;margin-bottom:8px;\">" +
-        "<input id=\"apikey-input\" type=\"password\" class=\"smart-add-input\" placeholder=\"sk-ant-…\" style=\"font-size:12px;\">" +
-        "<button class=\"btn btn-gold\" onclick=\"applyApiKey()\">Save</button>" +
-      "</div>" +
-      "<div style=\"font-size:11px;color:var(--text3);\">Get a key at <a href=\"https://console.anthropic.com\" target=\"_blank\" style=\"color:var(--gold3)\">console.anthropic.com</a> — stored only in your browser, never sent anywhere else.</div>";
-    return;
-  }
-
-  btn.textContent = "…";
-  btn.disabled = true;
   resultEl.className = "smart-add-result show";
   resultEl.innerHTML = "<div class=\"smart-add-loading\"><span class=\"spin-anim\">⟳</span> Looking up " + query + "…</div>";
 
-  try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 300,
-        system: "You are a bar inventory assistant. When given a spirit or ingredient name, respond ONLY with a JSON object — no markdown, no extra text — with these exact fields: label (full product name as string), cat (one of: Spirit, Modifier, Syrup, Pantry), kind (broad cocktail-recipe kind e.g. Gin, Rum, Vodka, Bourbon, Sweet Vermouth, Amaro, Triple Sec, Grenadine, Angostura Bitters), desc (one sentence), country (origin), abv (string, empty if not a spirit). Spirits go in Spirit. Vermouths, liqueurs, aperitifs go in Modifier. Syrups and sweeteners go in Syrup. Bitters, fresh juices, eggs go in Pantry.",
-        messages: [{ role: "user", content: "Categorize for a home bar: " + query }]
-      })
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      if (err.error && err.error.type === "authentication_error") {
-        localStorage.removeItem("vadi_apikey");
-        throw new Error("Invalid API key — please re-enter it.");
-      }
-      throw new Error(err.error?.message || "API error " + response.status);
+  setTimeout(() => {
+    const info = localSpritLookup(query);
+    if (!info) {
+      resultEl.innerHTML =
+        "<div style=\"color:var(--text2);font-size:13px;margin-bottom:12px;\">Couldn\'t identify <strong style=\"color:var(--cream)\">" + query + "</strong> — fill in the details below and add manually.</div>" +
+        "<button class=\"btn btn-outline\" onclick=\"document.getElementById('smart-add-result').className='smart-add-result'\">Dismiss</button>";
+      return;
     }
-
-    const data = await response.json();
-    let text = (data.content || []).find(b => b.type === "text")?.text || "";
-    text = text.replace(/```json|```/g, "").trim();
-    const info = JSON.parse(text);
-
     const infoStr = JSON.stringify(info).replace(/"/g, "&quot;");
     resultEl.innerHTML =
       "<div class=\"smart-add-result-name\">" + info.label + "</div>" +
@@ -2493,35 +2446,258 @@ async function smartAddLookup() {
         "<span class=\"smart-add-tag\">" + info.cat + "</span>" +
         "<span class=\"smart-add-tag\">" + info.kind + "</span>" +
         (info.country ? "<span class=\"smart-add-tag\">" + info.country + "</span>" : "") +
-        (info.abv ? "<span class=\"smart-add-tag\">" + info.abv + " ABV</span>" : "") +
+        (info.abv ? "<span class=\"smart-add-tag\">" + info.abv + "</span>" : "") +
       "</div>" +
       "<div class=\"smart-add-desc\">" + info.desc + "</div>" +
       "<div style=\"display:flex;gap:10px;flex-wrap:wrap;\">" +
         "<button class=\"btn btn-gold\" onclick=\"confirmSmartAdd(this)\" data-info=\"" + infoStr + "\">Add to Bar</button>" +
         "<button class=\"btn btn-outline\" onclick=\"document.getElementById('smart-add-result').className='smart-add-result'\">Cancel</button>" +
-        "<button class=\"btn btn-outline\" style=\"font-size:10px;color:var(--text3);\" onclick=\"localStorage.removeItem('vadi_apikey');toast('API key cleared')\">Clear Key</button>" +
       "</div>";
+  }, 300);
+}
 
-  } catch(err) {
-    resultEl.innerHTML =
-      "<div style=\"color:var(--red);font-size:13px;margin-bottom:10px;\">" + (err.message || "Could not look up that item.") + "</div>" +
-      "<div style=\"display:flex;gap:8px;\">" +
-        "<button class=\"btn btn-outline\" onclick=\"document.getElementById('smart-add-result').className='smart-add-result'\">Dismiss</button>" +
-        "<button class=\"btn btn-outline\" onclick=\"localStorage.removeItem('vadi_apikey');document.getElementById('smart-add-result').className='smart-add-result';toast('API key cleared — re-enter on next lookup')\">Reset Key</button>" +
-      "</div>";
+function localSpritLookup(query) {
+  const q = query.toLowerCase().trim();
+
+  // ── KNOWLEDGE BASE ────────────────────────────────────────────────────────
+  // Each entry: [matchTerms, label, cat, kind, country, abv, desc]
+  const DB = [
+    // GIN
+    [["tanqueray ten","tanqueray 10","tanqueray no ten"],"Tanqueray No. Ten","Spirit","Gin","UK","47.3%","Premium London Dry gin with fresh citrus character."],
+    [["tanqueray rangpur","rangpur"],"Tanqueray Rangpur","Spirit","Gin","UK","41.3%","Tanqueray infused with Rangpur lime for a citrus-forward gin."],
+    [["tanqueray"],"Tanqueray","Spirit","Gin","UK","43.1%","Classic London Dry gin, one of the world's top selling gins."],
+    [["hendrick","hendricks"],"Hendrick's Gin","Spirit","Gin","UK","41.4%","Scottish gin infused with rose and cucumber."],
+    [["bombay sapphire","bombay"],"Bombay Sapphire","Spirit","Gin","UK","40%","Delicate London Dry gin with 10 botanicals."],
+    [["beefeater"],"Beefeater","Spirit","Gin","UK","40%","Classic London Dry gin, distilled in London since 1863."],
+    [["monkey 47"],"Monkey 47","Spirit","Gin","Germany","47%","Black Forest dry gin with 47 botanicals."],
+    [["roku"],"Roku Gin","Spirit","Gin","Japan","43%","Japanese craft gin with six unique Japanese botanicals."],
+    [["gin mare"],"Gin Mare","Spirit","Gin","Spain","42.7%","Mediterranean gin with olives, rosemary, thyme and basil."],
+    [["malfy"],"Malfy Gin","Spirit","Gin","Italy","41%","Italian gin distilled with Amalfi coast citrus."],
+    [["aviation"],"Aviation Gin","Spirit","Gin","USA","42%","American gin with lavender and sarsaparilla botanicals."],
+    [["deer premium","deer gin"],"Deer Premium Dry","Spirit","Gin","Israel","40%","Israeli dry gin with local botanicals."],
+    [["dafina"],"Dafina Gin","Spirit","Gin","Israel","40%","Israeli craft gin."],
+    [["gordon"],"Gordon's Gin","Spirit","Gin","UK","37.5%","Classic London Dry gin, the world's best-selling gin."],
+    [["sipsmith"],"Sipsmith London Dry","Spirit","Gin","UK","41.6%","Craft London Dry gin from Chiswick."],
+
+    // VODKA
+    [["ketel one"],"Ketel One","Spirit","Vodka","Netherlands","40%","Smooth Dutch wheat vodka, triple distilled."],
+    [["grey goose"],"Grey Goose","Spirit","Vodka","France","40%","Premium French wheat vodka from Cognac."],
+    [["belvedere"],"Belvedere","Spirit","Vodka","Poland","40%","Luxury Polish rye vodka."],
+    [["absolut"],"Absolut Vodka","Spirit","Vodka","Sweden","40%","Clean Swedish wheat vodka."],
+    [["stolichnaya vanilla","stoli vanilla"],"Stolichnaya Vanilla","Spirit","Vodka","Latvia","37.5%","Stolichnaya infused with natural vanilla."],
+    [["stolichnaya","stoli"],"Stolichnaya","Spirit","Vodka","Latvia","40%","Classic Russian-style wheat and rye vodka."],
+    [["ciroc","cîroc"],"Cîroc","Spirit","Vodka","France","40%","Ultra-premium vodka made from French grapes."],
+    [["van gogh acai","van gogh blueberry"],"Van Gogh Acai Blueberry","Spirit","Vodka","Netherlands","35%","Dutch flavoured vodka with acai and blueberry."],
+    [["van gogh"],"Van Gogh Vodka","Spirit","Vodka","Netherlands","40%","Dutch multi-distilled wheat vodka."],
+    [["berlin vodka","berliner"],"Berlin Vodka","Spirit","Vodka","Germany","40%","German vodka with clean grain character."],
+    [["tito","tito's"],"Tito's Handmade","Spirit","Vodka","USA","40%","Texas corn vodka, gluten-free."],
+    [["smirnoff"],"Smirnoff","Spirit","Vodka","UK","40%","World's best-selling vodka."],
+
+    // RUM
+    [["el supremo","supremo"],"El Supremo 8","Spirit","Rum","Dominican Republic","40%","Aged Dominican rum with smooth caramel notes."],
+    [["kraken black spiced","kraken black","the kraken"],"The Kraken Black Spiced","Spirit","Rum","Trinidad","47%","Bold black spiced rum with 13 secret spices."],
+    [["kraken"],"The Kraken Black Spiced","Spirit","Rum","Trinidad","47%","Bold black spiced rum with 13 secret spices."],
+    [["calypso red","calypso"],"Calypso Red Rum","Spirit","Rum","Caribbean","37.5%","Caribbean dark rum with smooth molasses character."],
+    [["smith & cross","smith and cross"],"Smith & Cross","Spirit","Rum","Jamaica","57%","Traditional pot still Jamaican rum, full-proof and funky."],
+    [["appleton estate","appleton"],"Appleton Estate","Spirit","Rum","Jamaica","43%","Classic Jamaican blended rum."],
+    [["diplomatico","diplomático"],"Diplomático Reserva","Spirit","Rum","Venezuela","40%","Rich Venezuelan rum aged up to 12 years."],
+    [["havana club"],"Havana Club 7","Spirit","Rum","Cuba","40%","Classic aged Cuban rum."],
+    [["bacardi"],"Bacardi Superior","Spirit","Rum","Puerto Rico","40%","Classic light Puerto Rican rum."],
+    [["mount gay"],"Mount Gay Eclipse","Spirit","Rum","Barbados","40%","Barbadian rum, world's oldest rum brand."],
+    [["plantation"],"Plantation Rum","Spirit","Rum","Barbados","40%","Double-aged Barbados rum finished in Cognac casks."],
+    [["takamaka"],"Takamaka Zepis Kreol","Spirit","Rum","Seychelles","43%","Seychellois spiced rum with island botanicals."],
+    [["jang","wulff","barbados rum"],"Jang & Wulff Barbados No.3","Spirit","Rum","Barbados","40%","Small batch Barbados rum."],
+
+    // BOURBON
+    [["woodford reserve bourbon","woodford bourbon"],"Woodford Reserve Bourbon","Spirit","Bourbon","USA","43.2%","Small batch Kentucky bourbon with rich dried fruit notes."],
+    [["woodford reserve rye","woodford rye"],"Woodford Reserve Rye","Spirit","Rye Whiskey","USA","45.2%","Kentucky straight rye whiskey with spicy character."],
+    [["woodford"],"Woodford Reserve","Spirit","Bourbon","USA","43.2%","Small batch Kentucky straight bourbon."],
+    [["1792","1792 ridgewood","ridgewood reserve"],"1792 Ridgewood Reserve","Spirit","Bourbon","USA","44%","High rye Kentucky straight bourbon."],
+    [["bulleit bourbon","bulleit"],"Bulleit Bourbon","Spirit","Bourbon","USA","45%","High rye frontier bourbon."],
+    [["makers mark","maker's mark"],"Maker's Mark","Spirit","Bourbon","USA","45%","Smooth wheated Kentucky bourbon."],
+    [["wild turkey"],"Wild Turkey 101","Spirit","Bourbon","USA","50.5%","Classic Kentucky bourbon at full proof."],
+    [["buffalo trace"],"Buffalo Trace","Spirit","Bourbon","USA","40%","Classic Kentucky straight bourbon."],
+    [["four roses"],"Four Roses","Spirit","Bourbon","USA","40%","Smooth, approachable Kentucky bourbon."],
+    [["knob creek"],"Knob Creek","Spirit","Bourbon","USA","50%","Full-proof small batch bourbon."],
+
+    // RYE WHISKEY
+    [["rittenhouse"],"Rittenhouse Rye","Spirit","Rye Whiskey","USA","50%","Bonded Pennsylvania-style straight rye whiskey."],
+    [["sazerac rye","sazerac"],"Sazerac Rye","Spirit","Rye Whiskey","USA","45%","Classic Buffalo Trace rye whiskey."],
+    [["whistlepig"],"WhistlePig Rye","Spirit","Rye Whiskey","USA","50%","Vermont-bottled 100% rye whiskey."],
+
+    // BLENDED SCOTCH
+    [["compass box spice tree","spice tree"],"Compass Box Spice Tree","Spirit","Blended Scotch","UK","46%","Blended malt Scotch with cinnamon and nutmeg spice."],
+    [["talisker select","talisker"],"Talisker Select Reserve","Spirit","Blended Scotch","UK","45.8%","Isle of Skye Scotch with coastal smokiness."],
+    [["jameson"],"Jameson Irish Whiskey","Spirit","Blended Scotch","Ireland","40%","Smooth triple-distilled Irish whiskey."],
+    [["monkey shoulder"],"Monkey Shoulder","Spirit","Blended Scotch","UK","40%","Blended malt Scotch using Speyside malts."],
+    [["chivas"],"Chivas Regal 12","Spirit","Blended Scotch","UK","40%","Classic Speyside blended Scotch."],
+    [["johnnie walker black","johnnie walker"],"Johnnie Walker Black","Spirit","Blended Scotch","UK","40%","Classic 12-year aged blended Scotch."],
+    [["dewar"],"Dewar's White Label","Spirit","Blended Scotch","UK","40%","Classic blended Scotch whisky."],
+
+    // PEATED SCOTCH
+    [["laphroaig 10","laphroaig"],"Laphroaig 10","Spirit","Peated Scotch","UK","40%","Intensely smoky Islay single malt with medicinal character."],
+    [["kilchoman machir bay","kilchoman"],"Kilchoman Machir Bay","Spirit","Peated Scotch","UK","46%","Peaty Islay single malt, lighter and more accessible than Laphroaig."],
+    [["talisker 10","talisker 10 year"],"Talisker 10","Spirit","Peated Scotch","UK","45.8%","Smoky, maritime Isle of Skye single malt."],
+    [["barrach","smoky 12"],"Barrach The Smoky 12","Spirit","Peated Scotch","UK","40%","Blended malt Scotch with prominent smokiness."],
+    [["ardbeg"],"Ardbeg 10","Spirit","Peated Scotch","UK","46%","Intensely peated Islay single malt."],
+    [["lagavulin"],"Lagavulin 16","Spirit","Peated Scotch","UK","43%","Richly peated Islay single malt."],
+    [["bowmore"],"Bowmore 12","Spirit","Peated Scotch","UK","40%","Balanced smoky Islay single malt."],
+
+    // TEQUILA
+    [["don julio 1942","don julio blanco","don julio"],"Don Julio 1942","Spirit","Tequila","Mexico","38%","Ultra-premium añejo tequila aged over two years."],
+    [["cenote anejo","cenote añejo"],"Cenote Añejo","Spirit","Tequila","Mexico","40%","Aged tequila with notes of vanilla and dried fruit."],
+    [["cenote ahumado","ahumado"],"Cenote Ahumado","Spirit","Tequila","Mexico","40%","Smoky tequila made with roasted agave hearts."],
+    [["patron silver","patrón silver","patron"],"Patron Silver","Spirit","Tequila","Mexico","40%","Ultra-premium silver tequila, clean and smooth."],
+    [["jose cuervo","cuervo"],"Jose Cuervo Especial","Spirit","Tequila","Mexico","38%","Mixto gold tequila, widely popular for mixing."],
+    [["espolon"],"Espolon Blanco","Spirit","Tequila","Mexico","40%","Additive-free highland tequila with bright citrus."],
+    [["olmeca"],"Olmeca Altos Plata","Spirit","Tequila","Mexico","38%","Highland blue agave tequila, bartender favourite."],
+    [["herradura"],"Herradura Silver","Spirit","Tequila","Mexico","40%","100% blue agave tequila aged 45 days."],
+
+    // MEZCAL
+    [["sin broca","sin broca mezcal"],"Sin Broca Mezcal Joven","Spirit","Mezcal","Mexico","40%","Artisanal joven mezcal with smoky and earthy character."],
+    [["del maguey"],"Del Maguey Vida","Spirit","Mezcal","Mexico","42%","Single village mezcal from Oaxaca, complex and smoky."],
+    [["banhez"],"Banhez Mezcal","Spirit","Mezcal","Mexico","42%","Ensemble mezcal blending espadin and barril agaves."],
+    [["wahaka"],"Wahaka Mezcal","Spirit","Mezcal","Mexico","46%","Small batch artisanal mezcal from San Dionisio Ocotepec."],
+
+    // COGNAC / BRANDY
+    [["courvoisier vs","courvoisier"],"Courvoisier VS","Spirit","Cognac","France","40%","Classic VS Cognac with light fruit and oak character."],
+    [["torres 10","torres"],"Torres 10","Spirit","Cognac","Spain","38%","Spanish aged brandy with smooth caramel and vanilla."],
+    [["remy martin","rémy martin","remy"],"Rémy Martin VSOP","Spirit","Cognac","France","40%","Fine Champagne Cognac with rich fruit and floral notes."],
+    [["hennessy"],"Hennessy VS","Spirit","Cognac","France","40%","World's best-selling Cognac, fruit-forward and approachable."],
+    [["martell"],"Martell VS","Spirit","Cognac","France","40%","Clean, elegant Cognac from the oldest of the great houses."],
+
+    // CACHACA
+    [["cachaca","cachaça","el cachaca"],"El Cachaca","Spirit","Cachaca","Brazil","40%","Brazilian spirit distilled from fresh sugarcane juice."],
+    [["leblon"],"Leblon Cachaça","Spirit","Cachaca","Brazil","40%","Premium cachaça, rested in XO Cognac barrels."],
+    [["avua"],"Avua Cachaça","Spirit","Cachaca","Brazil","42%","Artisanal cachaça from the mountains of Rio."],
+
+    // RAKIA / FRUIT BRANDY
+    [["rakia kvatka","kvatka"],"Rakia Kvatka","Spirit","Rakia","Balkans","40%","Traditional Balkan fruit brandy."],
+    [["rakia medvesica","medvesica"],"Rakia Medvesica","Spirit","Rakia","Balkans","40%","Traditional Balkan fruit brandy."],
+    [["rakia"],"Rakia","Spirit","Rakia","Balkans","40%","Traditional Balkan fruit brandy distilled from plum or grape."],
+    [["hollander apple schnapps","apple schnapps","hollander"],"Apple Schnapps (Hollander)","Spirit","Schnapps","Netherlands","20%","Dutch apple schnapps with crisp orchard fruit flavour."],
+    [["calvados"],"Calvados","Spirit","Fruit Brandy","France","40%","French apple brandy from Normandy."],
+    [["pisco"],"Pisco","Spirit","Fruit Brandy","Peru","40%","South American grape brandy."],
+
+    // SWEET VERMOUTH
+    [["carpano antica","carpano"],"Carpano Antica Formula","Modifier","Sweet Vermouth","Italy","16.5%","Rich, complex Italian sweet vermouth with vanilla and spice."],
+    [["julius vermut","julius"],"Julius Vermut","Modifier","Sweet Vermouth","Israel","16%","Israeli sweet vermouth with local botanical character."],
+    [["dolin rouge","dolin sweet","dolin red"],"Dolin Rouge","Modifier","Sweet Vermouth","France","16%","Classic French sweet vermouth from Chambéry."],
+    [["martini rosso","martini sweet"],"Martini Rosso","Modifier","Sweet Vermouth","Italy","15%","Classic Italian sweet vermouth, fruity and aromatic."],
+    [["martini bianco"],"Martini Bianco","Modifier","Sweet Vermouth","Italy","15%","White sweet vermouth with vanilla and floral notes."],
+    [["cocchi storico","cocchi"],"Cocchi Storico Vermouth di Torino","Modifier","Sweet Vermouth","Italy","16%","Complex Torino-style sweet vermouth with orange peel and spice."],
+    [["punt e mes"],"Punt e Mes","Modifier","Sweet Vermouth","Italy","16%","Bitter-sweet Italian vermouth, more bitter than standard sweet vermouth."],
+
+    // DRY VERMOUTH
+    [["dolin dry","dolin blanc"],"Dolin Dry","Modifier","Dry Vermouth","France","17.5%","Light, delicate dry vermouth from Chambéry."],
+    [["noilly prat"],"Noilly Prat","Modifier","Dry Vermouth","France","18%","Classic French dry vermouth with herbal complexity."],
+    [["martini extra dry","martini dry"],"Martini Extra Dry","Modifier","Dry Vermouth","Italy","15%","Crisp and floral Italian dry vermouth."],
+
+    // CAMPARI / APEROL
+    [["campari"],"Campari","Modifier","Campari","Italy","25%","Iconic Italian bitter aperitivo with citrus and herbs."],
+    [["aperol"],"Aperol","Modifier","Aperol","Italy","11%","Italian bitter orange aperitivo, lighter and sweeter than Campari."],
+    [["select"],"Select Aperitivo","Modifier","Campari","Italy","17.5%","Venetian bitter aperitivo, slightly more complex than Aperol."],
+
+    // AMARO / BITTER LIQUEURS
+    [["fernet branca","fernet-branca","fernet"],"Fernet-Branca","Modifier","Amaro","Italy","39%","Intensely bitter Italian amaro with 27 herbs and spices."],
+    [["averna"],"Averna","Modifier","Amaro","Italy","29%","Smooth Sicilian amaro with herbal sweetness."],
+    [["ramazzotti"],"Ramazzotti","Modifier","Amaro","Italy","30%","Milanese amaro with 33 herbs, milder and more approachable."],
+    [["montenegro"],"Amaro Montenegro","Modifier","Amaro","Italy","23%","Delicate Italian amaro with orange peel and spice."],
+    [["nonino"],"Amaro Nonino","Modifier","Amaro","Italy","35%","Grappa-based amaro, lighter and more complex."],
+    [["cynar"],"Cynar","Modifier","Amaro","Italy","16.5%","Artichoke-based bitter Italian digestif."],
+    [["picon"],"Picon","Modifier","Amaro","France","21%","French bitter orange aperitivo with gentian and quinine."],
+    [["suze"],"Suze","Modifier","Amaro","France","15%","French gentian aperitif, bitter and floral."],
+
+    // ORANGE LIQUEURS
+    [["cointreau"],"Cointreau","Modifier","Triple Sec","France","40%","Premium French triple sec with balanced bitter-sweet orange."],
+    [["grand marnier"],"Grand Marnier","Modifier","Triple Sec","France","40%","Cognac-based orange liqueur with rich, complex flavour."],
+    [["triple sec"],"Triple Sec","Modifier","Triple Sec","France","30%","Classic orange liqueur for cocktails."],
+    [["combier"],"Combier Triple Sec","Modifier","Triple Sec","France","40%","Original triple sec, made since 1834 in Saumur."],
+
+    // HERBAL LIQUEURS
+    [["benedictine"],"Bénédictine","Modifier","Herbal Liqueur","France","40%","27 herbs and spices, made by Benedictine monks since 1863."],
+    [["green chartreuse"],"Green Chartreuse","Modifier","Herbal Liqueur","France","55%","130 alpine herb liqueur made by Carthusian monks."],
+    [["yellow chartreuse"],"Yellow Chartreuse","Modifier","Herbal Liqueur","France","40%","Milder, honeyed version of the classic Chartreuse."],
+    [["drambuie"],"Drambuie","Modifier","Herbal Liqueur","UK","40%","Scotch whisky liqueur with heather honey and herbs."],
+    [["chartreuse"],"Chartreuse","Modifier","Herbal Liqueur","France","55%","Legendary French alpine herb liqueur."],
+    [["galliano"],"Galliano","Modifier","Herbal Liqueur","Italy","42.3%","Italian herbal liqueur with vanilla, anise and citrus."],
+    [["strega"],"Strega","Modifier","Herbal Liqueur","Italy","40%","Italian herbal liqueur with 70 botanicals."],
+
+    // ANISE
+    [["askalon arack","askalon","extra fine arack"],"Askalon Arack Extra Fine","Modifier","Anise Spirit","Israel","40%","Premium Israeli arak distilled from grapes with anise."],
+    [["pernod paris","pernod"],"Pernod Paris","Modifier","Anise Spirit","France","40%","French anise spirit, the classic pastis."],
+    [["pilavas ouzo","pilavas"],"Pilavas Ouzo","Modifier","Anise Spirit","Greece","40%","Greek ouzo with pure anise character."],
+    [["sans rival ouzo","sans rival"],"Sans Rival Ouzo","Modifier","Anise Spirit","Greece","38%","Greek ouzo, smooth and aromatic."],
+    [["zoara arak","zoara"],"Zoara Arak","Modifier","Anise Spirit","Israel","40%","Israeli arak with anise and grape base."],
+    [["ouzo"],"Ouzo","Modifier","Anise Spirit","Greece","40%","Classic Greek anise spirit."],
+    [["arak","arack"],"Arak","Modifier","Anise Spirit","Middle East","40%","Traditional Levantine grape and anise spirit."],
+    [["pastis","ricard"],"Ricard Pastis","Modifier","Anise Spirit","France","45%","Classic Provençal pastis with anise and liquorice."],
+    [["sambuca"],"Sambuca","Modifier","Anise Spirit","Italy","38%","Italian anise liqueur, often served with coffee beans."],
+
+    // CREAM / OTHER LIQUEURS
+    [["baileys"],"Baileys Irish Cream","Modifier","Cream Liqueur","Ireland","17%","Original Irish cream liqueur with whiskey and chocolate notes."],
+    [["kahlua","kahlúa"],"Kahlúa","Modifier","Coffee Liqueur","Mexico","20%","Mexican coffee liqueur made with rum and Arabica coffee."],
+    [["tia maria"],"Tia Maria","Modifier","Coffee Liqueur","Italy","20%","Coffee liqueur with Jamaican rum and vanilla."],
+    [["coffee liqueur"],"Coffee Liqueur","Modifier","Coffee Liqueur","","20%","Coffee-flavoured liqueur for cocktails and desserts."],
+    [["cherry liqueur","cherry heering"],"Cherry Heering","Modifier","Cherry Liqueur","Denmark","24%","Danish cherry liqueur, ingredient in Singapore Sling."],
+    [["creme de cassis","cassis"],"Crème de Cassis","Modifier","Cassis","France","20%","French blackcurrant liqueur, key ingredient in Kir Royale."],
+    [["limoncello"],"Limoncello","Modifier","Limoncello","Italy","26%","Italian lemon liqueur, ideally served ice cold."],
+    [["st germain","elderflower"],"St-Germain","Modifier","Elderflower Liqueur","France","20%","French elderflower liqueur, the bartender's ketchup."],
+    [["lillet blanc","lillet"],"Lillet Blanc","Modifier","Sweet Vermouth","France","17%","French aromatised wine with citrus peel and Cognac."],
+    [["maraschino","luxardo"],"Luxardo Maraschino","Modifier","Maraschino","Italy","32%","Italian marasca cherry liqueur, essential in Last Word."],
+    [["frangelico"],"Frangelico","Modifier","Herbal Liqueur","Italy","20%","Italian hazelnut liqueur with hints of vanilla and cocoa."],
+    [["amaretto disaronno","amaretto","disaronno"],"Disaronno Amaretto","Modifier","Amaretto","Italy","28%","Italian almond-flavoured liqueur made from apricot kernels."],
+    [["midori"],"Midori","Modifier","Melon Liqueur","Japan","20%","Japanese bright green melon liqueur."],
+    [["peach schnapps","peach liqueur"],"Peach Schnapps","Modifier","Schnapps","Germany","20%","Peach-flavoured liqueur popular in cocktails."],
+
+    // SYRUPS
+    [["simple syrup","sugar syrup"],"Simple Syrup","Syrup","Simple Syrup","","0%","1:1 or 2:1 sugar and water syrup."],
+    [["honey syrup","honey ginger","honey ginger syrup"],"Honey Ginger Syrup","Syrup","Honey Ginger Syrup","","0%","Homemade honey and ginger sweetener for cocktails."],
+    [["grenadine","monin grenadine"],"Monin Grenadine","Syrup","Grenadine","France","0%","Pomegranate and cherry flavoured sweetener."],
+    [["strawberry syrup","monin strawberry"],"Monin Strawberry","Syrup","Strawberry Syrup","France","0%","Strawberry flavoured cocktail syrup."],
+    [["orgeat"],"Orgeat","Syrup","Orgeat","France","0%","Almond and orange flower water syrup, essential in Mai Tai."],
+    [["falernum"],"Falernum","Syrup","Falernum","Barbados","11%","Spiced lime and almond syrup from Barbados."],
+    [["demerara","demerara syrup"],"Demerara Syrup","Syrup","Demerara Syrup","","0%","Rich 2:1 syrup made with raw Demerara sugar."],
+    [["agave syrup","agave nectar"],"Agave Syrup","Syrup","Simple Syrup","Mexico","0%","Natural sweetener from the agave plant."],
+    [["passion fruit syrup","passion fruit"],"Passion Fruit Syrup","Syrup","Passion Fruit Syrup","","0%","Tropical passion fruit flavoured syrup."],
+    [["raspberry syrup"],"Raspberry Syrup","Syrup","Strawberry Syrup","","0%","Raspberry flavoured cocktail syrup."],
+
+    // PANTRY / BITTERS
+    [["angostura bitters","angostura"],"Angostura Bitters","Pantry","Angostura Bitters","Trinidad","44.7%","The world's most iconic cocktail bitters."],
+    [["orange bitters","regan","regans"],"Orange Bitters","Pantry","Orange Bitters","USA","28%","Orange peel and spice bitters for cocktails."],
+    [["peychaud","peychaud's"],"Peychaud's Bitters","Pantry","Orange Bitters","USA","35%","Anise-forward bitters, essential in a Sazerac."],
+    [["mole bitters","chocolate bitters"],"Mole Bitters","Pantry","Angostura Bitters","USA","53%","Bitter chocolate and spice bitters."],
+    [["lemon juice","fresh lemon"],"Fresh Lemon Juice","Pantry","Lemon Juice","","0%","Freshly squeezed lemon juice."],
+    [["lime juice","fresh lime"],"Fresh Lime Juice","Pantry","Lime Juice","","0%","Freshly squeezed lime juice."],
+    [["egg white"],"Egg White","Pantry","Egg White","","0%","Adds silky foam texture to shaken cocktails."],
+    [["ginger beer"],"Ginger Beer","Pantry","Ginger Beer","","0%","Spicy carbonated ginger drink for Moscow Mules and Dark & Stormys."],
+    [["tonic water","tonic"],"Tonic Water","Pantry","Tonic Water","","0%","Quinine-bitter carbonated water for gin & tonic."],
+    [["soda water","club soda"],"Soda Water","Pantry","Soda Water","","0%","Carbonated water for highballs and Collins drinks."],
+  ];
+
+  // Score each entry
+  let best = null;
+  let bestScore = 0;
+
+  for (const [terms, label, cat, kind, country, abv, desc] of DB) {
+    for (const term of terms) {
+      let score = 0;
+      if (q === term) { score = 100; }
+      else if (q.includes(term) || term.includes(q)) { score = 80 - Math.abs(q.length - term.length); }
+      else {
+        // Word overlap scoring
+        const qWords = q.split(/\s+/);
+        const tWords = term.split(/\s+/);
+        const overlap = qWords.filter(w => tWords.some(t => t.includes(w) || w.includes(t))).length;
+        if (overlap > 0) score = (overlap / Math.max(qWords.length, tWords.length)) * 60;
+      }
+      if (score > bestScore) { bestScore = score; best = { label, cat, kind, country, abv, desc }; }
+    }
   }
 
-  btn.textContent = "Look Up";
-  btn.disabled = false;
+  return bestScore >= 30 ? best : null;
 }
 
-function applyApiKey() {
-  const val = document.getElementById("apikey-input")?.value?.trim();
-  if (!val || !val.startsWith("sk-")) { toast("That doesn't look like a valid key (should start with sk-)"); return; }
-  saveApiKey(val);
-  document.getElementById("smart-add-result").className = "smart-add-result";
-  toast("API key saved! Now try your lookup again.");
-}
 
 function confirmSmartAdd(btn) {
   const info = JSON.parse(btn.getAttribute("data-info").replace(/&quot;/g, "\""));
