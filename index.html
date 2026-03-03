@@ -1,0 +1,2091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Vadi Bar</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0a07;
+    --bg2: #141009;
+    --bg3: #1c160f;
+    --card: #1a1208;
+    --card2: #221a0e;
+    --gold: #c9a84c;
+    --gold2: #e8c870;
+    --gold3: #a07828;
+    --amber: #d4762a;
+    --cream: #f0e8d5;
+    --cream2: #c8b89a;
+    --text: #e8dcc8;
+    --text2: #a89880;
+    --text3: #6e5e48;
+    --border: rgba(201,168,76,0.15);
+    --border2: rgba(201,168,76,0.3);
+    --red: #c24a3a;
+    --green: #4a8c5c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-weight: 300;
+  }
+
+  /* Texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(180deg, var(--bg) 0%, rgba(13,10,7,0.96) 100%);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    padding: 0 24px;
+  }
+
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .logo-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--gold2);
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .nav-tabs {
+    display: flex;
+    gap: 2px;
+    background: var(--bg3);
+    border-radius: 8px;
+    padding: 3px;
+  }
+
+  .nav-tab {
+    padding: 7px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text3);
+    transition: all 0.2s;
+    font-family: 'Jost', sans-serif;
+    font-weight: 400;
+  }
+
+  .nav-tab:hover { color: var(--cream2); }
+
+  .nav-tab.active {
+    background: var(--card2);
+    color: var(--gold);
+    border: 1px solid var(--border);
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 28px;
+  }
+
+  .filter-chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text3);
+    transition: all 0.2s;
+    font-family: 'Jost', sans-serif;
+    font-weight: 400;
+  }
+
+  .filter-chip:hover { border-color: var(--border2); color: var(--cream2); }
+
+  .filter-chip.active {
+    background: var(--gold3);
+    border-color: var(--gold);
+    color: var(--cream);
+  }
+
+  .filter-spacer { flex: 1; }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    width: 200px;
+  }
+
+  .search-box input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    width: 100%;
+  }
+
+  .search-box input::placeholder { color: var(--text3); }
+
+  .search-icon { color: var(--text3); font-size: 14px; }
+
+  /* ── COCKTAIL GRID ── */
+  .cocktail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .cocktail-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cocktail-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold3), transparent);
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  .cocktail-card:hover {
+    border-color: var(--border2);
+    background: var(--card2);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  }
+
+  .cocktail-card:hover::before { opacity: 1; }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+
+  .card-glass-icon {
+    font-size: 28px;
+    line-height: 1;
+    opacity: 0.7;
+  }
+
+  .card-badges {
+    display: flex;
+    gap: 4px;
+  }
+
+  .badge {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  .badge-liked { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
+  .badge-house { background: rgba(74,140,92,0.15); color: #6ab882; border: 1px solid rgba(74,140,92,0.3); }
+  .badge-cantmake { opacity: 0.4; }
+
+  .card-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--cream);
+    line-height: 1.15;
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
+  }
+
+  .card-method {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 14px;
+  }
+
+  .card-ingredients {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+
+  .card-ingredient-item { display: flex; justify-content: space-between; align-items: center; padding: 2px 0; }
+  .card-ingredient-item:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.04); }
+
+  .card-ingredient-name { }
+  .card-ingredient-amt { color: var(--text3); font-size: 12px; }
+
+  .card-missing {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--red);
+    letter-spacing: 0.05em;
+    opacity: 0.8;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.82);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(20px);
+    transition: transform 0.3s;
+    scrollbar-width: thin;
+    scrollbar-color: var(--bg3) transparent;
+  }
+
+  .modal-overlay.open .modal { transform: translateY(0); }
+
+  .modal-header {
+    padding: 32px 32px 0;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+    position: relative;
+  }
+
+  .modal-glass { font-size: 44px; margin-bottom: 12px; }
+
+  .modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 500;
+    color: var(--cream);
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+
+  .modal-meta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .modal-method-badge {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid var(--border2);
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+
+  .modal-glass-label { font-size: 12px; color: var(--text3); letter-spacing: 0.08em; }
+
+  .modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text3);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.2s;
+  }
+
+  .modal-close:hover { color: var(--cream); border-color: var(--border2); }
+
+  .modal-body { padding: 28px 32px; }
+
+  .modal-section-title {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold3);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .modal-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .modal-ingredients {
+    list-style: none;
+    margin-bottom: 28px;
+  }
+
+  .modal-ingredient {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .modal-ingredient:last-child { border-bottom: none; }
+
+  .ingr-name { color: var(--text); }
+  .ingr-amount { color: var(--gold); font-size: 13px; font-weight: 400; }
+  .ingr-missing { color: var(--red); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-left: 8px; opacity: 0.7; }
+
+  .modal-steps {
+    counter-reset: step;
+    list-style: none;
+    margin-bottom: 28px;
+  }
+
+  .modal-step {
+    counter-increment: step;
+    display: flex;
+    gap: 14px;
+    padding: 10px 0;
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.5;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-step:last-child { border-bottom: none; }
+
+  .modal-step::before {
+    content: counter(step);
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--gold);
+    margin-top: 1px;
+  }
+
+  .modal-garnish {
+    font-size: 13px;
+    color: var(--cream2);
+    padding: 10px 16px;
+    background: var(--bg3);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+
+  .modal-garnish span { color: var(--text3); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    font-weight: 400;
+  }
+
+  .btn-gold {
+    background: var(--gold3);
+    color: var(--cream);
+    border: 1px solid var(--gold);
+  }
+
+  .btn-gold:hover { background: var(--gold); color: var(--bg); }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border2);
+  }
+
+  .btn-outline:hover { border-color: var(--gold3); color: var(--cream2); }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--red);
+    border: 1px solid rgba(194,74,58,0.3);
+  }
+
+  .btn-danger:hover { background: rgba(194,74,58,0.1); }
+
+  /* ── INVENTORY PAGE ── */
+  .inv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+  }
+
+  .page-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--cream);
+    letter-spacing: 0.02em;
+  }
+
+  .page-subtitle {
+    font-size: 12px;
+    color: var(--text3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .inv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+  }
+
+  .inv-category-title {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold3);
+    grid-column: 1 / -1;
+    padding: 16px 0 4px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  .inv-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    transition: all 0.2s;
+  }
+
+  .inv-item:hover { border-color: var(--border2); }
+
+  .inv-item.off { opacity: 0.45; }
+
+  .inv-item-left { flex: 1; min-width: 0; }
+  .inv-item-kind { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text3); margin-bottom: 2px; }
+  .inv-item-label { font-size: 14px; color: var(--cream2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .toggle {
+    width: 40px;
+    height: 22px;
+    background: var(--bg3);
+    border-radius: 11px;
+    border: 1px solid var(--border2);
+    cursor: pointer;
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--text3);
+    transition: all 0.2s;
+  }
+
+  .toggle.on { background: var(--gold3); border-color: var(--gold); }
+  .toggle.on::after { left: 21px; background: var(--cream); }
+
+  .inv-add-form {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 24px;
+  }
+
+  .form-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    color: var(--cream);
+    margin-bottom: 16px;
+  }
+
+  .form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+
+  .form-field { flex: 1; min-width: 130px; }
+
+  .form-field label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+
+  .form-field input,
+  .form-field select,
+  .form-field textarea {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-field input:focus,
+  .form-field select:focus,
+  .form-field textarea:focus { border-color: var(--gold3); }
+
+  .form-field select option { background: var(--bg2); }
+
+  .form-field textarea { resize: vertical; min-height: 80px; }
+
+  /* ── WHEEL PAGE ── */
+  .wheel-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0;
+    gap: 32px;
+  }
+
+  .wheel-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+  }
+
+  .wheel-svg {
+    width: 100%;
+    height: 100%;
+    transition: transform 3s cubic-bezier(0.17, 0.67, 0.12, 1);
+  }
+
+  .wheel-pointer {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 22px solid var(--gold);
+    filter: drop-shadow(0 2px 6px rgba(201,168,76,0.5));
+    z-index: 10;
+  }
+
+  .wheel-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: 52px;
+    height: 52px;
+    background: var(--bg);
+    border: 2px solid var(--gold3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s;
+    box-shadow: 0 0 24px rgba(201,168,76,0.2);
+  }
+
+  .wheel-center:hover { border-color: var(--gold2); box-shadow: 0 0 32px rgba(201,168,76,0.4); }
+
+  .wheel-result {
+    text-align: center;
+    animation: fadeInUp 0.4s ease;
+  }
+
+  .wheel-result-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    color: var(--gold2);
+    margin-bottom: 6px;
+  }
+
+  .wheel-result-meta { font-size: 13px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .wheel-mode-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--bg3);
+    border-radius: 8px;
+    padding: 4px;
+  }
+
+  .wheel-mode-btn {
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text3);
+    font-family: 'Jost', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .wheel-mode-btn.active {
+    background: var(--card2);
+    color: var(--gold);
+    border: 1px solid var(--border);
+  }
+
+  /* ── MOOD PAGE ── */
+  .mood-page { max-width: 600px; margin: 0 auto; padding: 40px 0; }
+
+  .mood-page-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 42px;
+    color: var(--cream);
+    margin-bottom: 8px;
+    font-style: italic;
+    font-weight: 300;
+  }
+
+  .mood-page-sub { font-size: 12px; color: var(--text3); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 40px; }
+
+  .mood-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 40px; }
+
+  .mood-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 20px;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-align: center;
+  }
+
+  .mood-card:hover { border-color: var(--border2); background: var(--card2); transform: translateY(-2px); }
+
+  .mood-card.selected { border-color: var(--gold); background: var(--card2); }
+
+  .mood-emoji { font-size: 32px; margin-bottom: 10px; }
+
+  .mood-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: var(--cream);
+    margin-bottom: 4px;
+  }
+
+  .mood-desc { font-size: 11px; color: var(--text3); letter-spacing: 0.05em; }
+
+  .mood-result-section { margin-top: 20px; }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text3);
+  }
+
+  .empty-state-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+
+  .empty-state-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--text3);
+    font-style: italic;
+  }
+
+  /* ── ADD RECIPE PAGE ── */
+  .add-page { max-width: 640px; }
+
+  .ing-list { margin-bottom: 10px; }
+
+  .ing-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+  }
+
+  .ing-row input {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .ing-row input:focus { border-color: var(--gold3); }
+  .ing-row .ing-name { flex: 2; }
+  .ing-row .ing-amt { flex: 1; }
+  .ing-row .ing-kind { flex: 1.5; }
+  .ing-row .ing-del {
+    background: none; border: none; color: var(--text3); cursor: pointer; font-size: 16px; padding: 4px 8px;
+    transition: color 0.2s;
+  }
+  .ing-row .ing-del:hover { color: var(--red); }
+
+  .step-list { margin-bottom: 10px; }
+
+  .step-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    width: 26px;
+    height: 26px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--gold);
+    flex-shrink: 0;
+    margin-top: 9px;
+  }
+
+  .step-row input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .step-row input:focus { border-color: var(--gold3); }
+
+  .step-row .step-del {
+    background: none; border: none; color: var(--text3); cursor: pointer; font-size: 16px; padding: 4px 8px;
+    transition: color 0.2s; margin-top: 4px;
+  }
+
+  .step-row .step-del:hover { color: var(--red); }
+
+  .add-link-btn {
+    font-size: 12px;
+    color: var(--gold3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 0;
+    letter-spacing: 0.08em;
+    font-family: 'Jost', sans-serif;
+    transition: color 0.2s;
+  }
+
+  .add-link-btn:hover { color: var(--gold); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 28px 0;
+  }
+
+  /* ── BACKUP SECTION ── */
+  .backup-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 24px;
+  }
+
+  .backup-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--cream); margin-bottom: 6px; }
+  .backup-desc { font-size: 12px; color: var(--text3); margin-bottom: 16px; }
+  .backup-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--card2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-size: 13px;
+    color: var(--cream2);
+    z-index: 999;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── TOGGLE ROW FORM ── */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .toggle-row label { font-size: 13px; color: var(--text2); }
+
+  /* ── SEGMENTED ── */
+  .segmented {
+    display: flex;
+    gap: 0;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .segmented-btn {
+    flex: 1;
+    padding: 9px 10px;
+    border: none;
+    background: transparent;
+    color: var(--text3);
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-right: 1px solid var(--border);
+  }
+
+  .segmented-btn:last-child { border-right: none; }
+
+  .segmented-btn.active {
+    background: var(--card2);
+    color: var(--gold);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .header-inner { flex-direction: column; height: auto; padding: 12px 0; gap: 10px; }
+    .cocktail-grid { grid-template-columns: 1fr; }
+    .mood-grid { grid-template-columns: 1fr; }
+    .modal-header { padding: 24px 20px 20px; }
+    .modal-body { padding: 20px; }
+    .modal-title { font-size: 28px; }
+    .nav-tabs { width: 100%; justify-content: center; }
+    .main { padding: 20px 16px 60px; }
+    .filter-bar { gap: 6px; }
+    .search-box { width: 100%; }
+  }
+
+  /* ── ANIMATED ENTRANCE ── */
+  .cocktail-card { animation: cardIn 0.3s ease both; }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hidden { display: none !important; }
+
+  .can-make-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    display: inline-block;
+    margin-right: 4px;
+    box-shadow: 0 0 6px var(--green);
+  }
+
+  .cant-make-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    border-radius: 50%;
+    background: var(--red);
+    display: inline-block;
+    margin-right: 4px;
+    opacity: 0.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-title">✦ The Vadi Bar</span>
+      <span class="logo-sub">Private Collection</span>
+    </div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('cocktails')">Menu</button>
+      <button class="nav-tab" onclick="showPage('wheel')">Wheel</button>
+      <button class="nav-tab" onclick="showPage('mood')">Mood</button>
+      <button class="nav-tab" onclick="showPage('inventory')">Bar</button>
+      <button class="nav-tab" onclick="showPage('add')">Add</button>
+    </nav>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ── COCKTAILS PAGE ── -->
+  <div id="page-cocktails" class="page active">
+    <div class="filter-bar">
+      <button class="filter-chip active" onclick="setFilter('all', this)">All</button>
+      <button class="filter-chip" onclick="setFilter('liked', this)">❤ Liked</button>
+      <button class="filter-chip" onclick="setFilter('house', this)">House</button>
+      <button class="filter-chip" onclick="setFilter('canmake', this)"><span class="can-make-dot"></span>Can Make</button>
+      <button class="filter-chip" onclick="setFilter('stir', this)">Stir</button>
+      <button class="filter-chip" onclick="setFilter('shake', this)">Shake</button>
+      <div class="filter-spacer"></div>
+      <div class="search-box">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="search-input" placeholder="Search cocktails…" oninput="renderCocktails()">
+      </div>
+    </div>
+    <div class="cocktail-grid" id="cocktail-grid"></div>
+  </div>
+
+  <!-- ── WHEEL PAGE ── -->
+  <div id="page-wheel" class="page">
+    <div class="wheel-page">
+      <div style="text-align:center;">
+        <div class="page-title" style="font-family:'Cormorant Garamond',serif;font-size:38px;font-style:italic;font-weight:300;">Wheel of Fortune</div>
+        <div class="page-subtitle" style="margin-top:6px;">Spin for tonight's cocktail</div>
+      </div>
+      <div class="wheel-mode-toggle">
+        <button class="wheel-mode-btn active" id="wm-all" onclick="setWheelMode('all')">All</button>
+        <button class="wheel-mode-btn" id="wm-canmake" onclick="setWheelMode('canmake')">Can Make</button>
+        <button class="wheel-mode-btn" id="wm-liked" onclick="setWheelMode('liked')">Liked</button>
+      </div>
+      <div class="wheel-container">
+        <div class="wheel-pointer"></div>
+        <svg class="wheel-svg" id="wheel-svg" viewBox="0 0 300 300"></svg>
+        <div class="wheel-center" onclick="spinWheel()">🎲</div>
+      </div>
+      <div class="wheel-result" id="wheel-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- ── MOOD PAGE ── -->
+  <div id="page-mood" class="page">
+    <div class="mood-page">
+      <div class="mood-page-title">What's your mood?</div>
+      <div class="mood-page-sub">Let us choose for you</div>
+      <div class="mood-grid">
+        <div class="mood-card" onclick="pickMood('bitter')">
+          <div class="mood-emoji">🍊</div>
+          <div class="mood-label">Bitter & Balanced</div>
+          <div class="mood-desc">Negroni territory</div>
+        </div>
+        <div class="mood-card" onclick="pickMood('strong')">
+          <div class="mood-emoji">🥃</div>
+          <div class="mood-label">Strong & Elegant</div>
+          <div class="mood-desc">Stirred, never shaken</div>
+        </div>
+        <div class="mood-card" onclick="pickMood('smoky')">
+          <div class="mood-emoji">🌿</div>
+          <div class="mood-label">Smoky</div>
+          <div class="mood-desc">Mezcal & campfire</div>
+        </div>
+        <div class="mood-card" onclick="pickMood('bright')">
+          <div class="mood-emoji">🍋</div>
+          <div class="mood-label">Bright & Fresh</div>
+          <div class="mood-desc">Citrus-forward sours</div>
+        </div>
+        <div class="mood-card" onclick="pickMood('sweet')">
+          <div class="mood-emoji">🍓</div>
+          <div class="mood-label">Sweet but Serious</div>
+          <div class="mood-desc">Fruit & complexity</div>
+        </div>
+        <div class="mood-card" onclick="pickMood('classic')">
+          <div class="mood-emoji">🫒</div>
+          <div class="mood-label">Classic</div>
+          <div class="mood-desc">Timeless standards</div>
+        </div>
+      </div>
+      <div class="mood-result-section" id="mood-result"></div>
+    </div>
+  </div>
+
+  <!-- ── INVENTORY PAGE ── -->
+  <div id="page-inventory" class="page">
+    <div class="inv-header">
+      <div>
+        <div class="page-title">The Bar</div>
+        <div class="page-subtitle">Toggle bottles on/off · availability drives Can Make</div>
+      </div>
+      <button class="btn btn-gold" onclick="document.getElementById('inv-add-section').scrollIntoView({behavior:'smooth'})">+ Add Bottle</button>
+    </div>
+    <div class="inv-grid" id="inv-grid"></div>
+
+    <div class="inv-add-form" id="inv-add-section">
+      <div class="form-title">Add a bottle</div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Category</label>
+          <select id="inv-cat">
+            <option value="Spirit">Spirit</option>
+            <option value="Modifier">Modifier</option>
+            <option value="Syrup">Syrup</option>
+            <option value="Pantry">Pantry</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Kind (for cocktails)</label>
+          <input type="text" id="inv-kind" placeholder="e.g. Gin, Rum…">
+        </div>
+        <div class="form-field">
+          <label>Label (bottle name)</label>
+          <input type="text" id="inv-label" placeholder="e.g. Hendrick's">
+        </div>
+      </div>
+      <button class="btn btn-gold" onclick="addInventoryItem()">Add to Bar</button>
+    </div>
+
+    <div class="backup-section">
+      <div class="backup-title">Backup & Restore</div>
+      <div class="backup-desc">Export your entire bar — inventory + recipes — as JSON</div>
+      <div class="backup-actions">
+        <button class="btn btn-outline" onclick="exportData()">Export JSON</button>
+        <label class="btn btn-outline" style="cursor:pointer;">Import JSON<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+        <button class="btn btn-danger" onclick="confirmReset()">Reset to Defaults</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ADD RECIPE PAGE ── -->
+  <div id="page-add" class="page">
+    <div class="add-page">
+      <div class="inv-header" style="margin-bottom:28px;">
+        <div>
+          <div class="page-title">New Recipe</div>
+          <div class="page-subtitle">Add to your house collection</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field" style="flex:2;">
+          <label>Cocktail Name</label>
+          <input type="text" id="r-name" placeholder="e.g. Midnight Sour">
+        </div>
+        <div class="form-field">
+          <label>Glass</label>
+          <select id="r-glass">
+            <option>Rocks</option>
+            <option>Coupe</option>
+            <option>Highball</option>
+            <option>Nick & Nora</option>
+            <option>Mug</option>
+            <option>Martini</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Method</label>
+          <select id="r-method">
+            <option>Stir</option>
+            <option>Shake</option>
+            <option>Build</option>
+            <option>Shake + Float</option>
+            <option>Blend</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label>Garnish</label>
+          <input type="text" id="r-garnish" placeholder="e.g. Orange twist">
+        </div>
+        <div class="form-field">
+          <label>Source</label>
+          <input type="text" id="r-source" placeholder="e.g. Drinks International">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <div class="toggle-row">
+            <label>❤ Mark as Liked</label>
+            <div class="toggle" id="r-liked-toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+        <div class="form-field">
+          <div class="toggle-row">
+            <label>🏠 Add to House Menu</label>
+            <div class="toggle" id="r-house-toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="modal-section-title">Ingredients</div>
+      <div class="ing-list" id="ing-list"></div>
+      <button class="add-link-btn" onclick="addIngRow()">+ Add ingredient</button>
+
+      <div class="divider"></div>
+
+      <div class="modal-section-title">Steps</div>
+      <div class="step-list" id="step-list"></div>
+      <button class="add-link-btn" onclick="addStepRow()">+ Add step</button>
+
+      <div class="divider"></div>
+
+      <div class="form-field">
+        <label>Notes</label>
+        <textarea id="r-notes" placeholder="Bartender's notes, variations…"></textarea>
+      </div>
+
+      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-gold" onclick="saveRecipe()">Save Recipe</button>
+        <button class="btn btn-outline" onclick="clearRecipeForm()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── COCKTAIL DETAIL MODAL ── -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header" id="modal-header"></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+
+const GLASS_ICON = {
+  'Rocks': '🥃', 'Coupe': '🍸', 'Highball': '🥂', 'Nick & Nora': '🍸',
+  'Mug': '☕', 'Martini': '🍸', 'default': '🍹'
+};
+
+const DEFAULT_INVENTORY = [
+  // Gin
+  { id:'i1',  cat:'Spirit', kind:'Gin', label:'Tanqueray Ten', on:true },
+  { id:'i2',  cat:'Spirit', kind:'Gin', label:'Deer Premium Dry', on:true },
+  { id:'i3',  cat:'Spirit', kind:'Gin', label:'Deer Vegetable Dry', on:true },
+  // Vodka
+  { id:'i4',  cat:'Spirit', kind:'Vodka', label:'Ketel One', on:true },
+  { id:'i5',  cat:'Spirit', kind:'Vodka', label:'Stolichnaya Vanilla', on:true },
+  { id:'i6',  cat:'Spirit', kind:'Vodka', label:'Van Gogh Acai Blueberry', on:true },
+  // Rum
+  { id:'i7',  cat:'Spirit', kind:'Rum', label:'Calypso Red Rum', on:true },
+  { id:'i8',  cat:'Spirit', kind:'Rum', label:'El Supremo 8', on:true },
+  { id:'i9',  cat:'Spirit', kind:'Rum', label:'Kraken Spiced', on:true },
+  // Whiskey
+  { id:'i10', cat:'Spirit', kind:'Blended Scotch', label:'Compass Box Spice Tree', on:true },
+  { id:'i11', cat:'Spirit', kind:'Blended Scotch', label:'Jameson', on:true },
+  { id:'i12', cat:'Spirit', kind:'Peated Scotch', label:'Laphroaig 10', on:true },
+  { id:'i13', cat:'Spirit', kind:'Peated Scotch', label:'Kilchoman Machir Bay', on:true },
+  { id:'i14', cat:'Spirit', kind:'Rye Whiskey', label:'Rye Whiskey', on:true },
+  // Tequila & Mezcal
+  { id:'i15', cat:'Spirit', kind:'Tequila', label:'Don Julio 1942', on:true },
+  { id:'i16', cat:'Spirit', kind:'Tequila', label:'Jose Cuervo Especial', on:true },
+  { id:'i17', cat:'Spirit', kind:'Tequila', label:'Cenote Anejo', on:true },
+  { id:'i18', cat:'Spirit', kind:'Tequila', label:'Cenote Ahumado', on:true },
+  { id:'i19', cat:'Spirit', kind:'Mezcal', label:'Mezcal', on:true },
+  // Brandy / Cognac
+  { id:'i20', cat:'Spirit', kind:'Cognac', label:'Courvoisier VS', on:true },
+  { id:'i21', cat:'Spirit', kind:'Fruit Brandy', label:'Apple Schnapps (Hollander)', on:true },
+  { id:'i22', cat:'Spirit', kind:'Rakia', label:'Rakia', on:true },
+  // Vermouth
+  { id:'i30', cat:'Modifier', kind:'Sweet Vermouth', label:'Julius Vermut', on:true },
+  { id:'i31', cat:'Modifier', kind:'Sweet Vermouth', label:'Carpano Antica Formula', on:true },
+  { id:'i32', cat:'Modifier', kind:'Dry Vermouth', label:'Dolin Dry', on:true },
+  { id:'i33', cat:'Modifier', kind:'Sweet Vermouth', label:'Dolin Sweet', on:true },
+  // Liqueurs
+  { id:'i34', cat:'Modifier', kind:'Herbal Liqueur', label:'Benedictine', on:true },
+  { id:'i35', cat:'Modifier', kind:'Bison Grass Liqueur', label:'Zubrówka Palona', on:true },
+  { id:'i36', cat:'Modifier', kind:'Limoncello', label:'Limoncello (Homemade)', on:true },
+  // Syrups
+  { id:'i40', cat:'Syrup', kind:'Simple Syrup', label:'Simple Syrup (Homemade)', on:true },
+  { id:'i41', cat:'Syrup', kind:'Honey Ginger Syrup', label:'Honey Ginger (Homemade)', on:true },
+  { id:'i42', cat:'Syrup', kind:'Grenadine', label:'Monin Grenadine', on:true },
+  { id:'i43', cat:'Syrup', kind:'Strawberry Syrup', label:'Monin Strawberry', on:true },
+  // Pantry
+  { id:'i50', cat:'Pantry', kind:'Angostura Bitters', label:'Angostura', on:true },
+  { id:'i51', cat:'Pantry', kind:'Orange Bitters', label:'Orange Bitters', on:true },
+  { id:'i52', cat:'Pantry', kind:'Lemon Juice', label:'Fresh', on:true },
+  { id:'i53', cat:'Pantry', kind:'Lime Juice', label:'Fresh', on:true },
+  { id:'i54', cat:'Pantry', kind:'Egg White', label:'Fresh', on:true },
+];
+
+const DEFAULT_COCKTAILS = [
+  {
+    id:'c1', name:'Negroni', glass:'Rocks', method:'Stir', liked:true, house:true,
+    garnish:'Orange peel', source:'Classic', mood:['bitter','classic'],
+    ingredients:[
+      {name:'Gin',amount:'1 oz',kind:'Gin'},
+      {name:'Sweet Vermouth',amount:'1 oz',kind:'Sweet Vermouth'},
+      {name:'Campari',amount:'1 oz',kind:'Campari'},
+    ],
+    steps:['Combine all in mixing glass over ice.','Stir 35–40 rotations until well chilled.','Strain into rocks glass over large ice.','Express orange peel over drink and garnish.'],
+    notes:'Use Carpano Antica for richness. Tanqueray Ten makes it especially floral.'
+  },
+  {
+    id:'c2', name:'Manhattan', glass:'Coupe', method:'Stir', liked:true, house:true,
+    garnish:'Cherry', source:'Classic', mood:['strong','classic'],
+    ingredients:[
+      {name:'Rye Whiskey',amount:'2 oz',kind:'Rye Whiskey'},
+      {name:'Sweet Vermouth',amount:'1 oz',kind:'Sweet Vermouth'},
+      {name:'Angostura Bitters',amount:'2 dashes',kind:'Angostura Bitters'},
+    ],
+    steps:['Combine all in mixing glass over ice.','Stir 35–40 rotations.','Strain into chilled coupe.','Garnish with cherry.'],
+    notes:'Carpano Antica Formula makes this sing. Classic rye Manhattan.'
+  },
+  {
+    id:'c3', name:'Whiskey Sour', glass:'Coupe', method:'Shake', liked:true, house:true,
+    garnish:'Lemon wheel + cherry', source:'Classic', mood:['bright','classic'],
+    ingredients:[
+      {name:'Rye Whiskey',amount:'2 oz',kind:'Rye Whiskey'},
+      {name:'Lemon Juice',amount:'¾ oz',kind:'Lemon Juice'},
+      {name:'Simple Syrup',amount:'½ oz',kind:'Simple Syrup'},
+      {name:'Egg White',amount:'1',kind:'Egg White'},
+    ],
+    steps:['Dry shake all without ice for 15 seconds.','Add ice, shake hard for 12 seconds.','Double strain into chilled coupe.','Garnish with lemon wheel and cherry.'],
+    notes:'Dry shake first for the foam. Jameson works beautifully here too.'
+  },
+  {
+    id:'c4', name:'Mezcal Negroni', glass:'Rocks', method:'Stir', liked:true, house:true,
+    garnish:'Orange peel', source:'PDT Cocktail Book', mood:['bitter','smoky'],
+    ingredients:[
+      {name:'Mezcal',amount:'1 oz',kind:'Mezcal'},
+      {name:'Sweet Vermouth',amount:'1 oz',kind:'Sweet Vermouth'},
+      {name:'Campari',amount:'1 oz',kind:'Campari'},
+    ],
+    steps:['Combine all in mixing glass over ice.','Stir well, ~40 rotations.','Strain into rocks glass over large ice.','Garnish with orange peel.'],
+    notes:'Cenote Ahumado works great here for extra smoke. Julius Vermut for a sweeter spin.'
+  },
+  {
+    id:'c5', name:'Smoky Margarita', glass:'Rocks', method:'Shake', liked:true, house:true,
+    garnish:'Lime wheel + salt rim', source:'House', mood:['smoky','bright'],
+    ingredients:[
+      {name:'Mezcal',amount:'1½ oz',kind:'Mezcal'},
+      {name:'Tequila',amount:'½ oz',kind:'Tequila'},
+      {name:'Lime Juice',amount:'¾ oz',kind:'Lime Juice'},
+      {name:'Simple Syrup',amount:'½ oz',kind:'Simple Syrup'},
+    ],
+    steps:['Rim half the glass with salt.','Combine all in shaker with ice.','Shake well for 12 seconds.','Strain over fresh ice.','Garnish with lime wheel.'],
+    notes:'Split base of mezcal and Cenote Ahumado tequila for layered smoke.'
+  },
+  {
+    id:'c6', name:'Gimlet', glass:'Coupe', method:'Shake', liked:false, house:false,
+    garnish:'Lime wheel', source:'Classic', mood:['bright'],
+    ingredients:[
+      {name:'Gin',amount:'2 oz',kind:'Gin'},
+      {name:'Lime Juice',amount:'¾ oz',kind:'Lime Juice'},
+      {name:'Simple Syrup',amount:'¾ oz',kind:'Simple Syrup'},
+    ],
+    steps:['Combine all in shaker with ice.','Shake well.','Strain into chilled coupe.','Garnish with lime wheel.'],
+    notes:'Tanqueray Ten is exceptional here. Fresh lime only — no shortcuts.'
+  },
+  {
+    id:'c7', name:'Daiquiri', glass:'Coupe', method:'Shake', liked:true, house:true,
+    garnish:'Lime wheel', source:'Classic', mood:['bright','classic'],
+    ingredients:[
+      {name:'Rum',amount:'2 oz',kind:'Rum'},
+      {name:'Lime Juice',amount:'¾ oz',kind:'Lime Juice'},
+      {name:'Simple Syrup',amount:'½ oz',kind:'Simple Syrup'},
+    ],
+    steps:['Combine all in shaker with ice.','Shake hard for 12 seconds.','Double strain into chilled coupe.','Garnish with lime wheel.'],
+    notes:'El Supremo 8 adds depth and molasses. Kraken for a spiced twist.'
+  },
+  {
+    id:'c8', name:'Dark & Stormy', glass:'Highball', method:'Build', liked:true, house:false,
+    garnish:'Lime wedge', source:'Classic', mood:['sweet','bright'],
+    ingredients:[
+      {name:'Rum',amount:'2 oz',kind:'Rum'},
+      {name:'Ginger Beer',amount:'4 oz',kind:'Pantry'},
+      {name:'Lime Juice',amount:'½ oz',kind:'Lime Juice'},
+      {name:'Grenadine',amount:'dash',kind:'Grenadine'},
+    ],
+    steps:['Fill highball with ice.','Add rum and lime juice.','Top with ginger beer.','Add a dash of grenadine for color.','Garnish with lime wedge.'],
+    notes:'Kraken is perfect here. The grenadine adds a beautiful sunset effect.'
+  },
+  {
+    id:'c9', name:'French 75', glass:'Highball', method:'Shake', liked:true, house:false,
+    garnish:'Lemon twist', source:'Classic', mood:['bright','classic'],
+    ingredients:[
+      {name:'Gin',amount:'1½ oz',kind:'Gin'},
+      {name:'Lemon Juice',amount:'½ oz',kind:'Lemon Juice'},
+      {name:'Simple Syrup',amount:'½ oz',kind:'Simple Syrup'},
+    ],
+    steps:['Shake gin, lemon, syrup with ice.','Strain into flute or highball.','Top with sparkling wine.','Garnish with lemon twist.'],
+    notes:'Deer Premium Dry keeps it crisp. Cognac version — swap Courvoisier — is just as classic.'
+  },
+  {
+    id:'c10', name:'Vieux Carré', glass:'Rocks', method:'Stir', liked:true, house:false,
+    garnish:'Lemon peel', source:'Hotel Monteleone, New Orleans', mood:['strong','bitter'],
+    ingredients:[
+      {name:'Rye Whiskey',amount:'¾ oz',kind:'Rye Whiskey'},
+      {name:'Cognac',amount:'¾ oz',kind:'Cognac'},
+      {name:'Sweet Vermouth',amount:'¾ oz',kind:'Sweet Vermouth'},
+      {name:'Benedictine',amount:'1 tsp',kind:'Herbal Liqueur'},
+      {name:'Angostura Bitters',amount:'1 dash',kind:'Angostura Bitters'},
+    ],
+    steps:['Combine all in mixing glass over ice.','Stir until well chilled.','Strain into rocks glass over ice.','Garnish with lemon peel.'],
+    notes:'New Orleans classic. Your Benedictine is essential here. Courvoisier VS works perfectly.'
+  },
+  {
+    id:'c11', name:'Penicillin', glass:'Rocks', method:'Shake', liked:true, house:false,
+    garnish:'Candied ginger', source:'Sam Ross, 2005', mood:['smoky','bright'],
+    ingredients:[
+      {name:'Blended Scotch',amount:'2 oz',kind:'Blended Scotch'},
+      {name:'Lemon Juice',amount:'¾ oz',kind:'Lemon Juice'},
+      {name:'Honey Ginger Syrup',amount:'¾ oz',kind:'Honey Ginger Syrup'},
+    ],
+    steps:['Combine scotch, lemon, honey ginger in shaker with ice.','Shake well.','Double strain into rocks glass over large ice.','Optional: float ½ oz Laphroaig on top for smoke.','Garnish with candied ginger.'],
+    notes:'Compass Box as the base, float Laphroaig for the signature smoke. Your honey ginger syrup is made for this.'
+  },
+  {
+    id:'c12', name:'Peated Rob Roy', glass:'Coupe', method:'Stir', liked:false, house:false,
+    garnish:'Cherry', source:'House', mood:['strong','smoky'],
+    ingredients:[
+      {name:'Peated Scotch',amount:'2 oz',kind:'Peated Scotch'},
+      {name:'Sweet Vermouth',amount:'1 oz',kind:'Sweet Vermouth'},
+      {name:'Angostura Bitters',amount:'2 dashes',kind:'Angostura Bitters'},
+    ],
+    steps:['Combine in mixing glass over ice.','Stir 35 rotations.','Strain into chilled coupe.','Garnish with cherry.'],
+    notes:'Laphroaig makes this intensely smoky — a Scotch Manhattan. Kilchoman is slightly softer.'
+  },
+  {
+    id:'c13', name:'Bee's Knees', glass:'Coupe', method:'Shake', liked:false, house:false,
+    garnish:'Lemon twist', source:'Prohibition Era', mood:['bright','sweet'],
+    ingredients:[
+      {name:'Gin',amount:'2 oz',kind:'Gin'},
+      {name:'Lemon Juice',amount:'¾ oz',kind:'Lemon Juice'},
+      {name:'Honey Ginger Syrup',amount:'¾ oz',kind:'Honey Ginger Syrup'},
+    ],
+    steps:['Combine all in shaker with ice.','Shake well.','Double strain into chilled coupe.','Garnish with lemon twist.'],
+    notes:'Your homemade honey ginger syrup adds a beautiful spice note to this Prohibition classic.'
+  },
+  {
+    id:'c14', name:'Tequila Sour', glass:'Coupe', method:'Shake', liked:true, house:false,
+    garnish:'Lime wheel', source:'House', mood:['bright'],
+    ingredients:[
+      {name:'Tequila',amount:'2 oz',kind:'Tequila'},
+      {name:'Lime Juice',amount:'¾ oz',kind:'Lime Juice'},
+      {name:'Simple Syrup',amount:'½ oz',kind:'Simple Syrup'},
+      {name:'Egg White',amount:'1',kind:'Egg White'},
+    ],
+    steps:['Dry shake all without ice 15 seconds.','Add ice, shake hard 12 seconds.','Double strain into chilled coupe.','Garnish with lime wheel.'],
+    notes:'Don Julio 1942 elevates this massively. Cenote Ahumado for a smoky variation.'
+  },
+  {
+    id:'c15', name:'Strawberry Daiquiri', glass:'Coupe', method:'Shake', liked:true, house:true,
+    garnish:'Fresh strawberry', source:'House', mood:['sweet','bright'],
+    ingredients:[
+      {name:'Rum',amount:'2 oz',kind:'Rum'},
+      {name:'Lime Juice',amount:'¾ oz',kind:'Lime Juice'},
+      {name:'Strawberry Syrup',amount:'½ oz',kind:'Strawberry Syrup'},
+    ],
+    steps:['Combine all in shaker with ice.','Shake vigorously for 12 seconds.','Double strain into chilled coupe.','Garnish with a fresh strawberry.'],
+    notes:'Monin Strawberry keeps it clean. Calypso or El Supremo both work great.'
+  },
+  {
+    id:'c16', name:'Rum Sour', glass:'Coupe', method:'Shake', liked:false, house:false,
+    garnish:'Orange slice', source:'House', mood:['bright','sweet'],
+    ingredients:[
+      {name:'Rum',amount:'2 oz',kind:'Rum'},
+      {name:'Lemon Juice',amount:'¾ oz',kind:'Lemon Juice'},
+      {name:'Grenadine',amount:'½ oz',kind:'Grenadine'},
+      {name:'Egg White',amount:'1',kind:'Egg White'},
+    ],
+    steps:['Dry shake without ice 15 seconds.','Add ice, shake hard.','Double strain into coupe.','Garnish with orange slice.'],
+    notes:'Grenadine adds color and sweetness. Monin keeps it consistent every time.'
+  },
+  {
+    id:'c17', name:'Dry Martini', glass:'Coupe', method:'Stir', liked:true, house:false,
+    garnish:'Lemon twist or olive', source:'Classic', mood:['strong','classic'],
+    ingredients:[
+      {name:'Gin',amount:'2½ oz',kind:'Gin'},
+      {name:'Dry Vermouth',amount:'½ oz',kind:'Dry Vermouth'},
+    ],
+    steps:['Chill coupe in freezer.','Combine gin and vermouth in mixing glass over ice.','Stir 40 rotations — cold and diluted.','Strain into frozen coupe.','Express lemon twist or drop in olive.'],
+    notes:'Tanqueray Ten is exceptional here. Dolin Dry for a softer, more floral result.'
+  },
+  {
+    id:'c18', name:'Limoncello Collins', glass:'Highball', method:'Build', liked:true, house:true,
+    garnish:'Lemon wheel + mint', source:'House', mood:['bright','sweet'],
+    ingredients:[
+      {name:'Gin',amount:'1½ oz',kind:'Gin'},
+      {name:'Limoncello',amount:'½ oz',kind:'Limoncello'},
+      {name:'Lemon Juice',amount:'½ oz',kind:'Lemon Juice'},
+      {name:'Simple Syrup',amount:'¼ oz',kind:'Simple Syrup'},
+    ],
+    steps:['Add gin, limoncello, lemon juice and syrup to ice-filled highball.','Stir gently to combine.','Top with soda water.','Garnish with lemon wheel and mint.'],
+    notes:'Your homemade limoncello is the star here — adjust sweetness to taste.'
+  },
+];
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+
+let state = {
+  inventory: JSON.parse(localStorage.getItem('vadi_inv')) || JSON.parse(JSON.stringify(DEFAULT_INVENTORY)),
+  cocktails: JSON.parse(localStorage.getItem('vadi_cocktails')) || JSON.parse(JSON.stringify(DEFAULT_COCKTAILS)),
+  filter: 'all',
+  wheelMode: 'all',
+  wheelRotation: 0,
+  spinning: false,
+};
+
+function save() {
+  localStorage.setItem('vadi_inv', JSON.stringify(state.inventory));
+  localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
+}
+
+// ── AVAILABILITY ─────────────────────────────────────────────────────────────
+
+function getOnKinds() {
+  return new Set(state.inventory.filter(i => i.on).map(i => i.kind));
+}
+
+function canMake(cocktail) {
+  const onKinds = getOnKinds();
+  return cocktail.ingredients.every(ing => !ing.kind || onKinds.has(ing.kind));
+}
+
+function missingIngredients(cocktail) {
+  const onKinds = getOnKinds();
+  return cocktail.ingredients.filter(ing => ing.kind && !onKinds.has(ing.kind)).map(i => i.name);
+}
+
+// ── NAVIGATION ───────────────────────────────────────────────────────────────
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const tabs = ['cocktails','wheel','mood','inventory','add'];
+  const idx = tabs.indexOf(id);
+  document.querySelectorAll('.nav-tab')[idx].classList.add('active');
+
+  if (id === 'cocktails') renderCocktails();
+  if (id === 'inventory') renderInventory();
+  if (id === 'wheel') renderWheel();
+  if (id === 'add') { initIngRows(); initStepRows(); }
+}
+
+// ── COCKTAILS ─────────────────────────────────────────────────────────────────
+
+let currentFilter = 'all';
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderCocktails();
+}
+
+function renderCocktails() {
+  const grid = document.getElementById('cocktail-grid');
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  let list = state.cocktails;
+
+  if (q) list = list.filter(c => c.name.toLowerCase().includes(q) ||
+    c.ingredients.some(i => i.name.toLowerCase().includes(q)));
+
+  if (currentFilter === 'liked') list = list.filter(c => c.liked);
+  if (currentFilter === 'house') list = list.filter(c => c.house);
+  if (currentFilter === 'canmake') list = list.filter(c => canMake(c));
+  if (currentFilter === 'stir') list = list.filter(c => c.method === 'Stir');
+  if (currentFilter === 'shake') list = list.filter(c => c.method === 'Shake');
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-state-icon">🍹</div>
+      <div class="empty-state-text">No cocktails match your selection</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map((c, idx) => {
+    const cm = canMake(c);
+    const missing = missingIngredients(c);
+    const glassIcon = GLASS_ICON[c.glass] || GLASS_ICON.default;
+    const badges = [];
+    if (c.liked) badges.push('<span class="badge badge-liked">❤</span>');
+    if (c.house) badges.push('<span class="badge badge-house">House</span>');
+
+    return `<div class="cocktail-card ${cm ? '' : 'badge-cantmake'}" onclick="openModal('${c.id}')" style="animation-delay:${idx * 0.04}s">
+      <div class="card-top">
+        <div class="card-glass-icon">${glassIcon}</div>
+        <div class="card-badges">${badges.join('')}</div>
+      </div>
+      <div class="card-name">${c.name}</div>
+      <div class="card-method"><span class="${cm ? 'can-make-dot' : 'cant-make-dot'}"></span>${c.method} · ${c.glass}</div>
+      <div class="card-ingredients">
+        ${c.ingredients.slice(0,4).map(i => `<div class="card-ingredient-item">
+          <span class="card-ingredient-name">${i.name}</span>
+          <span class="card-ingredient-amt">${i.amount}</span>
+        </div>`).join('')}
+        ${c.ingredients.length > 4 ? `<div class="card-ingredient-item"><span class="card-ingredient-name" style="color:var(--text3)">+${c.ingredients.length - 4} more</span></div>` : ''}
+      </div>
+      ${!cm && missing.length ? `<div class="card-missing">Missing: ${missing.slice(0,2).join(', ')}${missing.length > 2 ? ` +${missing.length-2}` : ''}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+
+function openModal(id) {
+  const c = state.cocktails.find(x => x.id === id);
+  if (!c) return;
+  const cm = canMake(c);
+  const onKinds = getOnKinds();
+  const glassIcon = GLASS_ICON[c.glass] || GLASS_ICON.default;
+
+  document.getElementById('modal-header').innerHTML = `
+    <div class="modal-glass">${glassIcon}</div>
+    <div class="modal-title">${c.name}</div>
+    <div class="modal-meta">
+      <span class="modal-method-badge">${c.method}</span>
+      <span class="modal-glass-label">${c.glass} · ${cm ? '<span style="color:var(--green)">✓ Can Make</span>' : '<span style="color:var(--red)">✗ Missing Ingredients</span>'}</span>
+      ${c.source ? `<span class="modal-glass-label" style="margin-left:auto;opacity:0.6">${c.source}</span>` : ''}
+    </div>
+    <button class="modal-close" onclick="closeModal()">×</button>
+  `;
+
+  let bodyHtml = `
+    <div class="modal-section-title">Ingredients</div>
+    <ul class="modal-ingredients">
+      ${c.ingredients.map(i => {
+        const have = !i.kind || onKinds.has(i.kind);
+        return `<li class="modal-ingredient">
+          <span class="ingr-name" style="${have ? '' : 'opacity:0.5'}">${i.name}${!have ? '<span class="ingr-missing">need</span>' : ''}</span>
+          <span class="ingr-amount">${i.amount}</span>
+        </li>`;
+      }).join('')}
+    </ul>
+    <div class="modal-section-title">Method</div>
+    <ol class="modal-steps">
+      ${c.steps.map(s => `<li class="modal-step">${s}</li>`).join('')}
+    </ol>
+  `;
+
+  if (c.garnish) bodyHtml += `<div class="modal-garnish"><span>Garnish</span>${c.garnish}</div>`;
+  if (c.notes) bodyHtml += `<div class="modal-garnish"><span>Bartender's Notes</span>${c.notes}</div>`;
+
+  bodyHtml += `<div class="modal-actions">
+    <button class="btn btn-gold" onclick="toggleLiked('${c.id}')">${c.liked ? '❤ Liked' : '♡ Like'}</button>
+    <button class="btn btn-outline" onclick="toggleHouse('${c.id}')">${c.house ? '🏠 House' : '+ House Menu'}</button>
+    ${!DEFAULT_COCKTAILS.find(d => d.id === c.id) ? `<button class="btn btn-danger" onclick="deleteRecipe('${c.id}')">Delete</button>` : ''}
+  </div>`;
+
+  document.getElementById('modal-body').innerHTML = bodyHtml;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+}
+
+function toggleLiked(id) {
+  const c = state.cocktails.find(x => x.id === id);
+  if (c) { c.liked = !c.liked; save(); openModal(id); renderCocktails(); }
+}
+
+function toggleHouse(id) {
+  const c = state.cocktails.find(x => x.id === id);
+  if (c) { c.house = !c.house; save(); openModal(id); renderCocktails(); }
+}
+
+function deleteRecipe(id) {
+  if (!confirm('Remove this cocktail?')) return;
+  state.cocktails = state.cocktails.filter(c => c.id !== id);
+  save();
+  document.getElementById('modal-overlay').classList.remove('open');
+  renderCocktails();
+  toast('Recipe removed');
+}
+
+// ── INVENTORY ─────────────────────────────────────────────────────────────────
+
+function renderInventory() {
+  const grid = document.getElementById('inv-grid');
+  const cats = ['Spirit','Modifier','Syrup','Pantry'];
+  let html = '';
+
+  cats.forEach(cat => {
+    const items = state.inventory.filter(i => i.cat === cat);
+    if (!items.length) return;
+    html += `<div class="inv-category-title">${cat}s</div>`;
+    items.forEach(item => {
+      html += `<div class="inv-item ${item.on ? '' : 'off'}">
+        <div class="inv-item-left">
+          <div class="inv-item-kind">${item.kind}</div>
+          <div class="inv-item-label">${item.label}</div>
+        </div>
+        <div class="toggle ${item.on ? 'on' : ''}" onclick="toggleInv('${item.id}')"></div>
+      </div>`;
+    });
+  });
+
+  grid.innerHTML = html;
+}
+
+function toggleInv(id) {
+  const item = state.inventory.find(i => i.id === id);
+  if (item) { item.on = !item.on; save(); renderInventory(); renderCocktails(); }
+}
+
+function addInventoryItem() {
+  const cat = document.getElementById('inv-cat').value;
+  const kind = document.getElementById('inv-kind').value.trim();
+  const label = document.getElementById('inv-label').value.trim();
+  if (!kind || !label) { toast('Fill in Kind and Label'); return; }
+  const id = 'i' + Date.now();
+  state.inventory.push({ id, cat, kind, label, on: true });
+  save();
+  renderInventory();
+  document.getElementById('inv-kind').value = '';
+  document.getElementById('inv-label').value = '';
+  toast('Bottle added to bar');
+}
+
+// ── WHEEL ────────────────────────────────────────────────────────────────────
+
+let wheelMode = 'all';
+
+function setWheelMode(m) {
+  wheelMode = m;
+  document.querySelectorAll('.wheel-mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('wm-' + m).classList.add('active');
+  renderWheel();
+}
+
+function getWheelCocktails() {
+  let list = state.cocktails;
+  if (wheelMode === 'canmake') list = list.filter(c => canMake(c));
+  if (wheelMode === 'liked') list = list.filter(c => c.liked);
+  return list;
+}
+
+const WHEEL_COLORS = [
+  '#2a1f0e','#1c1709','#231a0b','#1a150a','#28200c',
+  '#2f2410','#1f1a0a','#261e0d','#2c220f','#201808',
+];
+
+function renderWheel() {
+  const cocktails = getWheelCocktails();
+  const svg = document.getElementById('wheel-svg');
+  if (!cocktails.length) { svg.innerHTML = ''; return; }
+
+  const n = cocktails.length;
+  const angleStep = (2 * Math.PI) / n;
+  const cx = 150, cy = 150, r = 140, innerR = 30;
+  let paths = '';
+
+  cocktails.forEach((c, i) => {
+    const startAngle = i * angleStep - Math.PI / 2;
+    const endAngle = (i + 1) * angleStep - Math.PI / 2;
+    const x1 = cx + r * Math.cos(startAngle);
+    const y1 = cy + r * Math.sin(startAngle);
+    const x2 = cx + r * Math.cos(endAngle);
+    const y2 = cy + r * Math.sin(endAngle);
+    const ix1 = cx + innerR * Math.cos(startAngle);
+    const iy1 = cy + innerR * Math.sin(startAngle);
+    const ix2 = cx + innerR * Math.cos(endAngle);
+    const iy2 = cy + innerR * Math.sin(endAngle);
+    const large = angleStep > Math.PI ? 1 : 0;
+    const color = WHEEL_COLORS[i % WHEEL_COLORS.length];
+    const midAngle = startAngle + angleStep / 2;
+    const textR = (r + innerR) / 2;
+    const tx = cx + textR * Math.cos(midAngle);
+    const ty = cy + textR * Math.sin(midAngle);
+    const rotate = (midAngle * 180 / Math.PI);
+
+    const fontSize = n > 12 ? 7 : n > 8 ? 8 : 9;
+    const maxChars = n > 12 ? 10 : n > 8 ? 14 : 18;
+    const label = c.name.length > maxChars ? c.name.slice(0, maxChars - 1) + '…' : c.name;
+
+    paths += `
+      <path d="M ${ix1} ${iy1} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} L ${ix2} ${iy2} A ${innerR} ${innerR} 0 ${large} 0 ${ix1} ${iy1}"
+        fill="${color}" stroke="rgba(201,168,76,0.2)" stroke-width="1"/>
+      <text transform="rotate(${rotate}, ${tx}, ${ty})" x="${tx}" y="${ty}"
+        text-anchor="middle" dominant-baseline="middle"
+        fill="#c8b89a" font-family="Jost,sans-serif" font-size="${fontSize}" font-weight="300" letter-spacing="0.5">
+        ${label}
+      </text>`;
+  });
+
+  // Gold rim
+  paths += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(201,168,76,0.4)" stroke-width="2"/>`;
+  paths += `<circle cx="${cx}" cy="${cy}" r="${innerR}" fill="none" stroke="rgba(201,168,76,0.3)" stroke-width="1.5"/>`;
+
+  svg.innerHTML = paths;
+}
+
+function spinWheel() {
+  if (state.spinning) return;
+  const cocktails = getWheelCocktails();
+  if (!cocktails.length) { toast('No cocktails to spin!'); return; }
+
+  state.spinning = true;
+  const n = cocktails.length;
+  const angleStep = 360 / n;
+  const randomIdx = Math.floor(Math.random() * n);
+  const extraSpins = 5 + Math.floor(Math.random() * 5);
+  const targetAngle = state.wheelRotation + 360 * extraSpins + (360 - randomIdx * angleStep - angleStep / 2);
+  state.wheelRotation = targetAngle;
+
+  const svg = document.getElementById('wheel-svg');
+  svg.style.transition = 'transform 3.5s cubic-bezier(0.17, 0.67, 0.12, 1)';
+  svg.style.transform = `rotate(${targetAngle}deg)`;
+
+  document.getElementById('wheel-result').style.display = 'none';
+
+  setTimeout(() => {
+    const c = cocktails[randomIdx];
+    const res = document.getElementById('wheel-result');
+    res.style.display = 'block';
+    res.innerHTML = `
+      <div class="wheel-result-title">${c.name}</div>
+      <div class="wheel-result-meta">${c.method} · ${c.glass}</div>
+      <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;">
+        <button class="btn btn-gold" onclick="openModalFromWheel('${c.id}')">View Recipe</button>
+      </div>`;
+    state.spinning = false;
+  }, 3700);
+}
+
+function openModalFromWheel(id) {
+  showPage('cocktails');
+  setTimeout(() => openModal(id), 100);
+}
+
+// ── MOOD ─────────────────────────────────────────────────────────────────────
+
+const MOOD_KEYWORDS = {
+  bitter: ['bitter','balanced','campari','aperol','amaro'],
+  strong: ['strong','elegant','stirred','whiskey','bourbon','rye','scotch','cognac'],
+  smoky: ['smoky','mezcal','smoke','peaty','scotch'],
+  bright: ['bright','fresh','citrus','sour','lime','lemon','gin'],
+  sweet: ['sweet','fruit','honey','tropical','rum'],
+  classic: ['classic','traditional','timeless'],
+};
+
+function pickMood(mood) {
+  document.querySelectorAll('.mood-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+
+  const keywords = MOOD_KEYWORDS[mood] || [];
+  let matches = state.cocktails.filter(c => {
+    if (c.mood && c.mood.includes(mood)) return true;
+    const text = (c.name + c.notes + c.ingredients.map(i=>i.name).join(' ')).toLowerCase();
+    return keywords.some(k => text.includes(k));
+  });
+
+  if (!matches.length) matches = state.cocktails.slice(0, 3);
+
+  // Sort canMake first
+  matches.sort((a,b) => (canMake(b) ? 1 : 0) - (canMake(a) ? 1 : 0));
+
+  const res = document.getElementById('mood-result');
+  res.innerHTML = `
+    <div class="modal-section-title" style="margin-bottom:16px;">Suggestions for this mood</div>
+    <div class="cocktail-grid" style="grid-template-columns: repeat(auto-fill, minmax(250px,1fr));">
+      ${matches.slice(0,4).map(c => {
+        const cm = canMake(c);
+        const gi = GLASS_ICON[c.glass] || GLASS_ICON.default;
+        return `<div class="cocktail-card" onclick="openModal('${c.id}')">
+          <div class="card-top">
+            <div class="card-glass-icon">${gi}</div>
+          </div>
+          <div class="card-name">${c.name}</div>
+          <div class="card-method"><span class="${cm ? 'can-make-dot' : 'cant-make-dot'}"></span>${c.method}</div>
+          <div class="card-ingredients">
+            ${c.ingredients.slice(0,3).map(i=>`<div class="card-ingredient-item"><span class="card-ingredient-name">${i.name}</span><span class="card-ingredient-amt">${i.amount}</span></div>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ── ADD RECIPE ────────────────────────────────────────────────────────────────
+
+function initIngRows() {
+  const list = document.getElementById('ing-list');
+  if (!list.children.length) { list.innerHTML = ''; addIngRow(); addIngRow(); addIngRow(); }
+}
+
+function initStepRows() {
+  const list = document.getElementById('step-list');
+  if (!list.children.length) { list.innerHTML = ''; addStepRow(); addStepRow(); }
+}
+
+function addIngRow() {
+  const list = document.getElementById('ing-list');
+  const row = document.createElement('div');
+  row.className = 'ing-row';
+  row.innerHTML = `<input type="text" class="ing-name" placeholder="Ingredient name">
+    <input type="text" class="ing-amt" placeholder="Amount">
+    <input type="text" class="ing-kind" placeholder="Kind (e.g. Gin)">
+    <button class="ing-del" onclick="this.parentElement.remove()">×</button>`;
+  list.appendChild(row);
+}
+
+function addStepRow() {
+  const list = document.getElementById('step-list');
+  const num = list.children.length + 1;
+  const row = document.createElement('div');
+  row.className = 'step-row';
+  row.innerHTML = `<div class="step-num">${num}</div>
+    <input type="text" placeholder="Describe this step…">
+    <button class="step-del" onclick="this.parentElement.remove(); renumberSteps()">×</button>`;
+  list.appendChild(row);
+}
+
+function renumberSteps() {
+  document.querySelectorAll('.step-num').forEach((el, i) => el.textContent = i + 1);
+}
+
+function saveRecipe() {
+  const name = document.getElementById('r-name').value.trim();
+  if (!name) { toast('Please enter a cocktail name'); return; }
+
+  const ingredients = [...document.querySelectorAll('.ing-row')].map(row => {
+    const inputs = row.querySelectorAll('input');
+    return { name: inputs[0].value.trim(), amount: inputs[1].value.trim(), kind: inputs[2].value.trim() };
+  }).filter(i => i.name);
+
+  const steps = [...document.querySelectorAll('.step-row')].map(row => row.querySelector('input').value.trim()).filter(Boolean);
+
+  const c = {
+    id: 'c' + Date.now(),
+    name,
+    glass: document.getElementById('r-glass').value,
+    method: document.getElementById('r-method').value,
+    liked: document.getElementById('r-liked-toggle').classList.contains('on'),
+    house: document.getElementById('r-house-toggle').classList.contains('on'),
+    garnish: document.getElementById('r-garnish').value.trim(),
+    source: document.getElementById('r-source').value.trim(),
+    notes: document.getElementById('r-notes').value.trim(),
+    mood: [],
+    ingredients,
+    steps,
+  };
+
+  state.cocktails.push(c);
+  save();
+  clearRecipeForm();
+  toast('Recipe saved! 🍹');
+  showPage('cocktails');
+}
+
+function clearRecipeForm() {
+  ['r-name','r-garnish','r-source','r-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('r-liked-toggle').classList.remove('on');
+  document.getElementById('r-house-toggle').classList.remove('on');
+  document.getElementById('ing-list').innerHTML = '';
+  document.getElementById('step-list').innerHTML = '';
+  initIngRows();
+  initStepRows();
+}
+
+// ── BACKUP ────────────────────────────────────────────────────────────────────
+
+function exportData() {
+  const data = { inventory: state.inventory, cocktails: state.cocktails };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'vadi-bar-backup.json';
+  a.click();
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try {
+      const data = JSON.parse(evt.target.result);
+      if (data.inventory) state.inventory = data.inventory;
+      if (data.cocktails) state.cocktails = data.cocktails;
+      save();
+      renderInventory();
+      renderCocktails();
+      toast('Bar restored from backup!');
+    } catch { toast('Invalid JSON file'); }
+  };
+  reader.readAsText(file);
+}
+
+function confirmReset() {
+  if (!confirm('Reset inventory and cocktails to defaults? All custom changes will be lost.')) return;
+  state.inventory = JSON.parse(JSON.stringify(DEFAULT_INVENTORY));
+  state.cocktails = JSON.parse(JSON.stringify(DEFAULT_COCKTAILS));
+  save();
+  renderInventory();
+  renderCocktails();
+  toast('Bar reset to defaults');
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+
+renderCocktails();
+renderWheel();
+initIngRows();
+initStepRows();
+</script>
+</body>
+</html>
