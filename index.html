@@ -1235,6 +1235,174 @@
   .spin-anim { animation: spin 1s linear infinite; display: inline-block; }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+
+  /* ── BOTTLE POPUP ── */
+  .bottle-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    backdrop-filter: blur(12px);
+    z-index: 400;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .bottle-modal-overlay.open { opacity: 1; pointer-events: all; }
+  .bottle-modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 680px;
+    max-height: 88vh;
+    overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+    scrollbar-width: thin;
+    scrollbar-color: var(--bg3) transparent;
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+  .bottle-modal-overlay.open .bottle-modal { transform: translateY(0); }
+  .bottle-modal-handle {
+    width: 36px; height: 4px;
+    background: var(--border2);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+  .bottle-modal-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .bottle-modal-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--cream);
+    line-height: 1.2;
+  }
+  .bottle-modal-kind {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold3);
+    margin-top: 3px;
+  }
+  .bottle-section {
+    padding: 20px 24px 0;
+  }
+  .bottle-section-title {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .bottle-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .bottle-cocktail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .bottle-cocktail-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .bottle-cocktail-card:hover { border-color: var(--border2); background: var(--card2); }
+  .bottle-cocktail-card-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    color: var(--cream);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .bottle-cocktail-card-meta {
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .bottle-cocktail-card-ings {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+  .bottle-cocktail-card-ings span { display: block; }
+  .discover-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    transition: all 0.2s;
+  }
+  .discover-card-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    color: var(--cream);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .discover-card-ings {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.7;
+    margin-bottom: 10px;
+  }
+  .discover-card-source {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .discover-add-btn {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    border-radius: 6px;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid var(--border2);
+    color: var(--gold);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Jost', sans-serif;
+  }
+  .discover-add-btn:hover { background: rgba(201,168,76,0.22); }
+  .discover-loading {
+    display: flex; align-items: center; gap: 10px;
+    color: var(--text3); font-size: 13px; padding: 20px 0;
+  }
+  .bottle-empty { font-size: 13px; color: var(--text3); padding: 8px 0 20px; font-style: italic; }
+  .discover-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .discover-source-badge {
+    display: inline-block;
+    font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 3px;
+    background: rgba(100,180,100,0.15); color: #6ab46a; border: 1px solid rgba(100,180,100,0.3);
+    margin-bottom: 6px;
+  }
+
 </style>
 </head>
 <body>
@@ -1504,6 +1672,21 @@
     </div>
   </div>
 
+</div>
+
+<!-- ── BOTTLE POPUP MODAL ── -->
+<div class="bottle-modal-overlay" id="bottle-modal-overlay" onclick="closeBottleModal(event)">
+  <div class="bottle-modal" id="bottle-modal">
+    <div class="bottle-modal-handle"></div>
+    <div class="bottle-modal-header">
+      <div>
+        <div class="bottle-modal-name" id="bottle-modal-name"></div>
+        <div class="bottle-modal-kind" id="bottle-modal-kind"></div>
+      </div>
+      <button class="modal-close" onclick="closeBottleModal()">×</button>
+    </div>
+    <div id="bottle-modal-body"></div>
+  </div>
 </div>
 
 <!-- ── COCKTAIL DETAIL MODAL ── -->
@@ -2101,7 +2284,7 @@ function renderInventory() {
 
       bottles.forEach(item => {
         html += `<div class="tree-bottle ${item.on ? '' : 'off'}" id="bottle-${item.id}">
-          <span class="tree-bottle-name">${item.label}</span>
+          <span class="tree-bottle-name" onclick="openBottleModal('${item.id}')" style="cursor:pointer;flex:1;">${item.label}</span>
           <div class="tree-bottle-actions">
             <div class="toggle ${item.on ? 'on' : ''}" onclick="toggleInv('${item.id}')"></div>
             <button class="tree-bottle-del" onclick="deleteInvItem('${item.id}')" title="Remove">×</button>
@@ -2763,6 +2946,205 @@ function confirmReset() {
   renderInventory();
   renderCocktails();
   toast('Bar reset to defaults');
+}
+
+// ── BOTTLE POPUP ──────────────────────────────────────────────────────────────
+
+// Map our "kind" labels to TheCocktailDB ingredient search terms
+const KIND_TO_COCKTAILDB = {
+  "Gin": "gin",
+  "Vodka": "vodka",
+  "Rum": "rum",
+  "Bourbon": "bourbon",
+  "Rye Whiskey": "rye whiskey",
+  "Blended Scotch": "scotch",
+  "Peated Scotch": "scotch",
+  "Tequila": "tequila",
+  "Mezcal": "mezcal",
+  "Cognac": "cognac",
+  "Cachaca": "cachaca",
+  "Sweet Vermouth": "sweet vermouth",
+  "Dry Vermouth": "dry vermouth",
+  "Campari": "campari",
+  "Aperol": "aperol",
+  "Amaro": "fernet branca",
+  "Triple Sec": "triple sec",
+  "Herbal Liqueur": "benedictine",
+  "Anise Spirit": "anisette",
+  "Coffee Liqueur": "coffee liqueur",
+  "Cream Liqueur": "baileys irish cream",
+  "Limoncello": "limoncello",
+  "Angostura Bitters": "angostura bitters",
+  "Orange Bitters": "orange bitters",
+};
+
+async function openBottleModal(itemId) {
+  const item = state.inventory.find(i => i.id === itemId);
+  if (!item) return;
+
+  document.getElementById("bottle-modal-name").textContent = item.label;
+  document.getElementById("bottle-modal-kind").textContent = item.cat + " · " + item.kind;
+
+  // Build body
+  const body = document.getElementById("bottle-modal-body");
+
+  // ── YOUR BAR cocktails that use this kind ──────────────────────────────
+  const yours = state.cocktails.filter(c =>
+    c.ingredients.some(i => i.kind === item.kind)
+  );
+
+  let html = '<div class="bottle-section">';
+  html += '<div class="bottle-section-title">In Your Collection</div>';
+  if (yours.length) {
+    html += '<div class="bottle-cocktail-grid">';
+    yours.forEach(c => {
+      const cm = canMake(c);
+      html += `<div class="bottle-cocktail-card" onclick="openBottleCocktail('${c.id}')">
+        <div class="bottle-cocktail-card-name">${c.name}</div>
+        <div class="bottle-cocktail-card-meta">${GLASS_ICON[c.glass] || "🍹"} ${c.method} · <span style="color:${cm ? "var(--green)" : "var(--red)"}">${cm ? "Can make" : "Missing items"}</span></div>
+        <div class="bottle-cocktail-card-ings">${c.ingredients.slice(0,4).map(i => `<span>${i.amount} ${i.name}</span>`).join("")}</div>
+      </div>`;
+    });
+    html += "</div>";
+  } else {
+    html += `<div class="bottle-empty">No recipes in your collection use ${item.kind} yet.</div>`;
+  }
+  html += "</div>";
+
+  // ── DISCOVER section (loading placeholder) ─────────────────────────────
+  html += `<div class="bottle-section" id="discover-section">
+    <div class="bottle-section-title">Discover · TheCocktailDB</div>
+    <div class="discover-loading"><span class="spin-anim">⟳</span> Fetching cocktail ideas…</div>
+  </div>`;
+
+  body.innerHTML = html;
+  document.getElementById("bottle-modal-overlay").classList.add("open");
+
+  // ── Fetch from TheCocktailDB ──────────────────────────────────────────
+  const searchTerm = KIND_TO_COCKTAILDB[item.kind] || item.kind.toLowerCase();
+  try {
+    const res = await fetch(`https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(searchTerm)}`);
+    const data = await res.json();
+    const drinks = (data.drinks || []).slice(0, 12);
+
+    if (!drinks.length) {
+      document.getElementById("discover-section").innerHTML =
+        `<div class="bottle-section-title">Discover · TheCocktailDB</div>
+         <div class="bottle-empty">No cocktails found online for "${item.kind}".</div>`;
+      return;
+    }
+
+    // Fetch full details for first 6
+    const details = await Promise.all(
+      drinks.slice(0, 6).map(d =>
+        fetch(`https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i=${d.idDrink}`)
+          .then(r => r.json())
+          .then(r => r.drinks?.[0])
+          .catch(() => null)
+      )
+    );
+
+    const discoverHtml = details.filter(Boolean).map(d => {
+      // Extract ingredients
+      const ings = [];
+      for (let n = 1; n <= 15; n++) {
+        const ing = d["strIngredient" + n];
+        const msr = d["strMeasure" + n];
+        if (ing && ing.trim()) ings.push((msr ? msr.trim() + " " : "") + ing.trim());
+      }
+
+      // Check if already in collection
+      const alreadyHave = state.cocktails.some(c =>
+        c.name.toLowerCase() === d.strDrink.toLowerCase()
+      );
+
+      const encoded = encodeURIComponent(JSON.stringify({
+        name: d.strDrink,
+        glass: d.strGlass || "Rocks",
+        method: d.strCategory || "Shake",
+        ingredients: ings,
+        instructions: d.strInstructions || "",
+        source: "TheCocktailDB"
+      }));
+
+      return `<div class="discover-card">
+        <div class="discover-source-badge">TheCocktailDB</div>
+        <div class="discover-card-name">${d.strDrink}</div>
+        <div class="discover-card-ings">${ings.slice(0, 5).join(" · ")}${ings.length > 5 ? " · …" : ""}</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="discover-add-btn" onclick="importDiscoveredCocktail('${encoded}')"
+            ${alreadyHave ? 'disabled style="opacity:0.4;cursor:default;"' : ""}>
+            ${alreadyHave ? "✓ In Collection" : "+ Add to My Bar"}
+          </button>
+          <a href="https://www.thecocktaildb.com/cocktail/${d.idDrink}" target="_blank"
+            style="font-size:11px;color:var(--text3);text-decoration:none;letter-spacing:0.08em;">
+            View recipe ↗
+          </a>
+        </div>
+      </div>`;
+    }).join("");
+
+    document.getElementById("discover-section").innerHTML =
+      `<div class="bottle-section-title">Discover · TheCocktailDB</div>
+       <div class="discover-grid">${discoverHtml}</div>`;
+
+  } catch(e) {
+    document.getElementById("discover-section").innerHTML =
+      `<div class="bottle-section-title">Discover · TheCocktailDB</div>
+       <div class="bottle-empty">Couldn't load online suggestions — check your connection.</div>`;
+  }
+}
+
+function importDiscoveredCocktail(encoded) {
+  const raw = JSON.parse(decodeURIComponent(encoded));
+
+  // Parse ingredients into structured format
+  const parsedIngs = raw.ingredients.map(s => {
+    const parts = s.match(/^([\d\/\s\w\.]+(?:oz|cl|ml|tsp|tbsp|dash|dashes|cup|part|parts)?)?\s*(.+)$/i);
+    const amount = parts?.[1]?.trim() || "";
+    const name = parts?.[2]?.trim() || s;
+    return { name, amount, kind: name };
+  });
+
+  // Pre-fill the Add Recipe form
+  closeBottleModal();
+  showPage("add");
+
+  setTimeout(() => {
+    document.getElementById("r-name").value = raw.name;
+    // Try to match glass
+    const glassMap = { "highball": "Highball", "martini": "Martini", "rocks": "Rocks",
+      "coupe": "Coupe", "shot": "Rocks", "mug": "Mug", "cocktail": "Coupe" };
+    const glassKey = Object.keys(glassMap).find(k => (raw.glass || "").toLowerCase().includes(k));
+    if (glassKey) document.getElementById("r-glass").value = glassMap[glassKey];
+    document.getElementById("r-source").value = raw.source || "TheCocktailDB";
+    document.getElementById("r-notes").value = raw.instructions ? raw.instructions.slice(0, 300) : "";
+
+    // Rebuild ingredient rows
+    const ingList = document.getElementById("ing-list");
+    ingList.innerHTML = "";
+    parsedIngs.forEach(ing => {
+      addIngRow();
+      const rows = ingList.querySelectorAll(".ing-row");
+      const last = rows[rows.length - 1];
+      last.querySelector(".ing-name").value = ing.name;
+      last.querySelector(".ing-amt").value = ing.amount;
+      last.querySelector(".ing-kind").value = ing.kind;
+    });
+
+    toast(raw.name + " pre-filled — review and save!");
+  }, 350);
+}
+
+function openBottleCocktail(id) {
+  closeBottleModal();
+  setTimeout(() => openModal(id), 250);
+}
+
+function closeBottleModal(e) {
+  if (!e || e.target === document.getElementById("bottle-modal-overlay")) {
+    document.getElementById("bottle-modal-overlay").classList.remove("open");
+  }
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
