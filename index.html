@@ -1571,24 +1571,33 @@
 
   /* ── RECIPE DETAIL MODAL ── */
   .rdetail-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.88); backdrop-filter: blur(12px);
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    backdrop-filter: blur(12px);
     z-index: 500;
-    display: flex; align-items: flex-end; justify-content: center;
-    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
   }
   .rdetail-overlay.open { opacity: 1; pointer-events: all; }
   .rdetail-sheet {
-    background: var(--bg2); border: 1px solid var(--border2);
+    background: var(--bg2);
+    border: 1px solid var(--border2);
     border-radius: 20px 20px 0 0;
-    width: 100%; max-width: 600px;
-    height: auto; max-height: 88vh;
-    overflow-y: auto; overflow-x: hidden;
+    width: 100%;
+    max-width: 680px;
+    max-height: 88vh;
+    overflow-y: auto;
     transform: translateY(100%);
     transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
-    scrollbar-width: thin; scrollbar-color: var(--bg3) transparent;
-    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-    box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: var(--bg3) transparent;
+    padding-bottom: env(safe-area-inset-bottom, 16px);
   }
   .rdetail-overlay.open .rdetail-sheet { transform: translateY(0); }
   .rdetail-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 12px auto 0; }
@@ -2363,12 +2372,20 @@ const DEFAULT_COCKTAILS = [
 
 // Version bump forces localStorage to reset when default inventory changes
 const INV_VERSION = "v6";
-// Clean up any accidentally-added placeholder cocktails
-const savedCocktails = JSON.parse(localStorage.getItem('vadi_cocktails'));
-if (savedCocktails) {
-  const cleaned = savedCocktails.filter(function(c){ return c.name !== 'Search on Liquor.com'; });
-  if (cleaned.length !== savedCocktails.length) localStorage.setItem('vadi_cocktails', JSON.stringify(cleaned));
-}
+// Clean up placeholder cocktails and merge any newly added default recipes
+(function() {
+  var saved = JSON.parse(localStorage.getItem('vadi_cocktails'));
+  if (saved) {
+    // Remove placeholder
+    saved = saved.filter(function(c){ return c.name !== 'Search on Liquor.com'; });
+    // Merge any default cocktails not yet in saved list (new recipes added to app)
+    var savedIds = new Set(saved.map(function(c){ return c.id; }));
+    DEFAULT_COCKTAILS.forEach(function(dc) {
+      if (!savedIds.has(dc.id)) saved.push(JSON.parse(JSON.stringify(dc)));
+    });
+    localStorage.setItem('vadi_cocktails', JSON.stringify(saved));
+  }
+})();
 if (localStorage.getItem('vadi_inv_version') !== INV_VERSION) {
   localStorage.removeItem('vadi_inv');
   localStorage.setItem('vadi_inv_version', INV_VERSION);
@@ -3238,30 +3255,57 @@ function oneClickAddRecipe(encoded, btnEl) {
 }
 
 function guessKindFromName(name) {
-  var n = name.toLowerCase();
+  var n = name.toLowerCase().trim();
+
+  // Specific named products — these are EXACT brands that should only match
+  // if you have that specific bottle. Return name as kind.
+  var specificBrands = [
+    'aperol','campari','cointreau','grand marnier','benedictine',
+    'chartreuse','drambuie','kahlua','baileys','fernet','picon',
+    'lillet','st.germain','st germain','maraschino','luxardo',
+    'frangelico','amaretto','disaronno','midori','falernum',
+    'orgeat','grenadine','angostura','peychaud'
+  ];
+  for (var b = 0; b < specificBrands.length; b++) {
+    if (n.includes(specificBrands[b])) {
+      // Capitalise first letter of each word
+      return name.trim().replace(/\w/g, function(c){ return c.toUpperCase(); });
+    }
+  }
+
+  // Specific named amaro/liqueur products (NOT generic "amaro")
+  if (n.includes('amaro nonino') || n.includes('amaro montenegro') ||
+      n.includes('amaro averna') || n.includes('amaro ramazzotti') ||
+      n.includes('cynar')) {
+    return name.trim().replace(/\w/g, function(c){ return c.toUpperCase(); });
+  }
+
+  // Generic spirit/category names — safe to generalise
   var kindMap = [
-    ['gin', 'Gin'], ['vodka', 'Vodka'],
-    ['rum', 'Rum'], ['bourbon', 'Bourbon'], ['rye', 'Rye Whiskey'],
-    ['scotch', 'Blended Scotch'], ['whiskey', 'Bourbon'], ['whisky', 'Blended Scotch'],
-    ['tequila', 'Tequila'], ['mezcal', 'Mezcal'], ['cognac', 'Cognac'],
-    ['brandy', 'Cognac'], ['cachaca', 'Cachaca'],
-    ['sweet vermouth', 'Sweet Vermouth'], ['dry vermouth', 'Dry Vermouth'], ['vermouth', 'Sweet Vermouth'],
-    ['campari', 'Campari'], ['aperol', 'Aperol'],
-    ['triple sec', 'Triple Sec'], ['cointreau', 'Triple Sec'], ['grand marnier', 'Triple Sec'],
-    ['benedictine', 'Herbal Liqueur'], ['chartreuse', 'Herbal Liqueur'], ['drambuie', 'Herbal Liqueur'],
-    ['fernet', 'Amaro'], ['amaro', 'Amaro'],
-    ['coffee liqueur', 'Coffee Liqueur'], ['kahlua', 'Coffee Liqueur'],
-    ['baileys', 'Cream Liqueur'], ['cream liqueur', 'Cream Liqueur'],
-    ['simple syrup', 'Simple Syrup'], ['honey', 'Honey Ginger Syrup'],
-    ['grenadine', 'Grenadine'], ['orgeat', 'Orgeat'],
-    ['lemon juice', 'Lemon Juice'], ['lime juice', 'Lime Juice'],
-    ['angostura', 'Angostura Bitters'], ['bitters', 'Angostura Bitters'],
-    ['egg white', 'Egg White'],
+    ['blanco tequila','Tequila'],['reposado tequila','Tequila'],['anejo tequila','Tequila'],
+    ['tequila','Tequila'],['mezcal','Mezcal'],
+    ['bourbon','Bourbon'],['rye whiskey','Rye Whiskey'],['rye','Rye Whiskey'],
+    ['scotch','Blended Scotch'],['whiskey','Bourbon'],['whisky','Blended Scotch'],
+    ['gin','Gin'],['vodka','Vodka'],['white rum','Rum'],['dark rum','Rum'],
+    ['light rum','Rum'],['rum','Rum'],['cognac','Cognac'],['brandy','Cognac'],
+    ['cachaca','Cachaca'],
+    ['sweet vermouth','Sweet Vermouth'],['dry vermouth','Dry Vermouth'],
+    ['vermouth','Sweet Vermouth'],
+    ['triple sec','Triple Sec'],
+    ['coffee liqueur','Coffee Liqueur'],['cream liqueur','Cream Liqueur'],
+    ['simple syrup','Simple Syrup'],['sugar syrup','Simple Syrup'],
+    ['honey syrup','Honey Ginger Syrup'],['honey','Honey Ginger Syrup'],
+    ['agave syrup','Simple Syrup'],['demerara syrup','Demerara Syrup'],
+    ['lemon juice','Lemon Juice'],['lime juice','Lime Juice'],
+    ['egg white','Egg White'],['ginger beer','Ginger Beer'],
+    ['tonic water','Tonic Water'],['soda water','Soda Water'],
+    ['bitters','Angostura Bitters'],
+    ['amaro','Amaro'],  // Generic "amaro" only — specific brands handled above
   ];
   for (var i = 0; i < kindMap.length; i++) {
     if (n.includes(kindMap[i][0])) return kindMap[i][1];
   }
-  return name; // fallback: use name itself as kind
+  return name.trim(); // fallback: use ingredient name as kind
 }
 
 // ── BACKUP ────────────────────────────────────────────────────────────────────
