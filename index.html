@@ -1653,6 +1653,50 @@
   }
   .recipe-result-card-preview:hover { color: var(--gold3); }
 
+
+  /* ── CART QUICK-ADD ── */
+  .cart-add-row {
+    display: flex; gap: 8px; align-items: center;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px;
+    margin-bottom: 20px; position: relative;
+  }
+  .cart-add-icon { font-size: 18px; flex-shrink: 0; opacity: 0.6; }
+  .cart-add-input {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--text); font-family: 'Jost', sans-serif;
+    font-size: 14px; font-weight: 300;
+  }
+  .cart-add-input::placeholder { color: var(--text3); }
+  .cart-add-btn {
+    background: var(--gold3); border: none; color: var(--bg);
+    border-radius: 8px; padding: 7px 14px;
+    font-family: 'Jost', sans-serif; font-size: 12px;
+    letter-spacing: 0.08em; cursor: pointer; transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .cart-add-btn:hover { background: var(--gold); }
+  .cart-autocomplete {
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 10px; z-index: 100;
+    max-height: 220px; overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    margin-top: 4px; display: none;
+  }
+  .cart-autocomplete.open { display: block; }
+  .cart-ac-item {
+    padding: 11px 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(201,168,76,0.06);
+    transition: background 0.15s;
+  }
+  .cart-ac-item:last-child { border-bottom: none; }
+  .cart-ac-item:hover, .cart-ac-item.selected { background: rgba(201,168,76,0.08); }
+  .cart-ac-name { font-size: 14px; color: var(--cream2); }
+  .cart-ac-kind { font-size: 11px; color: var(--text3); letter-spacing: 0.06em; }
+  .cart-ac-add { font-size: 11px; color: var(--gold); letter-spacing: 0.1em; }
+
 </style>
 </head>
 <body>
@@ -1845,6 +1889,18 @@
         <button class="btn btn-danger" onclick="clearCart()" id="cart-clear-btn" style="display:none">Clear</button>
       </div>
     </div>
+
+    <div class="cart-add-row" id="cart-add-row">
+      <span class="cart-add-icon">🔍</span>
+      <input type="text" class="cart-add-input" id="cart-add-input"
+        placeholder="Search bar or type any ingredient…"
+        oninput="cartAcSearch(this.value)"
+        onkeydown="cartAcKeydown(event)"
+        autocomplete="off">
+      <button class="cart-add-btn" onclick="cartAddManual()">Add</button>
+      <div class="cart-autocomplete" id="cart-autocomplete"></div>
+    </div>
+
     <div id="cart-list"></div>
   </div>
 
@@ -1969,16 +2025,6 @@
   </div>
 </div>
 
-<!-- ── COCKTAIL DETAIL MODAL ── -->
-<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
-  <div class="modal" id="modal">
-    <div class="modal-header" id="modal-header"></div>
-    <div class="modal-body" id="modal-body"></div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
 <!-- ── RECIPE DETAIL MODAL ── -->
 <div class="rdetail-overlay" id="rdetail-overlay" onclick="closeRDetail(event)">
   <div class="rdetail-sheet">
@@ -1995,6 +2041,17 @@
     <div class="rdetail-actions" id="rdetail-actions"></div>
   </div>
 </div>
+
+<!-- ── COCKTAIL DETAIL MODAL ── -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header" id="modal-header"></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 
 <script>
 
@@ -4087,6 +4144,137 @@ function renderCart() {
 
   el.innerHTML = html;
 }
+
+// ── CART QUICK-ADD AUTOCOMPLETE ───────────────────────────────────────────────
+
+var cartAcSelected = -1;
+
+function cartAcSearch(val) {
+  var q = val.trim().toLowerCase();
+  var ac = document.getElementById('cart-autocomplete');
+  cartAcSelected = -1;
+
+  if (!q) { ac.classList.remove('open'); ac.innerHTML = ''; return; }
+
+  // Search inventory bottles + common ingredients not in bar
+  var inventoryMatches = state.inventory.filter(function(i) {
+    return i.label.toLowerCase().includes(q) || i.kind.toLowerCase().includes(q);
+  }).slice(0, 8);
+
+  // Also suggest common ingredients from scratch
+  var COMMON = [
+    {label:'Fresh Lemon Juice', kind:'Lemon Juice'}, {label:'Fresh Lime Juice', kind:'Lime Juice'},
+    {label:'Simple Syrup', kind:'Simple Syrup'}, {label:'Honey Syrup', kind:'Honey Ginger Syrup'},
+    {label:'Egg White', kind:'Egg White'}, {label:'Ginger Beer', kind:'Ginger Beer'},
+    {label:'Tonic Water', kind:'Tonic Water'}, {label:'Soda Water', kind:'Soda Water'},
+    {label:'Angostura Bitters', kind:'Angostura Bitters'}, {label:'Orange Bitters', kind:'Orange Bitters'},
+    {label:'Grenadine', kind:'Grenadine'}, {label:'Orgeat', kind:'Orgeat'},
+    {label:'Heavy Cream', kind:'Heavy Cream'}, {label:'Coconut Cream', kind:'Coconut Cream'},
+    {label:'Pineapple Juice', kind:'Pineapple Juice'}, {label:'Orange Juice', kind:'Orange Juice'},
+    {label:'Cranberry Juice', kind:'Cranberry Juice'}, {label:'Grapefruit Juice', kind:'Grapefruit Juice'},
+    {label:'Champagne', kind:'Champagne'}, {label:'Prosecco', kind:'Champagne'},
+    {label:'Amaro Nonino', kind:'Amaro Nonino'}, {label:'Amaro Montenegro', kind:'Amaro Montenegro'},
+    {label:'Maraschino Liqueur', kind:'Maraschino'}, {label:'Green Chartreuse', kind:'Herbal Liqueur'},
+    {label:'Yellow Chartreuse', kind:'Herbal Liqueur'}, {label:'St-Germain', kind:'Elderflower Liqueur'},
+    {label:'Lillet Blanc', kind:'Sweet Vermouth'}, {label:'Luxardo Maraschino', kind:'Maraschino'},
+    {label:'Passion Fruit Syrup', kind:'Passion Fruit Syrup'}, {label:'Raspberry Syrup', kind:'Strawberry Syrup'},
+    {label:'Demerara Syrup', kind:'Demerara Syrup'}, {label:'Agave Syrup', kind:'Simple Syrup'},
+    {label:'Falernum', kind:'Falernum'}, {label:'Peychauds Bitters', kind:'Orange Bitters'},
+  ];
+
+  var existingLabels = new Set(inventoryMatches.map(function(i){ return i.label.toLowerCase(); }));
+  var commonMatches = COMMON.filter(function(c) {
+    return (c.label.toLowerCase().includes(q) || c.kind.toLowerCase().includes(q)) && !existingLabels.has(c.label.toLowerCase());
+  }).slice(0, 4);
+
+  var all = inventoryMatches.map(function(i){ return {label: i.label, kind: i.kind, fromBar: true}; })
+    .concat(commonMatches.map(function(c){ return {label: c.label, kind: c.kind, fromBar: false}; }));
+
+  if (!all.length) { ac.classList.remove('open'); ac.innerHTML = ''; return; }
+
+  ac.innerHTML = all.map(function(item, idx) {
+    var safeLabel = item.label.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    var safeKind  = item.kind.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    return '<div class="cart-ac-item" data-label="' + safeLabel + '" data-kind="' + safeKind + '">' +
+      '<div><div class="cart-ac-name">' + item.label + '</div>' +
+      '<div class="cart-ac-kind">' + item.kind + (item.fromBar ? ' · In bar' : '') + '</div></div>' +
+      '<div class="cart-ac-add">+ Add</div></div>';
+  }).join('');
+
+  // Attach click handlers via JS (avoids inline quote escaping issues)
+  ac.querySelectorAll('.cart-ac-item').forEach(function(el) {
+    el.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      cartAcPick(el.dataset.label, el.dataset.kind);
+    });
+  });
+
+  ac.classList.add('open');
+}
+
+function cartAcKeydown(e) {
+  var ac = document.getElementById('cart-autocomplete');
+  var items = ac.querySelectorAll('.cart-ac-item');
+  if (!items.length) {
+    if (e.key === 'Enter') { cartAddManual(); }
+    return;
+  }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    cartAcSelected = Math.min(cartAcSelected + 1, items.length - 1);
+    items.forEach(function(el, i){ el.classList.toggle('selected', i === cartAcSelected); });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    cartAcSelected = Math.max(cartAcSelected - 1, 0);
+    items.forEach(function(el, i){ el.classList.toggle('selected', i === cartAcSelected); });
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (cartAcSelected >= 0 && items[cartAcSelected]) {
+      var el = items[cartAcSelected];
+      cartAcPick(el.dataset.label, el.dataset.kind);
+    } else {
+      cartAddManual();
+    }
+  } else if (e.key === 'Escape') {
+    ac.classList.remove('open');
+    cartAcSelected = -1;
+  }
+}
+
+function cartAcPick(label, kind) {
+  addToCartByKind(label, kind, 'Manual');
+  document.getElementById('cart-add-input').value = '';
+  document.getElementById('cart-autocomplete').classList.remove('open');
+  document.getElementById('cart-autocomplete').innerHTML = '';
+  cartAcSelected = -1;
+  renderCart();
+}
+
+function cartAddManual() {
+  var val = document.getElementById('cart-add-input').value.trim();
+  if (!val) return;
+  // Check if there's a selected autocomplete item
+  var ac = document.getElementById('cart-autocomplete');
+  var selected = ac.querySelector('.cart-ac-item.selected');
+  if (selected) {
+    cartAcPick(selected.dataset.label, selected.dataset.kind);
+  } else {
+    // Add as free-text
+    addToCartByKind(val, val, 'Manual');
+    document.getElementById('cart-add-input').value = '';
+    ac.classList.remove('open');
+    ac.innerHTML = '';
+    renderCart();
+  }
+}
+
+// Close autocomplete when clicking elsewhere
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#cart-add-row')) {
+    var ac = document.getElementById('cart-autocomplete');
+    if (ac) { ac.classList.remove('open'); ac.innerHTML = ''; cartAcSelected = -1; }
+  }
+});
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
 
