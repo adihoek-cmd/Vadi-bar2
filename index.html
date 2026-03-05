@@ -2266,7 +2266,7 @@ const DEFAULT_COCKTAILS = [
     garnish:"Lime wedge", source:"Classic", mood:["sweet","bright"],
     ingredients:[
       {name:"Rum", amount:"2 oz", kind:"Rum"},
-      {name:"Ginger Beer", amount:"4 oz", kind:"Pantry"},
+      {name:"Ginger Beer", amount:"4 oz", kind:"Ginger Beer"},
       {name:"Lime Juice", amount:"1/2 oz", kind:"Lime Juice"},
       {name:"Grenadine", amount:"dash", kind:"Grenadine"},
     ],
@@ -2435,10 +2435,22 @@ const INV_VERSION = "v6";
   if (saved) {
     // Remove placeholder
     saved = saved.filter(function(c){ return c.name !== 'Search on Liquor.com'; });
-    // Merge any default cocktails not yet in saved list (new recipes added to app)
-    var savedIds = new Set(saved.map(function(c){ return c.id; }));
+    // Merge/update defaults: add new ones, fix recipe data on existing ones (keep user liked/house flags)
+    var savedById = {};
+    saved.forEach(function(c){ savedById[c.id] = c; });
     DEFAULT_COCKTAILS.forEach(function(dc) {
-      if (!savedIds.has(dc.id)) saved.push(JSON.parse(JSON.stringify(dc)));
+      if (!savedById[dc.id]) {
+        saved.push(JSON.parse(JSON.stringify(dc)));
+      } else {
+        var ex = savedById[dc.id];
+        ex.ingredients = dc.ingredients;
+        ex.steps = dc.steps;
+        ex.glass = dc.glass;
+        ex.method = dc.method;
+        ex.garnish = dc.garnish;
+        ex.source = dc.source;
+        ex.notes = dc.notes;
+      }
     });
     localStorage.setItem('vadi_cocktails', JSON.stringify(saved));
   }
