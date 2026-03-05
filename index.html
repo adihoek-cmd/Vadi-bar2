@@ -2151,6 +2151,7 @@ const DEFAULT_INVENTORY = [
   // ── HERBAL & BOTANICAL ────────────────────────────────────────────────────
   { id:"i100", cat:"Modifier", kind:"Herbal Liqueur", label:"Benedictine", on:true },
   { id:"i101", cat:"Modifier", kind:"Herbal Liqueur", label:"Green Chartreuse", on:true },
+  { id:"i102", cat:"Modifier", kind:"Herbal Liqueur", label:"Genepi L'Ancienne", on:true },
   { id:"i102", cat:"Modifier", kind:"Herbal Liqueur", label:"Drambuie", on:true },
 
   // ── ANISE ─────────────────────────────────────────────────────────────────
@@ -2428,7 +2429,7 @@ const DEFAULT_COCKTAILS = [
 // ── STATE ────────────────────────────────────────────────────────────────────
 
 // Version bump forces localStorage to reset when default inventory changes
-const INV_VERSION = "v6";
+const INV_VERSION = "v7";
 // Clean up placeholder cocktails and merge any newly added default recipes
 (function() {
   var saved = JSON.parse(localStorage.getItem('vadi_cocktails'));
