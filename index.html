@@ -230,6 +230,17 @@
   }
 
   .cocktail-card:hover::before { opacity: 1; }
+  /* Prevent child elements from swallowing touch/click events */
+  .cocktail-card .card-top,
+  .cocktail-card .card-glass-icon,
+  .cocktail-card .card-badges,
+  .cocktail-card .card-name,
+  .cocktail-card .card-method,
+  .cocktail-card .card-ingredients,
+  .cocktail-card .card-ingredient-item,
+  .cocktail-card .card-ingredient-name,
+  .cocktail-card .card-ingredient-amt,
+  .cocktail-card .card-missing { pointer-events: none; }
 
   .card-top {
     display: flex;
@@ -1697,6 +1708,17 @@
   .cart-ac-kind { font-size: 11px; color: var(--text3); letter-spacing: 0.06em; }
   .cart-ac-add { font-size: 11px; color: var(--gold); letter-spacing: 0.1em; }
 
+
+  .ing-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .btn-have-it {
+    background: rgba(100,180,100,0.15); border: 1px solid rgba(100,200,100,0.3);
+    color: #7ecb7e; border-radius: 6px; padding: 3px 10px;
+    font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: 0.08em;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .btn-have-it:hover { background: rgba(100,180,100,0.28); }
+  .btn-have-it.added { background: rgba(100,180,100,0.3); color: #a0e0a0; }
+
 </style>
 </head>
 <body>
@@ -2634,6 +2656,23 @@ const DEFAULT_COCKTAILS = [
 
 // Version bump forces localStorage to reset when default inventory changes
 const INV_VERSION = "v7";
+// Runtime kind repair — fix any inventory items that were added with wrong kinds
+(function() {
+  var inv = JSON.parse(localStorage.getItem('vadi_inv'));
+  if (!inv) return;
+  var dirty = false;
+  var irishBrands = ['jameson','redbreast','bushmills','tullamore','powers','teeling','green spot','yellow spot','writers tears','slane','proper twelve','connemara','knappogue'];
+  inv.forEach(function(item) {
+    var lbl = (item.label || '').toLowerCase();
+    // Fix Irish whiskeys mislabelled as Blended Scotch
+    if (item.kind === 'Blended Scotch' && irishBrands.some(function(b){ return lbl.includes(b); })) {
+      item.kind = 'Irish Whiskey';
+      item.cat = 'Spirit';
+      dirty = true;
+    }
+  });
+  if (dirty) localStorage.setItem('vadi_inv', JSON.stringify(inv));
+})();
 // Clean up placeholder cocktails and merge any newly added default recipes
 (function() {
   var saved = JSON.parse(localStorage.getItem('vadi_cocktails'));
@@ -2804,7 +2843,10 @@ function openModal(id) {
         return `<li class="modal-ingredient">
           <span class="ingr-name" style="${have ? '' : 'opacity:0.5'}">${i.name}${!have ? '<span class="ingr-missing">need</span>' : ''}</span>
           <span class="ingr-amount">${i.amount}</span>
-          ${!have ? `<button class="btn-cart ${inCart ? 'in-cart' : ''}" onclick="toggleCartItem('${encodeURIComponent(JSON.stringify({name:i.name,kind:i.kind||i.name,source:c.name}))}', this)">${inCart ? '✓ In Cart' : '+ Cart'}</button>` : ''}
+          ${!have ? `<span class="ing-actions">
+            <button class="btn-cart ${inCart ? 'in-cart' : ''}" onclick="toggleCartItem('${encodeURIComponent(JSON.stringify({name:i.name,kind:i.kind||i.name,source:c.name}))}', this)">${inCart ? '✓ In Cart' : '+ Cart'}</button>
+            <button class="btn-have-it" onclick="markHaveIt('${encodeURIComponent(JSON.stringify({name:i.name,kind:i.kind||i.name,cat:guessIngCat(i.kind||i.name)}))}', this)">✓ Have it</button>
+          </span>` : ''}
         </li>`;
       }).join('')}
     </ul>
@@ -2824,7 +2866,9 @@ function openModal(id) {
   </div>`;
 
   document.getElementById('modal-body').innerHTML = bodyHtml;
-  document.getElementById('modal-overlay').classList.add('open');
+  var overlay = document.getElementById('modal-overlay');
+  overlay._openId = id;
+  overlay.classList.add('open');
 }
 
 function closeModal(e) {
@@ -3693,7 +3737,7 @@ function localSpritLookup(query) {
     // BLENDED SCOTCH
     [["compass box spice tree","spice tree"],"Compass Box Spice Tree","Spirit","Blended Scotch","UK","46%","Blended malt Scotch with cinnamon and nutmeg spice."],
     [["talisker select","talisker"],"Talisker Select Reserve","Spirit","Blended Scotch","UK","45.8%","Isle of Skye Scotch with coastal smokiness."],
-    [["jameson"],"Jameson Irish Whiskey","Spirit","Blended Scotch","Ireland","40%","Smooth triple-distilled Irish whiskey."],
+    [["jameson"],"Jameson Irish Whiskey","Spirit","Irish Whiskey","Ireland","40%","Smooth triple-distilled Irish whiskey."],
     [["monkey shoulder"],"Monkey Shoulder","Spirit","Blended Scotch","UK","40%","Blended malt Scotch using Speyside malts."],
     [["chivas"],"Chivas Regal 12","Spirit","Blended Scotch","UK","40%","Classic Speyside blended Scotch."],
     [["johnnie walker black","johnnie walker"],"Johnnie Walker Black","Spirit","Blended Scotch","UK","40%","Classic 12-year aged blended Scotch."],
@@ -4492,6 +4536,53 @@ document.addEventListener('click', function(e) {
     if (ac) { ac.classList.remove('open'); ac.innerHTML = ''; cartAcSelected = -1; }
   }
 });
+
+
+// ── MARK HAVE IT — add missing ingredient directly to bar from modal ──────────
+function guessIngCat(kind) {
+  var spirits = ['Gin','Vodka','Rum','Bourbon','Rye Whiskey','Blended Scotch','Peated Scotch','Irish Whiskey','Tequila','Mezcal','Cognac','Cachaca','Absinthe','Rakia'];
+  if (spirits.some(function(s){ return kind.includes(s); })) return 'Spirit';
+  var modifiers = ['Vermouth','Campari','Aperol','Triple Sec','Amaro','Herbal Liqueur','Coffee Liqueur','Cream Liqueur','Cassis','Cherry Liqueur','Elderflower','Maraschino','Amaretto'];
+  if (modifiers.some(function(s){ return kind.includes(s); })) return 'Modifier';
+  return 'Pantry';
+}
+
+function markHaveIt(encoded, btn) {
+  var item;
+  try { item = JSON.parse(decodeURIComponent(encoded)); } catch(e) { return; }
+
+  // Check not already in inventory
+  var already = state.inventory.some(function(i) {
+    return i.kind === item.kind || i.label.toLowerCase() === item.name.toLowerCase();
+  });
+  if (already) { toast(item.name + ' is already in your bar'); return; }
+
+  var newItem = {
+    id: 'i' + Date.now(),
+    cat: item.cat || guessIngCat(item.kind),
+    kind: item.kind,
+    label: item.name,
+    on: true
+  };
+  state.inventory.push(newItem);
+  save();
+  renderInventory();
+  renderCocktails();
+
+  // Update the button
+  btn.textContent = '✓ Added';
+  btn.classList.add('added');
+  btn.disabled = true;
+
+  // Re-open modal to refresh the ingredient status
+  var overlay = document.getElementById('modal-overlay');
+  var currentId = overlay._openId;
+  setTimeout(function() {
+    if (currentId) openModal(currentId);
+  }, 600);
+
+  toast(item.name + ' added to your bar ✓');
+}
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
 
