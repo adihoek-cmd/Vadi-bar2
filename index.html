@@ -2173,7 +2173,9 @@ const DEFAULT_INVENTORY = [
   // ── HERBAL & BOTANICAL ────────────────────────────────────────────────────
   { id:"i100", cat:"Modifier", kind:"Herbal Liqueur", label:"Benedictine", on:true },
   { id:"i101", cat:"Modifier", kind:"Herbal Liqueur", label:"Green Chartreuse", on:true },
-  { id:"i102", cat:"Modifier", kind:"Herbal Liqueur", label:"Genepi L'Ancienne", on:true },
+  { id:"i102", cat:"Modifier", kind:"Herbal Liqueur", label:"Genepi L\'Ancienne", on:true },
+  { id:"i103", cat:"Spirit", kind:"Irish Whiskey", label:"Jameson Irish Whiskey", on:true },
+  { id:"i104", cat:"Pantry", kind:"Ginger Beer", label:"Ginger Beer", on:true },
   { id:"i102", cat:"Modifier", kind:"Herbal Liqueur", label:"Drambuie", on:true },
 
   // ── ANISE ─────────────────────────────────────────────────────────────────
@@ -2655,7 +2657,7 @@ const DEFAULT_COCKTAILS = [
 // ── STATE ────────────────────────────────────────────────────────────────────
 
 // Version bump forces localStorage to reset when default inventory changes
-const INV_VERSION = "v7";
+const INV_VERSION = "v8";
 // Runtime kind repair — fix any inventory items that were added with wrong kinds
 (function() {
   var inv = JSON.parse(localStorage.getItem('vadi_inv'));
@@ -2707,7 +2709,16 @@ const INV_VERSION = "v7";
   }
 })();
 if (localStorage.getItem('vadi_inv_version') !== INV_VERSION) {
-  localStorage.removeItem('vadi_inv');
+  // Merge new default bottles into saved inventory instead of wiping it
+  // This preserves user-added bottles (Jameson, Ginger Beer, etc.)
+  var savedInv = JSON.parse(localStorage.getItem('vadi_inv'));
+  if (savedInv) {
+    var savedInvIds = new Set(savedInv.map(function(i){ return i.id; }));
+    DEFAULT_INVENTORY.forEach(function(di) {
+      if (!savedInvIds.has(di.id)) savedInv.push(JSON.parse(JSON.stringify(di)));
+    });
+    localStorage.setItem('vadi_inv', JSON.stringify(savedInv));
+  }
   localStorage.setItem('vadi_inv_version', INV_VERSION);
 }
 
@@ -2734,7 +2745,7 @@ function save() {
 (function repairInventoryKinds() {
   var LABEL_KIND_MAP = [
     // Irish whiskeys
-    {test: /jameson|redbreast|bushmills|tullamore|powers|teeling|green spot|yellow spot|writers.tears|slane|proper.twelve|connemara|knappogue|west.cork|roe.&.co/i, kind:'Irish Whiskey', cat:'Spirit'},
+    {test: /jameson|redbreast|bushmills|tullamore|powers|teeling|green.spot|yellow.spot|writers.tears|slane|proper.twelve|connemara|knappogue|west.cork|roe|method.and.madness/i, kind:'Irish Whiskey', cat:'Spirit'},
     // Gins
     {test: /tanqueray|hendrick|monkey.47|roku|gin.mare|malfy|sipsmith|beefeater|bombay|aviation.gin|gordon.?s.gin|ford.?s.gin|drumshanbo|dictador|dafina|loch.lomond.gin|zohara|votanikon/i, kind:'Gin', cat:'Spirit'},
     // Vodka
@@ -2760,9 +2771,12 @@ function save() {
   var dirty = false;
   state.inventory.forEach(function(item) {
     var lbl = item.label || '';
+    var knd = item.kind  || '';
+    // Match against both label AND kind (kind sometimes stores the label verbatim)
+    var testStr = lbl + ' ' + knd;
     for (var i = 0; i < LABEL_KIND_MAP.length; i++) {
       var entry = LABEL_KIND_MAP[i];
-      if (entry.test.test(lbl)) {
+      if (entry.test.test(testStr)) {
         if (item.kind !== entry.kind) {
           item.kind = entry.kind;
           item.cat  = entry.cat;
@@ -2782,7 +2796,7 @@ function save() {
 // Brand → canonical kind mapping for inventory items saved with wrong/generic kinds
 var BRAND_KIND_MAP = [
   // Irish Whiskey brands often mislabelled as Blended Scotch
-  {brands:['jameson','redbreast','bushmills','tullamore','powers','teeling','green spot','yellow spot','writers tears','slane','proper twelve','connemara','knappogue','west cork','roe & co','method and madness'], kind:'Irish Whiskey'},
+  {brands:['jameson','redbreast','bushmills','tullamore','powers','teeling','green spot','yellow spot','writers tears','slane','proper twelve','connemara','knappogue','west cork','roe','method and madness','irish whiskey'], kind:'Irish Whiskey'},
   // Specific gins sometimes stored under wrong kind
   {brands:['hendricks','hendrick','monkey 47','roku','malfy','drumshanbo','silkie','brockmans','tanqueray','bombay','beefeater','gordon','sipsmith','ford','aviation gin'], kind:'Gin'},
   // Specific vodkas
