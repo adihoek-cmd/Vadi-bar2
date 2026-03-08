@@ -2679,6 +2679,13 @@ const INV_VERSION = "v7";
   if (saved) {
     // Remove placeholder
     saved = saved.filter(function(c){ return c.name !== 'Search on Liquor.com'; });
+    // Remove user-imported duplicates that now exist as proper defaults
+    var defaultNames = {};
+    DEFAULT_COCKTAILS.forEach(function(dc){ defaultNames[dc.name.toLowerCase()] = dc.id; });
+    saved = saved.filter(function(c) {
+      // Keep if it's a default ID, or if its name isn't already covered by a default
+      return c.id.length <= 4 || !defaultNames[c.name.toLowerCase()];
+    });
     // Merge/update defaults: add new ones, fix recipe data on existing ones (keep user liked/house flags)
     var savedById = {};
     saved.forEach(function(c){ savedById[c.id] = c; });
@@ -2795,7 +2802,7 @@ function renderCocktails() {
     if (c.liked) badges.push('<span class="badge badge-liked">❤</span>');
     if (c.house) badges.push('<span class="badge badge-house">House</span>');
 
-    return `<div class="cocktail-card ${cm ? '' : 'badge-cantmake'}" onclick="openModal('${c.id}')" style="animation-delay:${idx * 0.04}s">
+    return `<div class="cocktail-card ${cm ? '' : 'badge-cantmake'}" data-cid="${c.id}" style="animation-delay:${idx * 0.04}s">
       <div class="card-top">
         <div class="card-glass-icon">${glassIcon}</div>
         <div class="card-badges">${badges.join('')}</div>
@@ -2812,6 +2819,13 @@ function renderCocktails() {
       ${!cm && missing.length ? `<div class="card-missing">Missing: ${missing.slice(0,2).join(', ')}${missing.length > 2 ? ` +${missing.length-2}` : ''}</div>` : ''}
     </div>`;
   }).join('');
+
+  // Event delegation — one listener handles all card taps robustly on mobile
+  grid.querySelectorAll('.cocktail-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+      openModal(card.dataset.cid);
+    });
+  });
 }
 
 // ── MODAL ─────────────────────────────────────────────────────────────────────
@@ -2840,12 +2854,15 @@ function openModal(id) {
       ${c.ingredients.map(i => {
         const have = !i.kind || onKinds.has(i.kind);
         const inCart = state.cart.some(ci => ci.kind === i.kind && ci.name === i.name);
+        const escapedName = i.name.replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        const escapedKind = (i.kind||i.name).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        const escapedCocktail = c.name.replace(/"/g,'&quot;').replace(/'/g,'&#39;');
         return `<li class="modal-ingredient">
           <span class="ingr-name" style="${have ? '' : 'opacity:0.5'}">${i.name}${!have ? '<span class="ingr-missing">need</span>' : ''}</span>
           <span class="ingr-amount">${i.amount}</span>
           ${!have ? `<span class="ing-actions">
-            <button class="btn-cart ${inCart ? 'in-cart' : ''}" onclick="toggleCartItem('${encodeURIComponent(JSON.stringify({name:i.name,kind:i.kind||i.name,source:c.name}))}', this)">${inCart ? '✓ In Cart' : '+ Cart'}</button>
-            <button class="btn-have-it" onclick="markHaveIt('${encodeURIComponent(JSON.stringify({name:i.name,kind:i.kind||i.name,cat:guessIngCat(i.kind||i.name)}))}', this)">✓ Have it</button>
+            <button class="btn-cart ${inCart ? 'in-cart' : ''}" data-ing-name="${escapedName}" data-ing-kind="${escapedKind}" data-ing-source="${escapedCocktail}">${inCart ? '✓ In Cart' : '+ Cart'}</button>
+            <button class="btn-have-it" data-ing-name="${escapedName}" data-ing-kind="${escapedKind}">✓ Have it</button>
           </span>` : ''}
         </li>`;
       }).join('')}
@@ -2862,13 +2879,39 @@ function openModal(id) {
   bodyHtml += `<div class="modal-actions">
     <button class="btn btn-gold" onclick="toggleLiked('${c.id}')">${c.liked ? '❤ Liked' : '♡ Like'}</button>
     <button class="btn btn-outline" onclick="toggleHouse('${c.id}')">${c.house ? '🏠 House' : '+ House Menu'}</button>
-    ${!DEFAULT_COCKTAILS.find(d => d.id === c.id) ? `<button class="btn btn-danger" onclick="deleteRecipe('${c.id}')">Delete</button>` : ''}
+    <button class="btn btn-outline" style="color:var(--red);border-color:rgba(200,80,80,0.3)" onclick="removeFromMenu('${c.id}')">✕ Remove</button>
   </div>`;
 
   document.getElementById('modal-body').innerHTML = bodyHtml;
+
+  // Wire cart and have-it buttons via JS — avoids apostrophe/quote escaping bugs
+  document.querySelectorAll('#modal-body .btn-cart').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var item = {name: btn.dataset.ingName, kind: btn.dataset.ingKind, source: btn.dataset.ingSource};
+      toggleCartItem(encodeURIComponent(JSON.stringify(item)), btn);
+    });
+  });
+  document.querySelectorAll('#modal-body .btn-have-it').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var item = {name: btn.dataset.ingName, kind: btn.dataset.ingKind, cat: guessIngCat(btn.dataset.ingKind)};
+      markHaveIt(encodeURIComponent(JSON.stringify(item)), btn);
+    });
+  });
+
   var overlay = document.getElementById('modal-overlay');
   overlay._openId = id;
   overlay.classList.add('open');
+}
+
+
+function removeFromMenu(id) {
+  var c = state.cocktails.find(function(x){ return x.id === id; });
+  if (!c) return;
+  if (!confirm('Remove "' + c.name + '" from your menu? This cannot be undone.')) return;
+  state.cocktails = state.cocktails.filter(function(x){ return x.id !== id; });
+  save();
+  renderCocktails();
+  closeModal();
 }
 
 function closeModal(e) {
