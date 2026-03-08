@@ -2173,6 +2173,7 @@ const DEFAULT_INVENTORY = [
   // ── HERBAL & BOTANICAL ────────────────────────────────────────────────────
   { id:"i100", cat:"Modifier", kind:"Herbal Liqueur", label:"Benedictine", on:true },
   { id:"i105", cat:"Modifier", kind:"Herbal Liqueur", label:"B&B Liqueur", on:true },
+  { id:"i106", cat:"Pantry", kind:"Grenadine", label:"Grenadine", on:false },
   { id:"i101", cat:"Modifier", kind:"Herbal Liqueur", label:"Green Chartreuse", on:true },
   { id:"i102", cat:"Modifier", kind:"Herbal Liqueur", label:"Genepi L\'Ancienne", on:true },
   { id:"i103", cat:"Spirit", kind:"Irish Whiskey", label:"Jameson Irish Whiskey", on:true },
@@ -2640,6 +2641,20 @@ const DEFAULT_COCKTAILS = [
     notes:"The lighter, more citrus-forward sibling of the Paper Plane. Amaro Averna works as a substitute for Meletti."
   },
   {
+    id:"c38", name:"Monkey Gland", glass:"Coupe", method:"Shake", liked:false, house:false,
+    garnish:"Orange twist",
+    ingredients:[
+      {name:"Gin", amount:"1.5 oz", kind:"Gin"},
+      {name:"Fresh Orange Juice", amount:"1 oz", kind:"Orange Juice"},
+      {name:"Grenadine", amount:"1 tsp", kind:"Grenadine"},
+      {name:"Pernod / Absinthe", amount:"1 tsp", kind:"Pastis"},
+    ],
+    steps:["Add all ingredients to a shaker with ice.","Shake well until chilled.","Double-strain into a chilled coupe.","Garnish with an orange twist."],
+    mood:["citrus","fruity"],
+    source:"Classic",
+    notes:"A Prohibition-era classic by Harry MacElhone of Harry's New York Bar, Paris. The anise rinse gives it a mysterious depth. Use Pernod Paris from your bar."
+  },
+  {
     id:"c37", name:"Irish Breakfast", glass:"Coupe", method:"Shake", liked:false, house:false,
     garnish:"Orange peel", source:"Robb Report", mood:["bright","sweet"],
     ingredients:[
@@ -2658,7 +2673,7 @@ const DEFAULT_COCKTAILS = [
 // ── STATE ────────────────────────────────────────────────────────────────────
 
 // Version bump forces localStorage to reset when default inventory changes
-const INV_VERSION = "v9";
+const INV_VERSION = "v10";
 // Runtime kind repair — fix any inventory items that were added with wrong kinds
 (function() {
   var inv = JSON.parse(localStorage.getItem('vadi_inv'));
@@ -2746,7 +2761,7 @@ function save() {
 (function repairInventoryKinds() {
   var LABEL_KIND_MAP = [
     // Irish whiskeys
-    {test: /benedictine|b&b|bénédictine/i, kind:'Herbal Liqueur', cat:'Modifier'},
+    {test: /benedictine|b&b|b and b|b & b|bénédictine|dom benedictine/i, kind:'Herbal Liqueur', cat:'Modifier'},
     {test: /jameson|redbreast|bushmills|tullamore|powers|teeling|green.spot|yellow.spot|writers.tears|slane|proper.twelve|connemara|knappogue|west.cork|roe|method.and.madness/i, kind:'Irish Whiskey', cat:'Spirit'},
     // Gins
     {test: /tanqueray|hendrick|monkey.47|roku|gin.mare|malfy|sipsmith|beefeater|bombay|aviation.gin|gordon.?s.gin|ford.?s.gin|drumshanbo|dictador|dafina|loch.lomond.gin|zohara|votanikon/i, kind:'Gin', cat:'Spirit'},
@@ -3745,7 +3760,8 @@ function guessKindFromName(name) {
     ['sweet vermouth','Sweet Vermouth'],['dry vermouth','Dry Vermouth'],
     ['vermouth','Sweet Vermouth'],
     ['triple sec','Triple Sec'],
-    ['benedictine','Herbal Liqueur'],['b&b','Herbal Liqueur'],['b and b','Herbal Liqueur'],
+    ['benedictine','Herbal Liqueur'],['b&b','Herbal Liqueur'],['b and b','Herbal Liqueur'],['b & b','Herbal Liqueur'],['dom','Herbal Liqueur'],
+    ['grenadine','Grenadine'],['orange juice','Orange Juice'],['fresh orange juice','Orange Juice'],
     ['coffee liqueur','Coffee Liqueur'],['cream liqueur','Cream Liqueur'],
     ['simple syrup','Simple Syrup'],['sugar syrup','Simple Syrup'],
     ['honey syrup','Honey Ginger Syrup'],['honey','Honey Ginger Syrup'],
@@ -4563,7 +4579,7 @@ function cartAcSearch(val) {
   var COMMON = [
     {label:'Fresh Lemon Juice', kind:'Lemon Juice'}, {label:'Fresh Lime Juice', kind:'Lime Juice'},
     {label:'Simple Syrup', kind:'Simple Syrup'}, {label:'Honey Syrup', kind:'Honey Ginger Syrup'},
-    {label:'Egg White', kind:'Egg White'}, {label:'Ginger Beer', kind:'Ginger Beer'},
+    {label:'Egg White', kind:'Egg White'}, {label:'Ginger Beer', kind:'Ginger Beer'}, {label:'Grenadine', kind:'Grenadine'},
     {label:'Tonic Water', kind:'Tonic Water'}, {label:'Soda Water', kind:'Soda Water'},
     {label:'Angostura Bitters', kind:'Angostura Bitters'}, {label:'Orange Bitters', kind:'Orange Bitters'},
     {label:'Grenadine', kind:'Grenadine'}, {label:'Orgeat', kind:'Orgeat'},
