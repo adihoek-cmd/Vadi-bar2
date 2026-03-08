@@ -2172,6 +2172,7 @@ const DEFAULT_INVENTORY = [
 
   // ── HERBAL & BOTANICAL ────────────────────────────────────────────────────
   { id:"i100", cat:"Modifier", kind:"Herbal Liqueur", label:"Benedictine", on:true },
+  { id:"i105", cat:"Modifier", kind:"Herbal Liqueur", label:"B&B Liqueur", on:true },
   { id:"i101", cat:"Modifier", kind:"Herbal Liqueur", label:"Green Chartreuse", on:true },
   { id:"i102", cat:"Modifier", kind:"Herbal Liqueur", label:"Genepi L\'Ancienne", on:true },
   { id:"i103", cat:"Spirit", kind:"Irish Whiskey", label:"Jameson Irish Whiskey", on:true },
@@ -2657,7 +2658,7 @@ const DEFAULT_COCKTAILS = [
 // ── STATE ────────────────────────────────────────────────────────────────────
 
 // Version bump forces localStorage to reset when default inventory changes
-const INV_VERSION = "v8";
+const INV_VERSION = "v9";
 // Runtime kind repair — fix any inventory items that were added with wrong kinds
 (function() {
   var inv = JSON.parse(localStorage.getItem('vadi_inv'));
@@ -2745,6 +2746,7 @@ function save() {
 (function repairInventoryKinds() {
   var LABEL_KIND_MAP = [
     // Irish whiskeys
+    {test: /benedictine|b&b|bénédictine/i, kind:'Herbal Liqueur', cat:'Modifier'},
     {test: /jameson|redbreast|bushmills|tullamore|powers|teeling|green.spot|yellow.spot|writers.tears|slane|proper.twelve|connemara|knappogue|west.cork|roe|method.and.madness/i, kind:'Irish Whiskey', cat:'Spirit'},
     // Gins
     {test: /tanqueray|hendrick|monkey.47|roku|gin.mare|malfy|sipsmith|beefeater|bombay|aviation.gin|gordon.?s.gin|ford.?s.gin|drumshanbo|dictador|dafina|loch.lomond.gin|zohara|votanikon/i, kind:'Gin', cat:'Spirit'},
@@ -2796,6 +2798,7 @@ function save() {
 // Brand → canonical kind mapping for inventory items saved with wrong/generic kinds
 var BRAND_KIND_MAP = [
   // Irish Whiskey brands often mislabelled as Blended Scotch
+  {brands:['benedictine','b&b','b and b'], kind:'Herbal Liqueur'},
   {brands:['jameson','redbreast','bushmills','tullamore','powers','teeling','green spot','yellow spot','writers tears','slane','proper twelve','connemara','knappogue','west cork','roe','method and madness','irish whiskey'], kind:'Irish Whiskey'},
   // Specific gins sometimes stored under wrong kind
   {brands:['hendricks','hendrick','monkey 47','roku','malfy','drumshanbo','silkie','brockmans','tanqueray','bombay','beefeater','gordon','sipsmith','ford','aviation gin'], kind:'Gin'},
@@ -3710,7 +3713,7 @@ function guessKindFromName(name) {
   // Specific named products — these are EXACT brands that should only match
   // if you have that specific bottle. Return name as kind.
   var specificBrands = [
-    'aperol','campari','cointreau','grand marnier','benedictine',
+    'aperol','campari','cointreau','grand marnier',
     'chartreuse','drambuie','kahlua','baileys','fernet','picon',
     'lillet','st.germain','st germain','maraschino','luxardo',
     'frangelico','amaretto','disaronno','midori','falernum',
@@ -3742,6 +3745,7 @@ function guessKindFromName(name) {
     ['sweet vermouth','Sweet Vermouth'],['dry vermouth','Dry Vermouth'],
     ['vermouth','Sweet Vermouth'],
     ['triple sec','Triple Sec'],
+    ['benedictine','Herbal Liqueur'],['b&b','Herbal Liqueur'],['b and b','Herbal Liqueur'],
     ['coffee liqueur','Coffee Liqueur'],['cream liqueur','Cream Liqueur'],
     ['simple syrup','Simple Syrup'],['sugar syrup','Simple Syrup'],
     ['honey syrup','Honey Ginger Syrup'],['honey','Honey Ginger Syrup'],
@@ -3957,6 +3961,7 @@ function localSpritLookup(query) {
 
     // HERBAL LIQUEURS
     [["benedictine"],"Bénédictine","Modifier","Herbal Liqueur","France","40%","27 herbs and spices, made by Benedictine monks since 1863."],
+    [["b&b","b and b","benedictine brandy"],"B&B Liqueur","Modifier","Herbal Liqueur","France","40%","Bénédictine blended with Cognac brandy, smoother and drier than straight Bénédictine."],
     [["green chartreuse"],"Green Chartreuse","Modifier","Herbal Liqueur","France","55%","130 alpine herb liqueur made by Carthusian monks."],
     [["yellow chartreuse"],"Yellow Chartreuse","Modifier","Herbal Liqueur","France","40%","Milder, honeyed version of the classic Chartreuse."],
     [["drambuie"],"Drambuie","Modifier","Herbal Liqueur","UK","40%","Scotch whisky liqueur with heather honey and herbs."],
