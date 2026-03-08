@@ -2728,6 +2728,55 @@ function save() {
   updateCartBadge();
 }
 
+// ── INVENTORY KIND REPAIR ─────────────────────────────────────────────────────
+// Runs once on load: fixes any bottles whose kind doesn't match their brand name.
+// Covers items added before KB fixes (e.g. Jameson stored as "Blended Scotch").
+(function repairInventoryKinds() {
+  var LABEL_KIND_MAP = [
+    // Irish whiskeys
+    {test: /jameson|redbreast|bushmills|tullamore|powers|teeling|green spot|yellow spot|writers.tears|slane|proper.twelve|connemara|knappogue|west.cork|roe.&.co/i, kind:'Irish Whiskey', cat:'Spirit'},
+    // Gins
+    {test: /tanqueray|hendrick|monkey.47|roku|gin.mare|malfy|sipsmith|beefeater|bombay|aviation.gin|gordon.?s.gin|ford.?s.gin|drumshanbo|dictador|dafina|loch.lomond.gin|zohara|votanikon/i, kind:'Gin', cat:'Spirit'},
+    // Vodka
+    {test: /ketel.one|grey.goose|belvedere|absolut|stolichnaya|cîroc|ciroc|tito.?s|van.gogh.vodka|smirnoff/i, kind:'Vodka', cat:'Spirit'},
+    // Rum
+    {test: /kraken|bacardi|havana.club|diplomatico|appleton|mount.gay|smith.&.cross|el.dorado|plantation.rum|bumbu|takamaka|jang.&.wulff/i, kind:'Rum', cat:'Spirit'},
+    // Bourbon
+    {test: /woodford.reserve.bourbon|1792|maker.?s.mark|buffalo.trace|four.roses|knob.creek|wild.turkey.bourbon|elijah.craig|heaven.hill|evan.williams|angels.envy/i, kind:'Bourbon', cat:'Spirit'},
+    // Rye whiskey
+    {test: /woodford.reserve.rye|rittenhouse|bulleit.rye|wild.turkey.101.rye|templeton|old.elk|george.dickel.rye/i, kind:'Rye Whiskey', cat:'Spirit'},
+    // Blended scotch
+    {test: /compass.box|talisker.select|monkey.shoulder|dewar|johnnie.walker|chivas|teacher.?s/i, kind:'Blended Scotch', cat:'Spirit'},
+    // Peated scotch
+    {test: /laphroaig|kilchoman|talisker.10|ardbeg|lagavulin|bowmore|caol.ila|bruichladdich|barrach|smokehead/i, kind:'Peated Scotch', cat:'Spirit'},
+    // Tequila
+    {test: /don.julio|cenote|patron|jose.cuervo|espolon|olmeca|el.jimador|casamigos|herradura/i, kind:'Tequila', cat:'Spirit'},
+    // Mezcal
+    {test: /sin.broca|del.maguey|wahaka|ilegal|banhez|putaendo/i, kind:'Mezcal', cat:'Spirit'},
+    // Cognac
+    {test: /torres.10|courvoisier|hennessy|remy.martin|rémy.martin|martell|hine/i, kind:'Cognac', cat:'Spirit'},
+  ];
+
+  var dirty = false;
+  state.inventory.forEach(function(item) {
+    var lbl = item.label || '';
+    for (var i = 0; i < LABEL_KIND_MAP.length; i++) {
+      var entry = LABEL_KIND_MAP[i];
+      if (entry.test.test(lbl)) {
+        if (item.kind !== entry.kind) {
+          item.kind = entry.kind;
+          item.cat  = entry.cat;
+          dirty = true;
+        }
+        break;
+      }
+    }
+  });
+  if (dirty) {
+    localStorage.setItem('vadi_inv', JSON.stringify(state.inventory));
+  }
+})();
+
 // ── AVAILABILITY ─────────────────────────────────────────────────────────────
 
 // Brand → canonical kind mapping for inventory items saved with wrong/generic kinds
