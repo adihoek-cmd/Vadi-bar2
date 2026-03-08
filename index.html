@@ -2422,7 +2422,211 @@ const DEFAULT_COCKTAILS = [
       "Garnish with three coffee beans placed in the centre."
     ],
     notes:"The key is shaking hard with plenty of ice. Cold brew concentrate works as a substitute if no espresso machine."
+  },,
+  // ── FROM ROBB REPORT: Whiskey Sour Variations ─────────────────────────────
+  {
+    id:"c22", name:"Eggless Whiskey Sour", glass:"Rocks", method:"Shake", liked:false, house:false,
+    garnish:"Orange slice, cherry", source:"Robb Report", mood:["classic","easy"],
+    ingredients:[
+      {name:"Irish Whiskey", amount:"2 oz", kind:"Irish Whiskey"},
+      {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
+      {name:"Simple Syrup", amount:"3/4 oz", kind:"Simple Syrup"},
+    ],
+    steps:["Add all ingredients to a shaker with ice.","Shake hard for 6-10 seconds.","Strain over fresh ice in a rocks glass.","Garnish with an orange slice, cherry, or both."],
+    notes:"Use Irish or Canadian whiskey - lighter styles work best without egg white to tame tannins."
   },
+  {
+    id:"c23", name:"Juicy Whiskey Sour", glass:"Rocks", method:"Shake", liked:false, house:false,
+    garnish:"Lemon peel, Angostura dashes", source:"Robb Report", mood:["strong","bright"],
+    ingredients:[
+      {name:"Rye Whiskey", amount:"2 oz", kind:"Rye Whiskey"},
+      {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
+      {name:"Simple Syrup", amount:"1/2 oz", kind:"Simple Syrup"},
+      {name:"Fresh Orange Juice", amount:"1/2 oz", kind:"Orange Juice"},
+      {name:"Egg White", amount:"1", kind:"Egg White"},
+      {name:"Absinthe", amount:"1 tsp", kind:"Absinthe"},
+    ],
+    steps:["Dry shake all ingredients without ice for 10-12 seconds.","Add ice and shake hard for 10-12 seconds.","Strain into a rocks glass over fresh ice.","Garnish with Angostura dashes and a lemon peel."],
+    notes:"The absinthe and OJ make this juicier and more assertive than a classic sour."
+  },
+  {
+    id:"c24", name:"Whiskey Smash", glass:"Rocks", method:"Shake", liked:false, house:false,
+    garnish:"Mint crown", source:"Robb Report", mood:["bright","refreshing"],
+    ingredients:[
+      {name:"Bourbon", amount:"2 oz", kind:"Bourbon"},
+      {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
+      {name:"Simple Syrup", amount:"3/4 oz", kind:"Simple Syrup"},
+      {name:"Mint Leaves", amount:"6-8", kind:"Mint"},
+      {name:"Lemon Peel", amount:"1 strip (2 inch)", kind:"Lemon Juice"},
+    ],
+    steps:["Add all ingredients including mint and lemon peel to a shaker tin.","Add ice and shake hard for 6-10 seconds.","Strain over fresh ice into a rocks glass.","Garnish with a mint crown."],
+    notes:"Created by Dale DeGroff at the Rainbow Room. Shaking the lemon peel in extracts the oils for a distinctly brighter result."
+  },
+  {
+    id:"c25", name:"Napoleon", glass:"Coupe", method:"Shake", liked:false, house:false,
+    garnish:"None", source:"Robb Report", mood:["bright","fruity"],
+    ingredients:[
+      {name:"High-Proof Bourbon", amount:"1 1/2 oz", kind:"Bourbon"},
+      {name:"Blanc Vermouth", amount:"1/2 oz", kind:"Sweet Vermouth"},
+      {name:"Simple Syrup", amount:"3/4 oz", kind:"Simple Syrup"},
+      {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
+      {name:"Fresh Raspberries", amount:"3-4", kind:"Raspberry"},
+      {name:"Campari", amount:"1 tsp", kind:"Campari"},
+      {name:"Egg White", amount:"1", kind:"Egg White"},
+    ],
+    steps:["Add all ingredients to a shaker without ice.","Dry shake for 3-5 seconds.","Add ice and shake for 8-10 seconds.","Fine strain into a coupe or cocktail glass."],
+    notes:"From Sam Penton at the Manor Bar, Rosewood Miramar. Strawberries can substitute raspberries."
+  },
+  {
+    id:"c26", name:"Morgenthaler Sour", glass:"Rocks", method:"Shake", liked:false, house:false,
+    garnish:"Lemon peel, cherry", source:"Robb Report", mood:["sweet","strong"],
+    ingredients:[
+      {name:"Amaretto", amount:"1 1/2 oz", kind:"Amaretto"},
+      {name:"Cask-Strength Bourbon", amount:"3/4 oz", kind:"Bourbon"},
+      {name:"Fresh Lemon Juice", amount:"1 oz", kind:"Lemon Juice"},
+      {name:"Simple Syrup", amount:"1/4 oz", kind:"Simple Syrup"},
+      {name:"Egg White", amount:"1", kind:"Egg White"},
+    ],
+    steps:["Dry shake without ice for 5-7 seconds.","Add ice and shake hard for 8-10 seconds.","Strain over ice in a rocks glass or up in a coupe.","Garnish with a lemon peel and cherry."],
+    notes:"Jeffrey Morgenthaler's reinvention of the Amaretto Sour. High-proof bourbon is essential - it lifts the drink out of sweetness."
+  },
+  {
+    id:"c27", name:"Wild Eyed Rose", glass:"Coupe", method:"Shake", liked:false, house:false,
+    garnish:"Lime wheel", source:"Robb Report", mood:["bright","classic"],
+    ingredients:[
+      {name:"Irish Whiskey", amount:"2 oz", kind:"Irish Whiskey"},
+      {name:"Fresh Lime Juice", amount:"3/4 oz", kind:"Lime Juice"},
+      {name:"Grenadine", amount:"3/4 oz", kind:"Grenadine"},
+    ],
+    steps:["Add all ingredients to a shaker with ice.","Shake for 8-10 seconds.","Strain over fresh ice in a rocks glass or up into a coupe.","Garnish with a lime wheel or pomegranate seeds."],
+    notes:"From Hugo Ensslin's 1916 Recipes for Mixed Drinks. Better than its sibling the Jack Rose - Irish whiskey lets the grenadine shine."
+  },
+  {
+    id:"c28", name:"Blood and Sand", glass:"Coupe", method:"Shake", liked:false, house:false,
+    garnish:"Orange peel", source:"Robb Report", mood:["classic","strong"],
+    ingredients:[
+      {name:"Scotch", amount:"1 oz", kind:"Blended Scotch"},
+      {name:"Sweet Vermouth", amount:"3/4 oz", kind:"Sweet Vermouth"},
+      {name:"Cherry Heering", amount:"3/4 oz", kind:"Cherry Liqueur"},
+      {name:"Fresh Orange Juice", amount:"1 oz", kind:"Orange Juice"},
+      {name:"Fresh Lemon Juice", amount:"1/4 tsp", kind:"Lemon Juice"},
+    ],
+    steps:["Add all ingredients to a shaker with ice.","Shake hard for 12-15 seconds.","Strain up into a coupe.","Garnish with an orange peel."],
+    notes:"A nearly 100-year-old classic. The Cherry Heering and OJ synergize with the Scotch in a way that has to be tasted to be believed."
+  },
+  {
+    id:"c29", name:"Cameron's Kick", glass:"Coupe", method:"Shake", liked:false, house:false,
+    garnish:"Lemon peel", source:"Robb Report", mood:["bright","classic"],
+    ingredients:[
+      {name:"Irish Whiskey", amount:"2 oz", kind:"Irish Whiskey"},
+      {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
+      {name:"Orgeat", amount:"3/4 oz", kind:"Orgeat"},
+      {name:"Angostura Bitters", amount:"1 dash", kind:"Angostura Bitters"},
+    ],
+    steps:["Add all ingredients to a shaker with ice.","Shake hard for 10-12 seconds.","Strain into a coupe or over fresh ice in a rocks glass.","Garnish with a lemon peel."],
+    notes:"One of the few classic Irish whiskey cocktails. Orgeat and Irish whiskey's gentle malt make a perfect pairing."
+  },
+  {
+    id:"c30", name:"New York Sour", glass:"Rocks", method:"Shake", liked:false, house:false,
+    garnish:"Red wine float", source:"Robb Report", mood:["bright","classic"],
+    ingredients:[
+      {name:"Rye Whiskey", amount:"2 oz", kind:"Rye Whiskey"},
+      {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
+      {name:"Simple Syrup", amount:"3/4 oz", kind:"Simple Syrup"},
+      {name:"Light Red Wine", amount:"1/2-1 oz", kind:"Red Wine"},
+    ],
+    steps:["Add rye, lemon juice, and simple syrup to a shaker with ice.","Shake hard for 10-12 seconds.","Strain over fresh ice in a rocks glass, leaving 1/2 inch clearance at the top.","Float red wine over the back of a spoon on top."],
+    notes:"Invented in 1880s Chicago despite the name. The red wine float fills in the gaps a Whiskey Sour alone leaves open."
+  },
+  {
+    id:"c31", name:"Gold Rush", glass:"Rocks", method:"Shake", liked:false, house:false,
+    garnish:"None", source:"Robb Report", mood:["classic","sweet"],
+    ingredients:[
+      {name:"Bourbon", amount:"2 oz", kind:"Bourbon"},
+      {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
+      {name:"Honey Syrup", amount:"3/4 oz", kind:"Honey Ginger Syrup"},
+      {name:"Grapefruit Peel", amount:"1 strip (1x2 inch)", kind:"Grapefruit Juice"},
+    ],
+    steps:["Add all ingredients including grapefruit peel to a shaker with ice.","Shake hard for 8-10 seconds.","Strain into a rocks glass over fresh ice."],
+    notes:"The 'regal shake' - adding a grapefruit peel to the shaker - transforms this from good to genuinely complex. Don't skip it."
+  },
+  {
+    id:"c32", name:"Brown Derby", glass:"Rocks", method:"Shake", liked:false, house:false,
+    garnish:"Grapefruit peel", source:"Robb Report", mood:["bright","classic"],
+    ingredients:[
+      {name:"Bourbon", amount:"2 oz", kind:"Bourbon"},
+      {name:"Fresh Grapefruit Juice", amount:"1 oz", kind:"Grapefruit Juice"},
+      {name:"Fresh Lemon Juice", amount:"1/4 oz", kind:"Lemon Juice"},
+      {name:"Honey Syrup", amount:"1/2 oz", kind:"Honey Ginger Syrup"},
+      {name:"Grapefruit Peel", amount:"1 strip", kind:"Grapefruit Juice"},
+    ],
+    steps:["Add all ingredients including grapefruit peel to a shaker with ice.","Shake hard for 8-10 seconds.","Strain over fresh ice in a rocks glass or up in a coupe.","Garnish with a grapefruit peel."],
+    notes:"The lemon juice is what takes this from pedestrian to outstanding. Don't omit it."
+  },
+  {
+    id:"c33", name:"Paper Plane", glass:"Coupe", method:"Shake", liked:false, house:false,
+    garnish:"None", source:"Robb Report", mood:["bright","classic"],
+    ingredients:[
+      {name:"Bourbon", amount:"3/4 oz", kind:"Bourbon"},
+      {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
+      {name:"Amaro Nonino", amount:"3/4 oz", kind:"Amaro Nonino"},
+      {name:"Aperol", amount:"3/4 oz", kind:"Aperol"},
+    ],
+    steps:["Add all ingredients to a shaker with ice.","Shake for 6-10 seconds.","Strain up into a coupe or cocktail glass."],
+    notes:"Invented by Sam Ross in 2008. Equal-parts - bittersweet, tart, effortlessly crowd-pleasing."
+  },
+  {
+    id:"c34", name:"Ponton Smash", glass:"Rocks", method:"Shake", liked:false, house:false,
+    garnish:"Mint sprig, pineapple slice", source:"Robb Report", mood:["refreshing","tropical"],
+    ingredients:[
+      {name:"Bourbon", amount:"1 7/8 oz", kind:"Bourbon"},
+      {name:"Absinthe", amount:"1/8 oz", kind:"Absinthe"},
+      {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
+      {name:"Pineapple Juice", amount:"1 oz", kind:"Pineapple Juice"},
+      {name:"Simple Syrup", amount:"1/2 oz", kind:"Simple Syrup"},
+      {name:"Mint Leaves", amount:"6-8", kind:"Mint"},
+    ],
+    steps:["Add all ingredients to a shaker with ice - no need to muddle the mint.","Shake hard for 6-8 seconds.","Fine strain into a rocks glass over fresh ice.","Garnish with a mint sprig and pineapple slice."],
+    notes:"A bourbon drink that convincingly cosplays as a tiki drink. The absinthe is the magic element."
+  },
+  {
+    id:"c35", name:"Lion's Tail", glass:"Coupe", method:"Shake", liked:false, house:false,
+    garnish:"Lime peel or lime wheel", source:"Robb Report", mood:["spiced","classic"],
+    ingredients:[
+      {name:"Bourbon", amount:"2 oz", kind:"Bourbon"},
+      {name:"Fresh Lime Juice", amount:"3/4 oz", kind:"Lime Juice"},
+      {name:"Allspice Dram", amount:"1/2 oz", kind:"Allspice Dram"},
+      {name:"Simple Syrup", amount:"1/4 oz", kind:"Simple Syrup"},
+    ],
+    steps:["Add all ingredients to a shaker with ice.","Shake hard for 8-10 seconds.","Strain into a coupe or cocktail glass.","Garnish with a lime peel or lime wheel."],
+    notes:"A 1937 classic. Allspice dram (pimento dram) gives an avalanche of warm spice. Lime sets it apart from other whiskey sours."
+  },
+  {
+    id:"c36", name:"Cardboard Plane", glass:"Rocks", method:"Shake", liked:false, house:false,
+    garnish:"Grapefruit peel", source:"Robb Report", mood:["refreshing","bright"],
+    ingredients:[
+      {name:"Bourbon", amount:"1 oz", kind:"Bourbon"},
+      {name:"Cointreau", amount:"3/4 oz", kind:"Triple Sec"},
+      {name:"Amaro Meletti", amount:"1/2 oz", kind:"Amaro Meletti"},
+      {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
+      {name:"Fresh Grapefruit Juice", amount:"1/2 oz", kind:"Grapefruit Juice"},
+    ],
+    steps:["Add all ingredients to a shaker with ice.","Shake hard.","Strain into a rocks glass over fresh ice.","Garnish with a grapefruit peel."],
+    notes:"The lighter, more citrus-forward sibling of the Paper Plane. Amaro Averna works as a substitute for Meletti."
+  },
+  {
+    id:"c37", name:"Irish Breakfast", glass:"Coupe", method:"Shake", liked:false, house:false,
+    garnish:"Orange peel", source:"Robb Report", mood:["bright","sweet"],
+    ingredients:[
+      {name:"Irish Whiskey", amount:"1 1/2 oz", kind:"Irish Whiskey"},
+      {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
+      {name:"Cointreau", amount:"1/2 oz", kind:"Triple Sec"},
+      {name:"Simple Syrup", amount:"1/4 oz", kind:"Simple Syrup"},
+      {name:"Orange Marmalade", amount:"1 tsp", kind:"Orange Marmalade"},
+    ],
+    steps:["Add all ingredients to a shaker with ice.","Shake hard for 8-10 seconds.","Strain up into a chilled martini or coupe glass.","Garnish with an orange peel."],
+    notes:"Clean and bright. The marmalade adds candied orange punch. No egg white needed - Irish whiskey's low tannins keep it smooth."
+  }
 ];
 
 
@@ -3352,7 +3556,7 @@ function guessKindFromName(name) {
 
   // Generic spirit/category names — safe to generalise
   var kindMap = [
-    ['blanco tequila','Tequila'],['reposado tequila','Tequila'],['anejo tequila','Tequila'],
+    ['irish whiskey','Irish Whiskey'],['blanco tequila','Tequila'],['reposado tequila','Tequila'],['anejo tequila','Tequila'],
     ['tequila','Tequila'],['mezcal','Mezcal'],
     ['bourbon','Bourbon'],['rye whiskey','Rye Whiskey'],['rye','Rye Whiskey'],
     ['scotch','Blended Scotch'],['whiskey','Bourbon'],['whisky','Blended Scotch'],
