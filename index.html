@@ -2444,7 +2444,7 @@ const DEFAULT_COCKTAILS = [
       "Garnish with three coffee beans placed in the centre."
     ],
     notes:"The key is shaking hard with plenty of ice. Cold brew concentrate works as a substitute if no espresso machine."
-  },,
+  },
   // ── FROM ROBB REPORT: Whiskey Sour Variations ─────────────────────────────
   {
     id:"c22", name:"Eggless Whiskey Sour", glass:"Rocks", method:"Shake", liked:false, house:false,
@@ -2850,7 +2850,7 @@ function setFilter(f, el) {
 function renderCocktails() {
   const grid = document.getElementById('cocktail-grid');
   const q = (document.getElementById('search-input')?.value || '').toLowerCase();
-  let list = state.cocktails;
+  let list = state.cocktails.filter(c => c && c.ingredients);
 
   if (q) list = list.filter(c => c.name.toLowerCase().includes(q) ||
     c.ingredients.some(i => i.name.toLowerCase().includes(q)));
@@ -3138,7 +3138,7 @@ function setWheelMode(m) {
 }
 
 function getWheelCocktails() {
-  let list = state.cocktails;
+  let list = state.cocktails.filter(c => c && c.ingredients);
   if (wheelMode === 'canmake') list = list.filter(c => canMake(c));
   if (wheelMode === 'liked') list = list.filter(c => c.liked);
   return list;
