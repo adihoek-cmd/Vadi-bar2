@@ -2730,8 +2730,34 @@ function save() {
 
 // ── AVAILABILITY ─────────────────────────────────────────────────────────────
 
+// Brand → canonical kind mapping for inventory items saved with wrong/generic kinds
+var BRAND_KIND_MAP = [
+  // Irish Whiskey brands often mislabelled as Blended Scotch
+  {brands:['jameson','redbreast','bushmills','tullamore','powers','teeling','green spot','yellow spot','writers tears','slane','proper twelve','connemara','knappogue','west cork','roe & co','method and madness'], kind:'Irish Whiskey'},
+  // Specific gins sometimes stored under wrong kind
+  {brands:['hendricks','hendrick','monkey 47','roku','malfy','drumshanbo','silkie','brockmans','tanqueray','bombay','beefeater','gordon','sipsmith','ford','aviation gin'], kind:'Gin'},
+  // Specific vodkas
+  {brands:['ketel','grey goose','belvedere','absolut','stolichnaya','stoli','ciroc','tito'], kind:'Vodka'},
+  // Specific rums
+  {brands:['kraken','bacardi','havana','diplomatico','appleton','mount gay','flor de cana','smith & cross','el dorado','plantation','bumbu'], kind:'Rum'},
+];
+
 function getOnKinds() {
-  return new Set(state.inventory.filter(i => i.on).map(i => i.kind));
+  var onItems = state.inventory.filter(function(i){ return i.on; });
+  var kinds = new Set(onItems.map(function(i){ return i.kind; }));
+
+  // Also add inferred kinds from brand name matching
+  // so Jameson stored as "Blended Scotch" still satisfies "Irish Whiskey" recipes
+  onItems.forEach(function(item) {
+    var lbl = (item.label || '').toLowerCase();
+    BRAND_KIND_MAP.forEach(function(entry) {
+      if (entry.brands.some(function(b){ return lbl.includes(b); })) {
+        kinds.add(entry.kind);
+      }
+    });
+  });
+
+  return kinds;
 }
 
 function canMake(cocktail) {
