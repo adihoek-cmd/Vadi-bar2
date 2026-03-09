@@ -2673,7 +2673,7 @@ const DEFAULT_COCKTAILS = [
 // ── STATE ────────────────────────────────────────────────────────────────────
 
 // Version bump forces localStorage to reset when default inventory changes
-const INV_VERSION = "v10";
+const INV_VERSION = "v11";
 // Runtime kind repair — fix any inventory items that were added with wrong kinds
 (function() {
   var inv = JSON.parse(localStorage.getItem('vadi_inv'));
@@ -2724,19 +2724,27 @@ const INV_VERSION = "v10";
     localStorage.setItem('vadi_cocktails', JSON.stringify(saved));
   }
 })();
-if (localStorage.getItem('vadi_inv_version') !== INV_VERSION) {
-  // Merge new default bottles into saved inventory instead of wiping it
-  // This preserves user-added bottles (Jameson, Ginger Beer, etc.)
+// Always ensure all default inventory items are present — never wipe user data.
+// New defaults get merged in silently; user-added items are never touched.
+(function ensureDefaultInventory() {
   var savedInv = JSON.parse(localStorage.getItem('vadi_inv'));
-  if (savedInv) {
-    var savedInvIds = new Set(savedInv.map(function(i){ return i.id; }));
-    DEFAULT_INVENTORY.forEach(function(di) {
-      if (!savedInvIds.has(di.id)) savedInv.push(JSON.parse(JSON.stringify(di)));
-    });
-    localStorage.setItem('vadi_inv', JSON.stringify(savedInv));
+  if (!savedInv) {
+    // Fresh install — use defaults as-is
+    localStorage.setItem('vadi_inv', JSON.stringify(JSON.parse(JSON.stringify(DEFAULT_INVENTORY))));
+    localStorage.setItem('vadi_inv_version', INV_VERSION);
+    return;
   }
+  var savedIds = new Set(savedInv.map(function(i){ return i.id; }));
+  var dirty = false;
+  DEFAULT_INVENTORY.forEach(function(di) {
+    if (!savedIds.has(di.id)) {
+      savedInv.push(JSON.parse(JSON.stringify(di)));
+      dirty = true;
+    }
+  });
+  if (dirty) localStorage.setItem('vadi_inv', JSON.stringify(savedInv));
   localStorage.setItem('vadi_inv_version', INV_VERSION);
-}
+})();
 
 let state = {
   inventory: JSON.parse(localStorage.getItem('vadi_inv')) || JSON.parse(JSON.stringify(DEFAULT_INVENTORY)),
@@ -2764,6 +2772,7 @@ function save() {
     {test: /benedictine|b&b|b and b|b & b|bénédictine|dom benedictine/i, kind:'Herbal Liqueur', cat:'Modifier'},
     {test: /jameson|redbreast|bushmills|tullamore|powers|teeling|green.spot|yellow.spot|writers.tears|slane|proper.twelve|connemara|knappogue|west.cork|roe|method.and.madness/i, kind:'Irish Whiskey', cat:'Spirit'},
     // Gins
+    {test: /^ginger beer$/i, kind:'Ginger Beer', cat:'Pantry'},
     {test: /tanqueray|hendrick|monkey.47|roku|gin.mare|malfy|sipsmith|beefeater|bombay|aviation.gin|gordon.?s.gin|ford.?s.gin|drumshanbo|dictador|dafina|loch.lomond.gin|zohara|votanikon/i, kind:'Gin', cat:'Spirit'},
     // Vodka
     {test: /ketel.one|grey.goose|belvedere|absolut|stolichnaya|cîroc|ciroc|tito.?s|van.gogh.vodka|smirnoff/i, kind:'Vodka', cat:'Spirit'},
@@ -3519,7 +3528,7 @@ async function searchCocktailDB(q) {
     for (var n = 1; n <= 15; n++) {
       var ing = d['strIngredient' + n];
       var msr = d['strMeasure' + n];
-      if (ing && ing.trim()) ings.push((msr ? msr.trim() + ' ' : '') + ing.trim());
+      if (ing && ing.trim()) ings.push({ name: ing.trim(), measure: msr ? msr.trim() : '' });
     }
     var steps = [];
     if (d.strInstructions) {
@@ -4291,7 +4300,7 @@ async function openBottleModal(itemId) {
         for (let n = 1; n <= 15; n++) {
           const ing = d['strIngredient' + n];
           const msr = d['strMeasure' + n];
-          if (ing && ing.trim()) ings.push((msr ? msr.trim() + ' ' : '') + ing.trim());
+          if (ing && ing.trim()) ings.push({ name: ing.trim(), measure: msr ? msr.trim() : '' });
         }
         const alreadyHave = state.cocktails.some(function(c){
           return c.name.toLowerCase() === d.strDrink.toLowerCase();
@@ -4309,7 +4318,7 @@ async function openBottleModal(itemId) {
         discoverHtml += '<div class="discover-card">';
         discoverHtml += '<div class="discover-source-badge">TheCocktailDB</div>';
         discoverHtml += '<div class="discover-card-name">' + d.strDrink + '</div>';
-        discoverHtml += '<div class="discover-card-ings">' + ings.slice(0,5).join(' \u00b7 ') + (ings.length > 5 ? ' \u00b7 \u2026' : '') + '</div>';
+        discoverHtml += '<div class="discover-card-ings">' + ings.slice(0,5).map(function(x){ return typeof x==='object' ? (x.measure ? x.measure+' '+x.name : x.name) : x; }).join(' \u00b7 ') + (ings.length > 5 ? ' \u00b7 \u2026' : '') + '</div>';
         discoverHtml += '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">';
         if (alreadyHave) {
           discoverHtml += '<button class="discover-add-btn" disabled style="opacity:0.45;cursor:default;">\u2713 In Collection</button>';
@@ -4343,10 +4352,19 @@ function importDiscoveredCocktail(encoded) {
 
   // Parse ingredients into structured format
   const parsedIngs = raw.ingredients.map(s => {
-    const parts = s.match(/^([\d\/\s\w\.]+(?:oz|cl|ml|tsp|tbsp|dash|dashes|cup|part|parts)?)?\s*(.+)$/i);
-    const amount = parts?.[1]?.trim() || "";
-    const name = parts?.[2]?.trim() || s;
-    return { name, amount, kind: name };
+    // s may be an object {name, measure} (from TheCocktailDB) or a plain string (from Liquor.com)
+    let name, amount;
+    if (s && typeof s === 'object') {
+      name   = s.name    || '';
+      amount = s.measure || '';
+    } else {
+      // Liquor.com strings like "2 oz Blanco tequila" — measure is the leading quantity
+      const parts = String(s).match(/^((?:\d[\d\/\.\s]*)?(?:oz|cl|ml|tsp|tbsp|dash(?:es)?|cup|parts?|splash|scant)?\s*)(.+)$/i);
+      amount = parts?.[1]?.trim() || '';
+      name   = parts?.[2]?.trim() || String(s);
+    }
+    const kind = guessKindFromName(name);
+    return { name, amount, kind };
   });
 
   // Pre-fill the Add Recipe form
