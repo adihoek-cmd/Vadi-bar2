@@ -2243,7 +2243,7 @@
 <div class="toast" id="toast"></div>
 
 
-<script src="db.js?v=9"></script>
+<script src="db.js?v=10"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2386,6 +2386,33 @@ let state = {
   spinning: false,
 };
 
+// GUARANTEE: ensure every DEFAULT_COCKTAIL is present in state, no matter what
+// This runs synchronously before any Firebase activity, so recipes always show.
+(function() {
+  var stateIds = new Set(state.cocktails.map(function(c){ return c.id; }));
+  var added = false;
+  DEFAULT_COCKTAILS.forEach(function(dc) {
+    if (!stateIds.has(dc.id)) {
+      state.cocktails.push(JSON.parse(JSON.stringify(dc)));
+      added = true;
+    }
+  });
+  if (added) localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
+})();
+
+// GUARANTEE: ensure every DEFAULT_INVENTORY item is present in state
+(function() {
+  var stateIds = new Set(state.inventory.map(function(i){ return i.id; }));
+  var added = false;
+  DEFAULT_INVENTORY.forEach(function(di) {
+    if (!stateIds.has(di.id)) {
+      state.inventory.push(JSON.parse(JSON.stringify(di)));
+      added = true;
+    }
+  });
+  if (added) localStorage.setItem('vadi_inv', JSON.stringify(state.inventory));
+})();
+
 function save() {
   localStorage.setItem('vadi_inv', JSON.stringify(state.inventory));
   localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
@@ -2404,6 +2431,7 @@ function save() {
     {test: /jameson|redbreast|bushmills|tullamore|powers|teeling|green.spot|yellow.spot|writers.tears|slane|proper.twelve|connemara|knappogue|west.cork|roe|method.and.madness/i, kind:'Irish Whiskey', cat:'Spirit'},
     // Gins
     {test: /^ginger beer$/i, kind:'Ginger Beer', cat:'Pantry'},
+    {test: /^salt$|^kosher salt$|^sea salt$/i, kind:'Salt', cat:'Pantry'},
     {test: /tanqueray|hendrick|monkey.47|roku|gin.mare|malfy|sipsmith|beefeater|bombay|aviation.gin|gordon.?s.gin|ford.?s.gin|drumshanbo|dictador|dafina|loch.lomond.gin|zohara|votanikon/i, kind:'Gin', cat:'Spirit'},
     // Vodka
     {test: /ketel.one|grey.goose|belvedere|absolut|stolichnaya|cîroc|ciroc|tito.?s|van.gogh.vodka|smirnoff/i, kind:'Vodka', cat:'Spirit'},
@@ -3452,6 +3480,7 @@ function guessKindFromName(name) {
     ['benedictine','Herbal Liqueur'],['b&b','Herbal Liqueur'],['b and b','Herbal Liqueur'],['b & b','Herbal Liqueur'],['dom','Herbal Liqueur'],
     ['grenadine','Grenadine'],['orange juice','Orange Juice'],['fresh orange juice','Orange Juice'],
     ['tonic water','Tonic Water'],['tonic','Tonic Water'],
+    ['salt','Salt'],['kosher salt','Salt'],['sea salt','Salt'],['sugar','Sugar'],['simple syrup','Simple Syrup'],
     ['coffee liqueur','Coffee Liqueur'],['cream liqueur','Cream Liqueur'],
     ['simple syrup','Simple Syrup'],['sugar syrup','Simple Syrup'],
     ['honey syrup','Honey Ginger Syrup'],['honey','Honey Ginger Syrup'],

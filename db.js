@@ -96,6 +96,7 @@ const DEFAULT_INVENTORY = [
   { id:"i105", cat:"Modifier", kind:"Herbal Liqueur", label:"B&B Liqueur", on:true },
   { id:"i106", cat:"Pantry", kind:"Grenadine", label:"Grenadine", on:false },
   { id:"i151", cat:"Pantry", kind:"Tonic Water", label:"Tonic Water", on:true },
+  { id:"i152", cat:"Pantry", kind:"Salt", label:"Salt", on:true },
   { id:"i101", cat:"Modifier", kind:"Herbal Liqueur", label:"Green Chartreuse", on:true },
   { id:"i102", cat:"Modifier", kind:"Herbal Liqueur", label:"Genepi L\'Ancienne", on:true },
   { id:"i103", cat:"Spirit", kind:"Irish Whiskey", label:"Jameson Irish Whiskey", on:true },
