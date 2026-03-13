@@ -155,6 +155,25 @@ const DEFAULT_INVENTORY = [
     source:"TheCocktailDB",
     notes:"A classic pre-Prohibition cocktail. Grand Marnier gives it a rich orange depth. Try with Tanqueray No. Ten for a bright, citrus-forward version."
   },
+  {
+    id:"c41", name:"Margarita", glass:"Rocks", method:"Shake", liked:false, house:false,
+    garnish:"Salt rim, lime wheel",
+    ingredients:[
+      {name:"Blanco Tequila", amount:"2 oz", kind:"Tequila"},
+      {name:"Fresh Lime Juice", amount:"1 oz", kind:"Lime Juice"},
+      {name:"Cointreau", amount:"1 oz", kind:"Triple Sec"},
+    ],
+    steps:[
+      "Rim a rocks glass with salt and fill with ice.",
+      "Add tequila, lime juice, and Cointreau to a shaker filled with ice.",
+      "Shake until well chilled, about 15 seconds.",
+      "Strain into the prepared rocks glass over fresh ice.",
+      "Garnish with a lime wheel."
+    ],
+    mood:["citrus","refreshing"],
+    source:"Liquor.com",
+    notes:"Use fresh lime juice — bottled won't cut it. Patron Silver or Cenote Ahumado work beautifully here. Cointreau over cheaper triple sec makes a real difference."
+  },
 ];
 
 const DEFAULT_COCKTAILS = [
