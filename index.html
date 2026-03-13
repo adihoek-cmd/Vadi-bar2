@@ -2243,7 +2243,7 @@
 <div class="toast" id="toast"></div>
 
 
-<script src="db.js?v=3"></script>
+<script src="db.js?v=4"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2333,37 +2333,27 @@ const INV_VERSION = "v11";
   });
   if (dirty) localStorage.setItem('vadi_inv', JSON.stringify(inv));
 })();
-// Clean up placeholder cocktails and merge any newly added default recipes
+// Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
+// then append user-created recipes. Guarantees new defaults always appear.
 (function() {
   var saved = JSON.parse(localStorage.getItem('vadi_cocktails'));
   if (saved) {
-    // Remove placeholder
-    saved = saved.filter(function(c){ return c.name !== 'Search on Liquor.com'; });
-    // Remove user-imported duplicates that now exist as proper defaults
-    var defaultNames = {};
-    DEFAULT_COCKTAILS.forEach(function(dc){ defaultNames[dc.name.toLowerCase()] = dc.id; });
-    saved = saved.filter(function(c) {
-      // Keep if it's a default ID, or if its name isn't already covered by a default
-      return c.id.length <= 4 || !defaultNames[c.name.toLowerCase()];
-    });
-    // Merge/update defaults: add new ones, fix recipe data on existing ones (keep user liked/house flags)
+    saved = saved.filter(function(c){ return c && c.id && c.name !== 'Search on Liquor.com'; });
     var savedById = {};
     saved.forEach(function(c){ savedById[c.id] = c; });
-    DEFAULT_COCKTAILS.forEach(function(dc) {
-      if (!savedById[dc.id]) {
-        saved.push(JSON.parse(JSON.stringify(dc)));
-      } else {
-        var ex = savedById[dc.id];
-        ex.ingredients = dc.ingredients;
-        ex.steps = dc.steps;
-        ex.glass = dc.glass;
-        ex.method = dc.method;
-        ex.garnish = dc.garnish;
-        ex.source = dc.source;
-        ex.notes = dc.notes;
-      }
+    var defaultIds = new Set(DEFAULT_COCKTAILS.map(function(dc){ return dc.id; }));
+
+    // Baseline: fresh defaults with user flags applied
+    var merged = DEFAULT_COCKTAILS.map(function(dc) {
+      var s = savedById[dc.id];
+      if (s) return Object.assign(JSON.parse(JSON.stringify(dc)), { liked: s.liked||false, house: s.house||false, tried: s.tried||false });
+      return JSON.parse(JSON.stringify(dc));
     });
-    localStorage.setItem('vadi_cocktails', JSON.stringify(saved));
+
+    // Append user-created recipes
+    saved.filter(function(c){ return !defaultIds.has(c.id); }).forEach(function(c){ merged.push(c); });
+
+    localStorage.setItem('vadi_cocktails', JSON.stringify(merged));
   }
 })();
 // Always ensure all default inventory items are present — never wipe user data.
@@ -4500,34 +4490,71 @@ function syncFromCloud() {
   db.collection('bars').doc(barCode).get().then(function(doc) {
     if (doc.exists) {
       var data = doc.data();
-      if (data.inventory)  {
-        // Merge new default inventory items into cloud data
-        var cloudInv = data.inventory;
-        var cloudInvIds = new Set(cloudInv.map(function(i){ return i.id; }));
-        DEFAULT_INVENTORY.forEach(function(di){ if (!cloudInvIds.has(di.id)) cloudInv.push(JSON.parse(JSON.stringify(di))); });
-        state.inventory = cloudInv;
-        localStorage.setItem('vadi_inv', JSON.stringify(cloudInv));
-      }
-      if (data.cocktails)  {
-        // Merge new default cocktails into cloud data so newly added recipes always appear
-        var cloudCk = data.cocktails.filter(function(c){ return c && c.ingredients; });
-        var cloudCkIds = new Set(cloudCk.map(function(c){ return c.id; }));
-        DEFAULT_COCKTAILS.forEach(function(dc){
-          if (!cloudCkIds.has(dc.id)) cloudCk.push(JSON.parse(JSON.stringify(dc)));
+
+      // ── COCKTAILS: always start from DEFAULT_COCKTAILS as baseline ──────────
+      // Apply user flags (liked/house/tried) and user-created recipes from cloud.
+      // This guarantees every default recipe always appears, even newly added ones.
+      if (data.cocktails) {
+        var cloudById = {};
+        data.cocktails.filter(function(c){ return c && c.id; }).forEach(function(c){ cloudById[c.id] = c; });
+        var defaultIds = new Set(DEFAULT_COCKTAILS.map(function(dc){ return dc.id; }));
+
+        // Start with fresh defaults, overlaying user flags from cloud
+        var merged = DEFAULT_COCKTAILS.map(function(dc) {
+          var cloud = cloudById[dc.id];
+          if (cloud) {
+            // Preserve user-set flags, use default recipe data
+            return Object.assign(JSON.parse(JSON.stringify(dc)), {
+              liked: cloud.liked || false,
+              house: cloud.house || false,
+              tried: cloud.tried || false
+            });
+          }
+          return JSON.parse(JSON.stringify(dc));
         });
-        state.cocktails = cloudCk;
-        localStorage.setItem('vadi_cocktails', JSON.stringify(cloudCk));
+
+        // Add any user-created recipes (non-default IDs) from cloud
+        data.cocktails.filter(function(c){ return c && c.id && !defaultIds.has(c.id); }).forEach(function(c){
+          merged.push(c);
+        });
+
+        state.cocktails = merged;
+        localStorage.setItem('vadi_cocktails', JSON.stringify(merged));
       }
-      if (data.cart)       { state.cart = data.cart; localStorage.setItem('vadi_cart', JSON.stringify(data.cart)); }
+
+      // ── INVENTORY: start from defaults, overlay on/off state from cloud ─────
+      if (data.inventory) {
+        var cloudInvById = {};
+        data.inventory.forEach(function(i){ if (i && i.id) cloudInvById[i.id] = i; });
+        var defaultInvIds = new Set(DEFAULT_INVENTORY.map(function(di){ return di.id; }));
+
+        // Start with fresh defaults, preserve on/off from cloud
+        var mergedInv = DEFAULT_INVENTORY.map(function(di) {
+          var cloud = cloudInvById[di.id];
+          return cloud ? Object.assign(JSON.parse(JSON.stringify(di)), { on: cloud.on }) : JSON.parse(JSON.stringify(di));
+        });
+
+        // Add user-added bottles (non-default IDs) from cloud
+        data.inventory.filter(function(i){ return i && i.id && !defaultInvIds.has(i.id); }).forEach(function(i){
+          mergedInv.push(i);
+        });
+
+        state.inventory = mergedInv;
+        localStorage.setItem('vadi_inv', JSON.stringify(mergedInv));
+      }
+
+      if (data.cart) { state.cart = data.cart; localStorage.setItem('vadi_cart', JSON.stringify(data.cart)); }
+
       renderCocktails();
       renderInventory();
       updateCartBadge();
-      // Write merged data back to Firestore so cloud stays up to date
+
+      // Write authoritative merged state back to Firestore
       db.collection('bars').doc(barCode).set({
-        inventory:  state.inventory,
-        cocktails:  state.cocktails,
-        cart:       state.cart,
-        updatedAt:  new Date().toISOString()
+        inventory: state.inventory,
+        cocktails: state.cocktails,
+        cart:      state.cart,
+        updatedAt: new Date().toISOString()
       }).catch(function(e){ console.warn('Write-back failed:', e); });
     }
     updateSyncBtn('synced');
