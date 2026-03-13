@@ -3163,7 +3163,7 @@ async function recipeSearch() {
       return ingName.split(',')[0].trim();
     }).join(' · ');
 
-    html += '<div class="recipe-result-card" onclick="openRDetail(\'' + encoded + '\')" style="cursor:pointer;">';
+    html += '<div class="recipe-result-card" data-card-encoded="' + encoded.replace(/"/g,'&quot;') + '" style="cursor:pointer;">';
     html += '<div class="recipe-result-card-source">' + r.source + '</div>';
     html += '<div class="recipe-result-card-name">' + r.name + '</div>';
     html += '<div class="recipe-result-card-ings">' + ingsPreview + '</div>';
@@ -3171,12 +3171,29 @@ async function recipeSearch() {
     if (alreadyHave) {
       html += '<button class="recipe-result-card-add saved" disabled onclick="event.stopPropagation()">✓ In Collection</button>';
     } else {
-      html += '<button class="recipe-result-card-add" onclick="event.stopPropagation();oneClickAddRecipe(\'' + encoded + '\', this)">+ Add to My Bar</button>';
+      html += '<button class="recipe-result-card-add" data-encoded="' + encoded.replace(/"/g,'&quot;') + '">+ Add to My Bar</button>';
     }
     html += '</div>';
   });
   html += '</div>';
   res.innerHTML = html;
+
+  // Wire add buttons via delegation — avoids inline onclick escaping issues on mobile
+  res.querySelectorAll('.recipe-result-card-add:not([disabled])').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var enc = btn.getAttribute('data-encoded');
+      if (enc) oneClickAddRecipe(enc, btn);
+    });
+  });
+  // Wire card taps for detail view (but not on the button)
+  res.querySelectorAll('.recipe-result-card').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      if (e.target.classList.contains('recipe-result-card-add')) return;
+      var enc = card.getAttribute('data-card-encoded');
+      if (enc) openRDetail(enc);
+    });
+  });
 }
 
 async function searchCocktailDB(q) {
@@ -3353,15 +3370,16 @@ function oneClickAddRecipe(encoded, btnEl) {
     return;
   }
 
-  // Parse ingredients into structured objects
+  // Parse ingredients — objects {name,measure} from TheCocktailDB, strings from Liquor.com
   var parsedIngs = r.ingredients.map(function(s) {
-    // Match "2 oz Gin" or "1/2 oz Sweet Vermouth" patterns
-    var m = s.match(/^([\d\s\/\.]+(?:oz|cl|ml|tsp|tbsp|dashes?|dash|cup|parts?|whole)?\.?)\s*(.+)$/i);
-    var amount = m ? m[1].trim() : '';
-    var name = m ? m[2].trim() : s.trim();
-    // Guess kind from name
-    var kind = guessKindFromName(name);
-    return { name: name, amount: amount, kind: kind };
+    var name, amount;
+    if (s && typeof s === 'object') {
+      name = s.name || ''; amount = s.measure || '';
+    } else {
+      var m = String(s).match(/^([\d\s\/\.]+(?:oz|cl|ml|tsp|tbsp|dashes?|dash|cup|parts?|whole)?\.?)\s*(.+)$/i);
+      amount = m ? m[1].trim() : ''; name = m ? m[2].trim() : String(s).trim();
+    }
+    return { name: name, amount: amount, kind: guessKindFromName(name) };
   });
 
   var steps = r.steps && r.steps.length ? r.steps : ['Prepare ingredients.', 'Combine and ' + (r.method || 'shake').toLowerCase() + '.', 'Strain and serve.'];
