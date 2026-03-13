@@ -141,6 +141,20 @@ const DEFAULT_INVENTORY = [
     source:"Classic",
     notes:"Use your best gin — it's the star here. Tanqueray No. Ten or Deer Premium Dry work beautifully. Serve very cold."
   },
+  {
+    id:"c40", name:"A1", glass:"Coupe", method:"Stir", liked:false, house:false,
+    garnish:"Lemon twist",
+    ingredients:[
+      {name:"Gin", amount:"1 3/4 shot", kind:"Gin"},
+      {name:"Grand Marnier", amount:"1 shot", kind:"Triple Sec"},
+      {name:"Lemon Juice", amount:"1/4 shot", kind:"Lemon Juice"},
+      {name:"Grenadine", amount:"1/8 shot", kind:"Grenadine"},
+    ],
+    steps:["Pour all ingredients into a cocktail shaker with ice.","Shake well until chilled.","Strain into a chilled coupe glass.","Garnish with a lemon twist."],
+    mood:["citrus","elegant"],
+    source:"TheCocktailDB",
+    notes:"A classic pre-Prohibition cocktail. Grand Marnier gives it a rich orange depth. Try with Tanqueray No. Ten for a bright, citrus-forward version."
+  },
 ];
 
 const DEFAULT_COCKTAILS = [
