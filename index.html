@@ -1770,7 +1770,123 @@
   .btn-have-it:hover { background: rgba(100,180,100,0.28); }
   .btn-have-it.added { background: rgba(100,180,100,0.3); color: #a0e0a0; }
 
+
+  /* ── Cloud Sync ── */
+  .sync-btn {
+    position: fixed;
+    top: 14px; right: 16px;
+    background: none;
+    border: none;
+    color: var(--gold3);
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 200;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .sync-btn:hover { opacity: 1; }
+  .sync-btn.syncing { animation: spin 1s linear infinite; }
+  .sync-btn.synced { color: #6ab882; opacity: 1; }
+  .sync-btn.error  { color: var(--red); opacity: 1; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .cloud-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 600;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .cloud-modal-overlay.open { display: flex; }
+  .cloud-modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 480px;
+    padding: 28px 24px 40px;
+  }
+  .cloud-modal h2 {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--cream);
+    margin: 0 0 6px;
+  }
+  .cloud-modal p {
+    color: var(--text3);
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0 0 20px;
+  }
+  .cloud-modal label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold3);
+    margin-bottom: 6px;
+  }
+  .cloud-modal input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--cream);
+    font-size: 15px;
+    padding: 11px 14px;
+    box-sizing: border-box;
+    margin-bottom: 16px;
+    letter-spacing: 0.05em;
+  }
+  .cloud-modal input:focus { outline: none; border-color: var(--gold3); }
+  .cloud-code-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .cloud-code-display {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--gold);
+    font-size: 18px;
+    padding: 11px 14px;
+    letter-spacing: 0.2em;
+    font-family: monospace;
+    text-align: center;
+  }
+  .cloud-copy-btn {
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 8px;
+    color: var(--gold);
+    font-size: 13px;
+    padding: 11px 16px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .cloud-status {
+    font-size: 12px;
+    color: var(--text3);
+    text-align: center;
+    margin-bottom: 16px;
+    min-height: 18px;
+  }
+  .cloud-status.ok { color: #6ab882; }
+  .cloud-status.err { color: var(--red); }
+  .cloud-modal .btn-row {
+    display: flex;
+    gap: 10px;
+  }
+  .cloud-modal .btn-row button {
+    flex: 1;
+  }
 </style>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -2446,7 +2562,6 @@ function renderCocktails() {
     const badges = [];
     if (c.liked) badges.push('<span class="badge badge-liked">❤</span>');
     if (c.house) badges.push('<span class="badge badge-house">House</span>');
-    if (c.tried) badges.push('<span class="badge badge-tried">✓ Tried</span>');
     if (c.tried) badges.push('<span class="badge badge-tried">✓ Tried</span>');
 
     return `<div class="cocktail-card ${cm ? '' : 'badge-cantmake'}" data-cid="${c.id}" style="animation-delay:${idx * 0.04}s">
@@ -4329,6 +4444,175 @@ renderWheel();
 initIngRows();
 initStepRows();
 updateCartBadge();
+
+
+// ── FIREBASE CLOUD SYNC ───────────────────────────────────────────────────────
+var FIREBASE_CONFIG = {
+  apiKey: "AIzaSyD_PLACEHOLDER_REPLACE_WITH_YOUR_KEY",
+  authDomain: "vadi-bar.firebaseapp.com",
+  projectId: "vadi-bar-app",
+  storageBucket: "vadi-bar-app.appspot.com",
+  messagingSenderId: "000000000000",
+  appId: "1:000000000000:web:0000000000000000"
+};
+// ↑ Replace with your own Firebase project config from:
+//   console.firebase.google.com → Project Settings → Your apps → SDK config
+
+var db = null;
+var barCode = null;
+var syncTimeout = null;
+var SYNC_CONFIGURED = false;
+
+function initFirebase() {
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+    SYNC_CONFIGURED = (FIREBASE_CONFIG.apiKey !== 'AIzaSyD_PLACEHOLDER_REPLACE_WITH_YOUR_KEY');
+
+    // Get or generate bar code
+    barCode = localStorage.getItem('vadi_bar_code');
+    if (!barCode) {
+      barCode = Math.random().toString(36).slice(2,6).toUpperCase() +
+                Math.random().toString(36).slice(2,6).toUpperCase();
+      barCode = barCode.slice(0,8);
+      localStorage.setItem('vadi_bar_code', barCode);
+    }
+    updateSyncBtn('idle');
+    if (SYNC_CONFIGURED) syncFromCloud();
+  } catch(e) {
+    console.warn('Firebase init failed:', e);
+  }
+}
+
+function updateSyncBtn(state) {
+  var btn = document.getElementById('sync-btn');
+  if (!btn) return;
+  btn.className = 'sync-btn';
+  if (state === 'syncing') { btn.classList.add('syncing'); btn.textContent = '↻'; }
+  else if (state === 'synced') { btn.classList.add('synced'); btn.textContent = '✓'; setTimeout(function(){ updateSyncBtn('idle'); }, 2000); }
+  else if (state === 'error')  { btn.classList.add('error');  btn.textContent = '!'; }
+  else { btn.textContent = SYNC_CONFIGURED ? '☁' : '☁'; btn.style.opacity = SYNC_CONFIGURED ? '0.7' : '0.35'; }
+}
+
+function syncFromCloud() {
+  if (!db || !barCode || !SYNC_CONFIGURED) return;
+  updateSyncBtn('syncing');
+  db.collection('bars').doc(barCode).get().then(function(doc) {
+    if (doc.exists) {
+      var data = doc.data();
+      if (data.inventory)  { state.inventory  = data.inventory;  localStorage.setItem('vadi_inv', JSON.stringify(data.inventory)); }
+      if (data.cocktails)  { state.cocktails  = data.cocktails;  localStorage.setItem('vadi_cocktails', JSON.stringify(data.cocktails)); }
+      if (data.cart)       { state.cart       = data.cart;       localStorage.setItem('vadi_cart', JSON.stringify(data.cart)); }
+      renderCocktails();
+      renderInventory();
+      updateCartBadge();
+    }
+    updateSyncBtn('synced');
+  }).catch(function(e) {
+    console.warn('Sync from cloud failed:', e);
+    updateSyncBtn('error');
+  });
+}
+
+function syncToCloud() {
+  if (!db || !barCode || !SYNC_CONFIGURED) return;
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(function() {
+    updateSyncBtn('syncing');
+    db.collection('bars').doc(barCode).set({
+      inventory:  state.inventory,
+      cocktails:  state.cocktails,
+      cart:       state.cart,
+      updatedAt:  new Date().toISOString()
+    }).then(function() {
+      updateSyncBtn('synced');
+    }).catch(function(e) {
+      console.warn('Sync to cloud failed:', e);
+      updateSyncBtn('error');
+    });
+  }, 1200); // debounce — wait 1.2s after last save before uploading
+}
+
+function openCloudModal() {
+  var code = localStorage.getItem('vadi_bar_code') || barCode || '——————';
+  document.getElementById('cloud-code-display').textContent = code || '——————';
+  document.getElementById('cloud-code-input').value = '';
+  var status = SYNC_CONFIGURED
+    ? 'Connected · last sync saved to cloud'
+    : 'Add your Firebase config to index.html to enable cloud sync';
+  setCloudStatus(status, SYNC_CONFIGURED ? 'ok' : '');
+  document.getElementById('cloud-modal-overlay').classList.add('open');
+}
+
+function closeCloudModal() {
+  document.getElementById('cloud-modal-overlay').classList.remove('open');
+}
+
+function copyBarCode() {
+  var code = document.getElementById('cloud-code-display').textContent;
+  if (navigator.clipboard) navigator.clipboard.writeText(code);
+  toast('Bar code copied!');
+}
+
+function joinBar() {
+  var input = document.getElementById('cloud-code-input').value.trim().toUpperCase();
+  if (input.length !== 8) { setCloudStatus('Bar code must be 8 characters', 'err'); return; }
+  if (!SYNC_CONFIGURED)   { setCloudStatus('Firebase not configured yet', 'err'); return; }
+  barCode = input;
+  localStorage.setItem('vadi_bar_code', barCode);
+  document.getElementById('cloud-code-display').textContent = barCode;
+  document.getElementById('cloud-code-input').value = '';
+  setCloudStatus('Joining bar…', '');
+  closeCloudModal();
+  syncFromCloud();
+}
+
+function setCloudStatus(msg, cls) {
+  var el = document.getElementById('cloud-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'cloud-status' + (cls ? ' ' + cls : '');
+}
+
+// Override save() to also sync to cloud
+var _origSave = save;
+save = function() {
+  _origSave();
+  syncToCloud();
+};
+
+// Init on load
+initFirebase();
+
 </script>
+
+  <!-- Cloud sync button -->
+  <button class="sync-btn" id="sync-btn" onclick="openCloudModal()" title="Cloud Sync">☁</button>
+
+  <!-- Cloud sync modal -->
+  <div class="cloud-modal-overlay" id="cloud-modal-overlay" onclick="if(event.target===this)closeCloudModal()">
+    <div class="cloud-modal">
+      <h2>☁ Cloud Sync</h2>
+      <p>Your bar syncs across all devices using a Bar Code. Share the code with others to give them access to the same bar.</p>
+
+      <label>Your Bar Code</label>
+      <div class="cloud-code-row">
+        <div class="cloud-code-display" id="cloud-code-display">——————</div>
+        <button class="cloud-copy-btn" onclick="copyBarCode()">Copy</button>
+      </div>
+
+      <label>Join a different bar</label>
+      <input type="text" id="cloud-code-input" placeholder="Enter bar code…" maxlength="8"
+        oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8)"
+        onkeydown="if(event.key==='Enter')joinBar()">
+
+      <div class="cloud-status" id="cloud-status"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-gold" onclick="joinBar()">Join Bar</button>
+        <button class="btn btn-outline" onclick="closeCloudModal()">Close</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
