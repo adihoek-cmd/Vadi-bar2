@@ -4556,6 +4556,14 @@ function syncFromCloud() {
       localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
       localStorage.setItem('vadi_inv',       JSON.stringify(state.inventory));
       localStorage.setItem('vadi_cart',      JSON.stringify(state.cart));
+
+      // Write merged state back so Firestore always has the latest defaults
+      db.collection('bars').doc(barCode).set({
+        cocktails: state.cocktails,
+        inventory: state.inventory,
+        cart:      state.cart,
+        updatedAt: new Date().toISOString()
+      }).catch(function(e){ console.warn('Write-back failed:', e); });
     }
 
     renderCocktails();
