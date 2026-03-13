@@ -4500,9 +4500,25 @@ function syncFromCloud() {
   db.collection('bars').doc(barCode).get().then(function(doc) {
     if (doc.exists) {
       var data = doc.data();
-      if (data.inventory)  { state.inventory  = data.inventory;  localStorage.setItem('vadi_inv', JSON.stringify(data.inventory)); }
-      if (data.cocktails)  { state.cocktails  = data.cocktails;  localStorage.setItem('vadi_cocktails', JSON.stringify(data.cocktails)); }
-      if (data.cart)       { state.cart       = data.cart;       localStorage.setItem('vadi_cart', JSON.stringify(data.cart)); }
+      if (data.inventory)  {
+        // Merge new default inventory items into cloud data
+        var cloudInv = data.inventory;
+        var cloudInvIds = new Set(cloudInv.map(function(i){ return i.id; }));
+        DEFAULT_INVENTORY.forEach(function(di){ if (!cloudInvIds.has(di.id)) cloudInv.push(JSON.parse(JSON.stringify(di))); });
+        state.inventory = cloudInv;
+        localStorage.setItem('vadi_inv', JSON.stringify(cloudInv));
+      }
+      if (data.cocktails)  {
+        // Merge new default cocktails into cloud data so newly added recipes always appear
+        var cloudCk = data.cocktails.filter(function(c){ return c && c.ingredients; });
+        var cloudCkIds = new Set(cloudCk.map(function(c){ return c.id; }));
+        DEFAULT_COCKTAILS.forEach(function(dc){
+          if (!cloudCkIds.has(dc.id)) cloudCk.push(JSON.parse(JSON.stringify(dc)));
+        });
+        state.cocktails = cloudCk;
+        localStorage.setItem('vadi_cocktails', JSON.stringify(cloudCk));
+      }
+      if (data.cart)       { state.cart = data.cart; localStorage.setItem('vadi_cart', JSON.stringify(data.cart)); }
       renderCocktails();
       renderInventory();
       updateCartBadge();
