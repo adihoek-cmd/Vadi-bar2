@@ -2243,7 +2243,7 @@
 <div class="toast" id="toast"></div>
 
 
-<script src="db.js"></script>
+<script src="db.js?v=3"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -4522,6 +4522,13 @@ function syncFromCloud() {
       renderCocktails();
       renderInventory();
       updateCartBadge();
+      // Write merged data back to Firestore so cloud stays up to date
+      db.collection('bars').doc(barCode).set({
+        inventory:  state.inventory,
+        cocktails:  state.cocktails,
+        cart:       state.cart,
+        updatedAt:  new Date().toISOString()
+      }).catch(function(e){ console.warn('Write-back failed:', e); });
     }
     updateSyncBtn('synced');
   }).catch(function(e) {
