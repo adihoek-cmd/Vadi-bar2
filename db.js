@@ -95,6 +95,7 @@ const DEFAULT_INVENTORY = [
   { id:"i100", cat:"Modifier", kind:"Herbal Liqueur", label:"Benedictine", on:true },
   { id:"i105", cat:"Modifier", kind:"Herbal Liqueur", label:"B&B Liqueur", on:true },
   { id:"i106", cat:"Pantry", kind:"Grenadine", label:"Grenadine", on:false },
+  { id:"i151", cat:"Pantry", kind:"Tonic Water", label:"Tonic Water", on:true },
   { id:"i101", cat:"Modifier", kind:"Herbal Liqueur", label:"Green Chartreuse", on:true },
   { id:"i102", cat:"Modifier", kind:"Herbal Liqueur", label:"Genepi L\'Ancienne", on:true },
   { id:"i103", cat:"Spirit", kind:"Irish Whiskey", label:"Jameson Irish Whiskey", on:true },
@@ -127,6 +128,19 @@ const DEFAULT_INVENTORY = [
   { id:"i132", cat:"Pantry", kind:"Lemon Juice", label:"Fresh", on:true },
   { id:"i133", cat:"Pantry", kind:"Lime Juice", label:"Fresh", on:true },
   { id:"i134", cat:"Pantry", kind:"Egg White", label:"Fresh", on:true },
+  {
+    id:"c39", name:"Gin & Tonic", glass:"Highball", method:"Build", liked:false, house:false,
+    garnish:"Lime wedge, cucumber slice or juniper berries",
+    ingredients:[
+      {name:"Gin", amount:"2 oz", kind:"Gin"},
+      {name:"Tonic Water", amount:"4 oz", kind:"Tonic Water"},
+      {name:"Fresh Lime Juice", amount:"1/2 oz", kind:"Lime Juice"},
+    ],
+    steps:["Fill a highball glass with ice.","Pour gin over the ice.","Add fresh lime juice.","Top with cold tonic water and stir gently once.","Garnish with a lime wedge."],
+    mood:["refreshing","citrus"],
+    source:"Classic",
+    notes:"Use your best gin — it's the star here. Tanqueray No. Ten or Deer Premium Dry work beautifully. Serve very cold."
+  },
 ];
 
 const DEFAULT_COCKTAILS = [
