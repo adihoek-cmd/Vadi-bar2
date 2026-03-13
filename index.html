@@ -271,6 +271,57 @@
 
   .badge-liked { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
   .badge-house { background: rgba(74,140,92,0.15); color: #6ab882; border: 1px solid rgba(74,140,92,0.3); }
+  .badge-tried { background: rgba(120,160,255,0.12); color: #8aaaff; border: 1px solid rgba(120,160,255,0.28); }
+  .modal-recs {
+    margin: 18px 0 0 0;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 10px;
+  }
+  .modal-recs-title {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold3);
+    margin-bottom: 10px;
+  }
+  .modal-rec-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .modal-rec-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .modal-rec-kind {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .modal-rec-picks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 2px;
+  }
+  .modal-rec-pill {
+    font-size: 12px;
+    color: var(--cream2);
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 20px;
+    padding: 3px 10px;
+  }
+  .modal-rec-pill.best {
+    background: rgba(201,168,76,0.2);
+    border-color: rgba(201,168,76,0.45);
+    color: var(--gold);
+  }
+  .modal-rec-pill.best::before { content: "★ "; font-size: 10px; }
   .badge-cantmake { opacity: 0.4; }
 
   .card-name {
@@ -1749,6 +1800,7 @@
       <button class="filter-chip" onclick="setFilter('liked', this)">❤ Liked</button>
       <button class="filter-chip" onclick="setFilter('house', this)">House</button>
       <button class="filter-chip" onclick="setFilter('canmake', this)"><span class="can-make-dot"></span>Can Make</button>
+      <button class="filter-chip" onclick="setFilter('tried', this)">✓ Tried</button>
       <button class="filter-chip" onclick="setFilter('stir', this)">Stir</button>
       <button class="filter-chip" onclick="setFilter('shake', this)">Shake</button>
       <div class="filter-spacer"></div>
@@ -2080,6 +2132,60 @@
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
 
+
+// ── SPIRIT RECOMMENDATIONS ───────────────────────────────────────────────────
+// For each spirit kind, a ranked preference list for classic cocktail making.
+// First entry = most versatile/recommended for mixed drinks.
+var KIND_RANKING = {
+  'Gin':           ['tanqueray no. ten','tanqueray rangpur','deer premium','deer vegetable','votanikon','zohara'],
+  'Vodka':         ['ketel one','grey goose','belvedere','absolut','ciroc'],
+  'Rum':           ['smith & cross','el supremo','takamaka','jang & wulff','kraken'],
+  'Bourbon':       ['woodford reserve bourbon','1792','makers mark','four roses'],
+  'Rye Whiskey':   ['woodford reserve rye','rittenhouse','bulleit rye'],
+  'Blended Scotch':['compass box','talisker select','monkey shoulder'],
+  'Peated Scotch': ['laphroaig','talisker 10','kilchoman','barrach'],
+  'Irish Whiskey': ['jameson','redbreast','powers','bushmills'],
+  'Tequila':       ['don julio 1942','patron silver','cenote anejo','cenote ahumado','jose cuervo'],
+  'Mezcal':        ['sin broca'],
+  'Cognac':        ['courvoisier','torres 10'],
+  'Triple Sec':    ['cointreau','grand marnier','triple sec'],
+  'Sweet Vermouth':['carpano antica','julius vermut','dolin sweet','martini rosso'],
+  'Dry Vermouth':  ['dolin dry','martini extra dry'],
+  'Campari':       ['campari'],
+  'Aperol':        ['aperol'],
+};
+
+function getRecommendations(cocktail) {
+  // Collect the unique spirit/modifier kinds this recipe needs
+  var spiritKinds = ['Gin','Vodka','Rum','Bourbon','Rye Whiskey','Blended Scotch','Peated Scotch',
+    'Irish Whiskey','Tequila','Mezcal','Cognac','Cachaca','Rakia','Triple Sec',
+    'Sweet Vermouth','Dry Vermouth','Campari','Aperol','Amaro','Herbal Liqueur','Anise Spirit'];
+  var recs = [];
+  cocktail.ingredients.forEach(function(ing) {
+    if (!ing.kind || !spiritKinds.includes(ing.kind)) return;
+    // Find bottles in user's bar with this kind that are toggled ON
+    var bottles = state.inventory.filter(function(item) {
+      return item.on && (
+        item.kind === ing.kind ||
+        // Also catch brand-inferred kinds
+        BRAND_KIND_MAP.some(function(e){ return e.kind === ing.kind && e.brands.some(function(b){ return (item.label||'').toLowerCase().includes(b); }); })
+      );
+    });
+    if (!bottles.length) return;
+    // Rank by KIND_RANKING if available
+    var ranking = KIND_RANKING[ing.kind] || [];
+    bottles.sort(function(a, b) {
+      var ai = ranking.findIndex(function(r){ return (a.label||'').toLowerCase().includes(r); });
+      var bi = ranking.findIndex(function(r){ return (b.label||'').toLowerCase().includes(r); });
+      if (ai === -1) ai = 999;
+      if (bi === -1) bi = 999;
+      return ai - bi;
+    });
+    recs.push({ kind: ing.kind, bottles: bottles });
+  });
+  return recs;
+}
+
 const GLASS_ICON = {
   "Rocks": "🥃", "Coupe": "🍸", "Highball": "🥂", "Nick & Nora": "🍸",
   "Mug": "☕", "Martini": "🍸", "default": "🍹"
@@ -2319,6 +2425,7 @@ function renderCocktails() {
     c.ingredients.some(i => i.name.toLowerCase().includes(q)));
 
   if (currentFilter === 'liked') list = list.filter(c => c.liked);
+  if (currentFilter === 'tried') list = list.filter(c => c.tried);
   if (currentFilter === 'house') list = list.filter(c => c.house);
   if (currentFilter === 'canmake') list = list.filter(c => canMake(c));
   if (currentFilter === 'stir') list = list.filter(c => c.method === 'Stir');
@@ -2339,6 +2446,8 @@ function renderCocktails() {
     const badges = [];
     if (c.liked) badges.push('<span class="badge badge-liked">❤</span>');
     if (c.house) badges.push('<span class="badge badge-house">House</span>');
+    if (c.tried) badges.push('<span class="badge badge-tried">✓ Tried</span>');
+    if (c.tried) badges.push('<span class="badge badge-tried">✓ Tried</span>');
 
     return `<div class="cocktail-card ${cm ? '' : 'badge-cantmake'}" data-cid="${c.id}" style="animation-delay:${idx * 0.04}s">
       <div class="card-top">
@@ -2414,9 +2523,29 @@ function openModal(id) {
   if (c.garnish) bodyHtml += `<div class="modal-garnish"><span>Garnish</span>${c.garnish}</div>`;
   if (c.notes) bodyHtml += `<div class="modal-garnish"><span>Bartender's Notes</span>${c.notes}</div>`;
 
+  // ── Recommendations ──────────────────────────────────────────────────────
+  const recs = getRecommendations(c);
+  if (recs.length) {
+    bodyHtml += `<div class="modal-recs">
+      <div class="modal-recs-title">🍾 From Your Bar</div>
+      <div class="modal-rec-row">` +
+      recs.map(function(rec, ri) {
+        var pills = rec.bottles.map(function(b, idx) {
+          var isBest = idx === 0;
+          return `<span class="modal-rec-pill${isBest ? ' best' : ''}">${b.label}</span>`;
+        }).join('');
+        return `<div class="modal-rec-item">
+          <div class="modal-rec-kind">${rec.kind}</div>
+          <div class="modal-rec-picks">${pills}</div>
+        </div>`;
+      }).join('') +
+      `</div></div>`;
+  }
+
   bodyHtml += `<div class="modal-actions">
     <button class="btn btn-gold" onclick="toggleLiked('${c.id}')">${c.liked ? '❤ Liked' : '♡ Like'}</button>
     <button class="btn btn-outline" onclick="toggleHouse('${c.id}')">${c.house ? '🏠 House' : '+ House Menu'}</button>
+    <button class="btn ${c.tried ? 'btn-tried-on' : 'btn-outline'}" onclick="toggleTried('${c.id}')" style="${c.tried ? 'background:rgba(120,160,255,0.15);color:#8aaaff;border-color:rgba(120,160,255,0.4)' : ''}">${c.tried ? '✓ Tried It' : '◎ Tried It?'}</button>
     <button class="btn btn-outline" style="color:var(--red);border-color:rgba(200,80,80,0.3)" onclick="removeFromMenu('${c.id}')">✕ Remove</button>
   </div>`;
 
@@ -2466,6 +2595,11 @@ function toggleLiked(id) {
 function toggleHouse(id) {
   const c = state.cocktails.find(x => x.id === id);
   if (c) { c.house = !c.house; save(); openModal(id); renderCocktails(); }
+}
+
+function toggleTried(id) {
+  const c = state.cocktails.find(x => x.id === id);
+  if (c) { c.tried = !c.tried; save(); openModal(id); renderCocktails(); }
 }
 
 function deleteRecipe(id) {
@@ -2747,6 +2881,7 @@ function pickMood(mood, cardEl) {
     const badges = [];
     if (c.liked) badges.push('<span class="badge badge-liked">❤</span>');
     if (c.house) badges.push('<span class="badge badge-house">House</span>');
+    if (c.tried) badges.push('<span class="badge badge-tried">✓ Tried</span>');
     return `<div class="cocktail-card" onclick="openMoodCocktail('${c.id}')">
       <div class="card-top">
         <div class="card-glass-icon">${gi}</div>
