@@ -2190,6 +2190,7 @@ function save() {
   var LABEL_KIND_MAP = [
     // Irish whiskeys
     {test: /benedictine|b&b|b and b|b & b|bénédictine|dom benedictine/i, kind:'Herbal Liqueur', cat:'Modifier'},
+    {test: /cointreau|grand marnier|grand mariner|triple sec/i, kind:'Triple Sec', cat:'Modifier'},
     {test: /jameson|redbreast|bushmills|tullamore|powers|teeling|green.spot|yellow.spot|writers.tears|slane|proper.twelve|connemara|knappogue|west.cork|roe|method.and.madness/i, kind:'Irish Whiskey', cat:'Spirit'},
     // Gins
     {test: /^ginger beer$/i, kind:'Ginger Beer', cat:'Pantry'},
@@ -2243,6 +2244,7 @@ function save() {
 var BRAND_KIND_MAP = [
   // Irish Whiskey brands often mislabelled as Blended Scotch
   {brands:['benedictine','b&b','b and b'], kind:'Herbal Liqueur'},
+  {brands:['cointreau','grand marnier','grand mariner','triple sec'], kind:'Triple Sec'},
   {brands:['jameson','redbreast','bushmills','tullamore','powers','teeling','green spot','yellow spot','writers tears','slane','proper twelve','connemara','knappogue','west cork','roe','method and madness','irish whiskey'], kind:'Irish Whiskey'},
   // Specific gins sometimes stored under wrong kind
   {brands:['hendricks','hendrick','monkey 47','roku','malfy','drumshanbo','silkie','brockmans','tanqueray','bombay','beefeater','gordon','sipsmith','ford','aviation gin'], kind:'Gin'},
@@ -3157,7 +3159,7 @@ function guessKindFromName(name) {
   // Specific named products — these are EXACT brands that should only match
   // if you have that specific bottle. Return name as kind.
   var specificBrands = [
-    'aperol','campari','cointreau','grand marnier',
+    'aperol','campari',
     'chartreuse','drambuie','kahlua','baileys','fernet','picon',
     'lillet','st.germain','st germain','maraschino','luxardo',
     'frangelico','amaretto','disaronno','midori','falernum',
@@ -3188,7 +3190,7 @@ function guessKindFromName(name) {
     ['cachaca','Cachaca'],
     ['sweet vermouth','Sweet Vermouth'],['dry vermouth','Dry Vermouth'],
     ['vermouth','Sweet Vermouth'],
-    ['triple sec','Triple Sec'],
+    ['triple sec','Triple Sec'],['cointreau','Triple Sec'],['grand marnier','Triple Sec'],['grand mariner','Triple Sec'],
     ['benedictine','Herbal Liqueur'],['b&b','Herbal Liqueur'],['b and b','Herbal Liqueur'],['b & b','Herbal Liqueur'],['dom','Herbal Liqueur'],
     ['grenadine','Grenadine'],['orange juice','Orange Juice'],['fresh orange juice','Orange Juice'],
     ['tonic water','Tonic Water'],['tonic','Tonic Water'],
