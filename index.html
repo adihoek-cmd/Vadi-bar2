@@ -4448,12 +4448,12 @@ updateCartBadge();
 
 // ── FIREBASE CLOUD SYNC ───────────────────────────────────────────────────────
 var FIREBASE_CONFIG = {
-  apiKey: "AIzaSyD_PLACEHOLDER_REPLACE_WITH_YOUR_KEY",
-  authDomain: "vadi-bar.firebaseapp.com",
+  apiKey: "AIzaSyBNQkPRZ8s0PVJCT6BMU1G07NZp2-_eKFY",
+  authDomain: "vadi-bar-app.firebaseapp.com",
   projectId: "vadi-bar-app",
-  storageBucket: "vadi-bar-app.appspot.com",
-  messagingSenderId: "000000000000",
-  appId: "1:000000000000:web:0000000000000000"
+  storageBucket: "vadi-bar-app.firebasestorage.app",
+  messagingSenderId: "733194758963",
+  appId: "1:733194758963:web:fa71a539bf8a9d609a2c46"
 };
 // ↑ Replace with your own Firebase project config from:
 //   console.firebase.google.com → Project Settings → Your apps → SDK config
@@ -4467,7 +4467,7 @@ function initFirebase() {
   try {
     if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.firestore();
-    SYNC_CONFIGURED = (FIREBASE_CONFIG.apiKey !== 'AIzaSyD_PLACEHOLDER_REPLACE_WITH_YOUR_KEY');
+    SYNC_CONFIGURED = true;
 
     // Get or generate bar code
     barCode = localStorage.getItem('vadi_bar_code');
