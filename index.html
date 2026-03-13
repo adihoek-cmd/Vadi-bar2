@@ -2243,7 +2243,7 @@
 <div class="toast" id="toast"></div>
 
 
-<script src="db.js?v=5"></script>
+<script src="db.js?v=6"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -3160,7 +3160,9 @@ async function recipeSearch() {
     var alreadyHave = state.cocktails.some(function(c){ return c.name.toLowerCase() === r.name.toLowerCase(); });
     var ingsPreview = r.ingredients.slice(0,4).map(function(i){
       // Show just the ingredient name, strip leading amount
-      return i.replace(/^[\d\s\/\.½¼¾]+(?:oz|cl|ml|tsp|tbsp|dashes?|dash)\.?\s*/i, '').split(',')[0].trim();
+      // Ingredients may be objects {name,measure} (TheCocktailDB) or strings (Liquor.com)
+      var ingName = (i && typeof i === 'object') ? i.name : String(i).replace(/^[\d\s\/\.½¼¾]+(?:oz|cl|ml|tsp|tbsp|dashes?|dash)\.?\s*/i, '');
+      return ingName.split(',')[0].trim();
     }).join(' · ');
 
     html += '<div class="recipe-result-card" onclick="openRDetail(\'' + encoded + '\')" style="cursor:pointer;">';
