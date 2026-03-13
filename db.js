@@ -99,11 +99,11 @@ const DEFAULT_INVENTORY = [
   { id:"i102", cat:"Modifier", kind:"Herbal Liqueur", label:"Genepi L\'Ancienne", on:true },
   { id:"i103", cat:"Spirit", kind:"Irish Whiskey", label:"Jameson Irish Whiskey", on:true },
   { id:"i104", cat:"Pantry", kind:"Ginger Beer", label:"Ginger Beer", on:true },
-  { id:"i102", cat:"Modifier", kind:"Herbal Liqueur", label:"Drambuie", on:true },
+  { id:"i110", cat:"Modifier", kind:"Herbal Liqueur", label:"Drambuie", on:true },
 
   // ── ANISE ─────────────────────────────────────────────────────────────────
-  { id:"i105", cat:"Modifier", kind:"Anise Spirit", label:"Askalon Arack Extra Fine", on:true },
-  { id:"i106", cat:"Modifier", kind:"Anise Spirit", label:"Pernod Paris", on:true },
+  { id:"i111", cat:"Modifier", kind:"Anise Spirit", label:"Askalon Arack Extra Fine", on:true },
+  { id:"i150", cat:"Modifier", kind:"Anise Spirit", label:"Pernod Paris", on:true },
   { id:"i107", cat:"Modifier", kind:"Anise Spirit", label:"Pilavas Ouzo", on:true },
   { id:"i108", cat:"Modifier", kind:"Anise Spirit", label:"Sans Rival Ouzo", on:true },
   { id:"i109", cat:"Modifier", kind:"Anise Spirit", label:"Zoara Arak", on:true },
