@@ -2243,7 +2243,7 @@
 <div class="toast" id="toast"></div>
 
 
-<script src="db.js?v=6"></script>
+<script src="db.js?v=7"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2336,25 +2336,23 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 (function() {
-  var saved = JSON.parse(localStorage.getItem('vadi_cocktails'));
-  if (saved) {
-    saved = saved.filter(function(c){ return c && c.id && c.name !== 'Search on Liquor.com'; });
-    var savedById = {};
-    saved.forEach(function(c){ savedById[c.id] = c; });
-    var defaultIds = new Set(DEFAULT_COCKTAILS.map(function(dc){ return dc.id; }));
+  var saved = JSON.parse(localStorage.getItem('vadi_cocktails')) || [];
+  saved = saved.filter(function(c){ return c && c.id && c.name !== 'Search on Liquor.com'; });
+  var savedById = {};
+  saved.forEach(function(c){ savedById[c.id] = c; });
+  var defaultIds = new Set(DEFAULT_COCKTAILS.map(function(dc){ return dc.id; }));
 
-    // Baseline: fresh defaults with user flags applied
-    var merged = DEFAULT_COCKTAILS.map(function(dc) {
-      var s = savedById[dc.id];
-      if (s) return Object.assign(JSON.parse(JSON.stringify(dc)), { liked: s.liked||false, house: s.house||false, tried: s.tried||false });
-      return JSON.parse(JSON.stringify(dc));
-    });
+  // Baseline: fresh defaults with user flags applied
+  var merged = DEFAULT_COCKTAILS.map(function(dc) {
+    var s = savedById[dc.id];
+    if (s) return Object.assign(JSON.parse(JSON.stringify(dc)), { liked: s.liked||false, house: s.house||false, tried: s.tried||false });
+    return JSON.parse(JSON.stringify(dc));
+  });
 
-    // Append user-created recipes
-    saved.filter(function(c){ return !defaultIds.has(c.id); }).forEach(function(c){ merged.push(c); });
+  // Append user-created recipes
+  saved.filter(function(c){ return !defaultIds.has(c.id); }).forEach(function(c){ merged.push(c); });
 
-    localStorage.setItem('vadi_cocktails', JSON.stringify(merged));
-  }
+  localStorage.setItem('vadi_cocktails', JSON.stringify(merged));
 })();
 // Always ensure all default inventory items are present — never wipe user data.
 // New defaults get merged in silently; user-added items are never touched.
@@ -3772,9 +3770,15 @@ function openRDetail(encoded) {
     bodyHtml += '<div class="rdetail-section-title">Ingredients</div>';
     bodyHtml += '<ul class="rdetail-ing-list">';
     r.ingredients.forEach(function(ing) {
-      var m = ing.match(/^([\d\s\/\.\u00bd\u00bc\u00be]+(?:oz|cl|ml|tsp|tbsp|dashes?|dash|parts?|whole)?\s*)(.+)$/i);
-      var amt = m ? m[1].trim() : '';
-      var name = m ? m[2].trim() : ing.trim();
+      var name, amt;
+      if (ing && typeof ing === 'object') {
+        name = ing.name || '';
+        amt  = ing.measure || '';
+      } else {
+        var m = String(ing).match(/^([\d\s\/\.\u00bd\u00bc\u00be]+(?:oz|cl|ml|tsp|tbsp|dashes?|dash|parts?|whole)?\s*)(.+)$/i);
+        amt  = m ? m[1].trim() : '';
+        name = m ? m[2].trim() : String(ing).trim();
+      }
       bodyHtml += '<li class="rdetail-ing-item"><span class="rdetail-ing-name">' + name + '</span>';
       if (amt) bodyHtml += '<span class="rdetail-ing-amt">' + amt + '</span>';
       bodyHtml += '</li>';
