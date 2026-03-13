@@ -2243,7 +2243,7 @@
 <div class="toast" id="toast"></div>
 
 
-<script src="db.js?v=8"></script>
+<script src="db.js?v=9"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -4512,45 +4512,47 @@ function syncFromCloud() {
   db.collection('bars').doc(barCode).get().then(function(doc) {
     if (doc.exists) {
       var data = doc.data();
-      var flags    = data.flags    || {};
-      var invFlags = data.invFlags || {};
+      var cloudCocktails  = (data.cocktails  || []).filter(function(c){ return c && c.id; });
+      var cloudInventory  = (data.inventory  || []).filter(function(i){ return i && i.id; });
 
-      // ── Apply cocktail flags from cloud onto current state ─────────────────
-      // state.cocktails is already correctly built from localStorage at startup.
-      // We only overlay liked/house/tried from cloud — never replace the list.
-      var stateById = {};
-      state.cocktails.forEach(function(c){ stateById[c.id] = c; });
+      // Build lookup maps
+      var defaultCkIds  = new Set(DEFAULT_COCKTAILS.map(function(dc){ return dc.id; }));
+      var defaultInvIds = new Set(DEFAULT_INVENTORY.map(function(di){ return di.id; }));
+      var cloudCkById   = {};
+      var cloudInvById  = {};
+      cloudCocktails.forEach(function(c){ cloudCkById[c.id]  = c; });
+      cloudInventory.forEach(function(i){ cloudInvById[i.id] = i; });
 
-      Object.keys(flags).forEach(function(id) {
-        if (stateById[id]) {
-          stateById[id].liked = flags[id].liked || false;
-          stateById[id].house = flags[id].house || false;
-          stateById[id].tried = flags[id].tried || false;
+      // ── Cocktails: always use db.js recipe data for defaults, flags from cloud
+      var merged = DEFAULT_COCKTAILS.map(function(dc) {
+        var cloud = cloudCkById[dc.id];
+        var result = JSON.parse(JSON.stringify(dc));
+        if (cloud) {
+          result.liked = cloud.liked || false;
+          result.house = cloud.house || false;
+          result.tried = cloud.tried || false;
         }
+        return result;
       });
+      // Add user-created recipes from cloud (non-default ids)
+      cloudCocktails.filter(function(c){ return !defaultCkIds.has(c.id); })
+        .forEach(function(c){ merged.push(c); });
+      state.cocktails = merged;
 
-      // Merge in any user-added recipes from cloud not already in state
-      var stateIds = new Set(state.cocktails.map(function(c){ return c.id; }));
-      var addedRecipes = data.addedRecipes || [];
-      addedRecipes.filter(function(c){ return c && c.id && !stateIds.has(c.id); })
-        .forEach(function(c){ state.cocktails.push(c); stateIds.add(c.id); });
-
-      // ── Apply inventory flags from cloud onto current state ────────────────
-      var invStateById = {};
-      state.inventory.forEach(function(i){ invStateById[i.id] = i; });
-      Object.keys(invFlags).forEach(function(id) {
-        if (invStateById[id]) invStateById[id].on = invFlags[id];
+      // ── Inventory: always use db.js inventory for defaults, on/off from cloud
+      var mergedInv = DEFAULT_INVENTORY.map(function(di) {
+        var cloud = cloudInvById[di.id];
+        var result = JSON.parse(JSON.stringify(di));
+        if (cloud) result.on = cloud.on;
+        return result;
       });
-
-      // Merge in user-added bottles from cloud not already in state
-      var stateInvIds = new Set(state.inventory.map(function(i){ return i.id; }));
-      var addedInv = data.addedInv || [];
-      addedInv.filter(function(i){ return i && i.id && !stateInvIds.has(i.id); })
-        .forEach(function(i){ state.inventory.push(i); });
+      // Add user-added bottles from cloud (non-default ids)
+      cloudInventory.filter(function(i){ return !defaultInvIds.has(i.id); })
+        .forEach(function(i){ mergedInv.push(i); });
+      state.inventory = mergedInv;
 
       if (data.cart) state.cart = data.cart;
 
-      // Persist merged state
       localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
       localStorage.setItem('vadi_inv',       JSON.stringify(state.inventory));
       localStorage.setItem('vadi_cart',      JSON.stringify(state.cart));
@@ -4571,27 +4573,11 @@ function syncToCloud() {
   clearTimeout(syncTimeout);
   syncTimeout = setTimeout(function() {
     updateSyncBtn('syncing');
-    // Only store user preferences — never the full recipe/inventory lists
-    var defaultIds    = new Set(DEFAULT_COCKTAILS.map(function(dc){ return dc.id; }));
-    var defaultInvIds = new Set(DEFAULT_INVENTORY.map(function(di){ return di.id; }));
-    var flags = {};
-    state.cocktails.forEach(function(c) {
-      if (defaultIds.has(c.id) && (c.liked || c.house || c.tried))
-        flags[c.id] = { liked: c.liked||false, house: c.house||false, tried: c.tried||false };
-    });
-    var invFlags = {};
-    state.inventory.forEach(function(i) {
-      if (defaultInvIds.has(i.id)) invFlags[i.id] = i.on;
-    });
-    var addedRecipes = state.cocktails.filter(function(c){ return !defaultIds.has(c.id); });
-    var addedInv     = state.inventory.filter(function(i){ return !defaultInvIds.has(i.id); });
     db.collection('bars').doc(barCode).set({
-      flags:        flags,
-      invFlags:     invFlags,
-      addedRecipes: addedRecipes,
-      addedInv:     addedInv,
-      cart:         state.cart,
-      updatedAt:    new Date().toISOString()
+      cocktails:  state.cocktails,
+      inventory:  state.inventory,
+      cart:       state.cart,
+      updatedAt:  new Date().toISOString()
     }).then(function() {
       updateSyncBtn('synced');
     }).catch(function(e) {
