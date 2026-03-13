@@ -2243,7 +2243,7 @@
 <div class="toast" id="toast"></div>
 
 
-<script src="db.js?v=7"></script>
+<script src="db.js?v=8"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -4510,45 +4510,51 @@ function syncFromCloud() {
   if (!db || !barCode || !SYNC_CONFIGURED) return;
   updateSyncBtn('syncing');
   db.collection('bars').doc(barCode).get().then(function(doc) {
-    var flags = {}, invFlags = {}, addedRecipes = [], cart = [];
     if (doc.exists) {
       var data = doc.data();
-      flags        = data.flags        || {};
-      invFlags     = data.invFlags     || {};
-      addedRecipes = data.addedRecipes || [];
-      cart         = data.cart         || [];
-    }
+      var flags    = data.flags    || {};
+      var invFlags = data.invFlags || {};
 
-    // ── Cocktails: DEFAULT_COCKTAILS is always the source of truth ────────────
-    // Firestore only stores per-recipe flags (liked/house/tried) and user-added recipes
-    var merged = DEFAULT_COCKTAILS.map(function(dc) {
-      var f = flags[dc.id] || {};
-      return Object.assign(JSON.parse(JSON.stringify(dc)), {
-        liked: f.liked || false,
-        house: f.house || false,
-        tried: f.tried || false
+      // ── Apply cocktail flags from cloud onto current state ─────────────────
+      // state.cocktails is already correctly built from localStorage at startup.
+      // We only overlay liked/house/tried from cloud — never replace the list.
+      var stateById = {};
+      state.cocktails.forEach(function(c){ stateById[c.id] = c; });
+
+      Object.keys(flags).forEach(function(id) {
+        if (stateById[id]) {
+          stateById[id].liked = flags[id].liked || false;
+          stateById[id].house = flags[id].house || false;
+          stateById[id].tried = flags[id].tried || false;
+        }
       });
-    });
-    // Append user-created recipes from Firestore
-    var defaultIds = new Set(DEFAULT_COCKTAILS.map(function(dc){ return dc.id; }));
-    addedRecipes.filter(function(c){ return c && c.id && !defaultIds.has(c.id); }).forEach(function(c){ merged.push(c); });
-    state.cocktails = merged;
-    localStorage.setItem('vadi_cocktails', JSON.stringify(merged));
 
-    // ── Inventory: DEFAULT_INVENTORY is always the source of truth ────────────
-    // Firestore only stores per-bottle on/off state and user-added bottles
-    var defaultInvIds = new Set(DEFAULT_INVENTORY.map(function(di){ return di.id; }));
-    var addedInv = (doc.exists && doc.data().addedInv) || [];
-    var mergedInv = DEFAULT_INVENTORY.map(function(di) {
-      var f = invFlags[di.id];
-      return Object.assign(JSON.parse(JSON.stringify(di)), { on: f !== undefined ? f : di.on });
-    });
-    addedInv.filter(function(i){ return i && i.id && !defaultInvIds.has(i.id); }).forEach(function(i){ mergedInv.push(i); });
-    state.inventory = mergedInv;
-    localStorage.setItem('vadi_inv', JSON.stringify(mergedInv));
+      // Merge in any user-added recipes from cloud not already in state
+      var stateIds = new Set(state.cocktails.map(function(c){ return c.id; }));
+      var addedRecipes = data.addedRecipes || [];
+      addedRecipes.filter(function(c){ return c && c.id && !stateIds.has(c.id); })
+        .forEach(function(c){ state.cocktails.push(c); stateIds.add(c.id); });
 
-    state.cart = cart;
-    localStorage.setItem('vadi_cart', JSON.stringify(cart));
+      // ── Apply inventory flags from cloud onto current state ────────────────
+      var invStateById = {};
+      state.inventory.forEach(function(i){ invStateById[i.id] = i; });
+      Object.keys(invFlags).forEach(function(id) {
+        if (invStateById[id]) invStateById[id].on = invFlags[id];
+      });
+
+      // Merge in user-added bottles from cloud not already in state
+      var stateInvIds = new Set(state.inventory.map(function(i){ return i.id; }));
+      var addedInv = data.addedInv || [];
+      addedInv.filter(function(i){ return i && i.id && !stateInvIds.has(i.id); })
+        .forEach(function(i){ state.inventory.push(i); });
+
+      if (data.cart) state.cart = data.cart;
+
+      // Persist merged state
+      localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
+      localStorage.setItem('vadi_inv',       JSON.stringify(state.inventory));
+      localStorage.setItem('vadi_cart',      JSON.stringify(state.cart));
+    }
 
     renderCocktails();
     renderInventory();
