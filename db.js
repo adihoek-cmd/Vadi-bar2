@@ -628,7 +628,7 @@ const DEFAULT_COCKTAILS = [
     garnish:"Orange slice",
     ingredients:[
       {name:"London Dry Gin", amount:"1.5 oz", kind:"Gin"},
-      {name:"Bénédictine", amount:"1/3 oz", kind:"Benedictine"},
+      {name:"Bénédictine", amount:"1/3 oz", kind:"Herbal Liqueur"},
       {name:"Fresh Orange Juice", amount:"3/4 oz", kind:"Orange Juice"},
       {name:"Grenadine", amount:"1 tsp", kind:"Grenadine"},
       {name:"Orange Bitters", amount:"2 dashes", kind:"Orange Bitters"},
