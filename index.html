@@ -2654,25 +2654,6 @@ function openModal(id) {
   if (c.garnish) bodyHtml += `<div class="modal-garnish"><span>Garnish</span>${c.garnish}</div>`;
   if (c.notes) bodyHtml += `<div class="modal-garnish"><span>Bartender's Notes</span>${c.notes}</div>`;
 
-  // ── Recommendations ──────────────────────────────────────────────────────
-  const recs = getRecommendations(c);
-  if (recs.length) {
-    bodyHtml += `<div class="modal-recs">
-      <div class="modal-recs-title">🍾 From Your Bar</div>
-      <div class="modal-rec-row">` +
-      recs.map(function(rec, ri) {
-        var pills = rec.bottles.map(function(b, idx) {
-          var isBest = idx === 0;
-          return `<span class="modal-rec-pill${isBest ? ' best' : ''}">${b.label}</span>`;
-        }).join('');
-        return `<div class="modal-rec-item">
-          <div class="modal-rec-kind">${rec.kind}</div>
-          <div class="modal-rec-picks">${pills}</div>
-        </div>`;
-      }).join('') +
-      `</div></div>`;
-  }
-
   bodyHtml += `<div class="modal-actions">
     <button class="btn btn-gold" onclick="toggleLiked('${c.id}')">${c.liked ? '❤ Liked' : '♡ Like'}</button>
     <button class="btn btn-outline" onclick="toggleHouse('${c.id}')">${c.house ? '🏠 House' : '+ House Menu'}</button>
@@ -3103,7 +3084,10 @@ function saveRecipe() {
     garnish: document.getElementById('r-garnish').value.trim(),
     source: document.getElementById('r-source').value.trim(),
     notes: document.getElementById('r-notes').value.trim(),
-    mood: [],
+    mood: (function() {
+      const searchText = (name + ' ' + ingredients.map(i => i.name).join(' ')).toLowerCase();
+      return Object.keys(MOOD_KEYWORDS).filter(m => (MOOD_KEYWORDS[m] || []).some(k => searchText.includes(k)));
+    })(),
     ingredients,
     steps,
   };
@@ -4593,6 +4577,14 @@ function syncFromCloud() {
       state.inventory = mergedInv;
 
       if (data.cart) state.cart = data.cart;
+
+      // Backfill mood tags on any cocktail saved with mood:[] using keyword matching
+      state.cocktails.forEach(function(c) {
+        if (!c.mood || c.mood.length === 0) {
+          var searchText = (c.name + ' ' + (c.notes||'') + ' ' + (c.ingredients||[]).map(function(i){ return i.name; }).join(' ')).toLowerCase();
+          c.mood = Object.keys(MOOD_KEYWORDS).filter(function(m){ return (MOOD_KEYWORDS[m]||[]).some(function(k){ return searchText.includes(k); }); });
+        }
+      });
 
       localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
       localStorage.setItem('vadi_inv',       JSON.stringify(state.inventory));
