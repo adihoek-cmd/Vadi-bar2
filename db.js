@@ -624,6 +624,21 @@ const DEFAULT_COCKTAILS = [
     notes:"A Prohibition-era classic by Harry MacElhone of Harry's New York Bar, Paris. The anise rinse gives it a mysterious depth. Use Pernod Paris from your bar."
   },
   {
+    id:"c42", name:"Monkey Gland No.2", glass:"Rocks", method:"Shake", liked:false, house:false,
+    garnish:"Orange slice",
+    ingredients:[
+      {name:"London Dry Gin", amount:"1.5 oz", kind:"Gin"},
+      {name:"Bénédictine", amount:"1/3 oz", kind:"Benedictine"},
+      {name:"Fresh Orange Juice", amount:"3/4 oz", kind:"Orange Juice"},
+      {name:"Grenadine", amount:"1 tsp", kind:"Grenadine"},
+      {name:"Orange Bitters", amount:"2 dashes", kind:"Orange Bitters"},
+    ],
+    steps:["Pre-chill an old-fashioned glass.","Prepare an orange slice for garnish.","Add all ingredients to a shaker with ice.","Shake well until chilled.","Strain into the ice-filled glass.","Garnish with an orange slice."],
+    mood:["citrus","fruity","bright"],
+    source:"Difford's Guide",
+    notes:"A gin-forward riff on the classic Monkey Gland, swapping absinthe for Bénédictine and moving to a rocks glass. The herbal liqueur adds complexity without the anise hit."
+  },
+  {
     id:"c37", name:"Irish Breakfast", glass:"Coupe", method:"Shake", liked:false, house:false,
     garnish:"Orange peel", source:"Robb Report", mood:["bright","sweet"],
     ingredients:[
