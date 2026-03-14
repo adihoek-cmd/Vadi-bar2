@@ -179,7 +179,7 @@ const DEFAULT_INVENTORY = [
 
 const DEFAULT_COCKTAILS = [
   {
-    id:"c1", name:"Negroni", glass:"Rocks", method:"Stir", liked:true, house:true,
+    id:"c1", name:"Negroni", glass:"Rocks", method:"Stir", liked:false, house:false,
     garnish:"Orange peel", source:"Classic", mood:["bitter","classic"],
     ingredients:[
       {name:"Gin", amount:"1 oz", kind:"Gin"},
@@ -190,7 +190,7 @@ const DEFAULT_COCKTAILS = [
     notes:"Use Carpano Antica for richness. Tanqueray Ten makes it especially floral."
   },
   {
-    id:"c2", name:"Manhattan", glass:"Coupe", method:"Stir", liked:true, house:true,
+    id:"c2", name:"Manhattan", glass:"Coupe", method:"Stir", liked:false, house:false,
     garnish:"Cherry", source:"Classic", mood:["strong","classic"],
     ingredients:[
       {name:"Rye Whiskey", amount:"2 oz", kind:"Rye Whiskey"},
@@ -201,7 +201,7 @@ const DEFAULT_COCKTAILS = [
     notes:"Carpano Antica Formula makes this sing. Classic rye Manhattan."
   },
   {
-    id:"c3", name:"Whiskey Sour", glass:"Coupe", method:"Shake", liked:true, house:true,
+    id:"c3", name:"Whiskey Sour", glass:"Coupe", method:"Shake", liked:false, house:false,
     garnish:"Lemon wheel + cherry", source:"Classic", mood:["bright","classic"],
     ingredients:[
       {name:"Rye Whiskey", amount:"2 oz", kind:"Rye Whiskey"},
@@ -213,7 +213,7 @@ const DEFAULT_COCKTAILS = [
     notes:"Dry shake first for the foam. Jameson works beautifully here too."
   },
   {
-    id:"c4", name:"Mezcal Negroni", glass:"Rocks", method:"Stir", liked:true, house:true,
+    id:"c4", name:"Mezcal Negroni", glass:"Rocks", method:"Stir", liked:false, house:false,
     garnish:"Orange peel", source:"PDT Cocktail Book", mood:["bitter","smoky"],
     ingredients:[
       {name:"Mezcal", amount:"1 oz", kind:"Mezcal"},
@@ -224,7 +224,7 @@ const DEFAULT_COCKTAILS = [
     notes:"Cenote Ahumado works great here for extra smoke. Julius Vermut for a sweeter spin."
   },
   {
-    id:"c5", name:"Smoky Margarita", glass:"Rocks", method:"Shake", liked:true, house:true,
+    id:"c5", name:"Smoky Margarita", glass:"Rocks", method:"Shake", liked:false, house:false,
     garnish:"Lime wheel + salt rim", source:"House", mood:["smoky","bright"],
     ingredients:[
       {name:"Mezcal", amount:"1.5 oz", kind:"Mezcal"},
@@ -247,7 +247,7 @@ const DEFAULT_COCKTAILS = [
     notes:"Tanqueray Ten is exceptional here. Fresh lime only."
   },
   {
-    id:"c7", name:"Daiquiri", glass:"Coupe", method:"Shake", liked:true, house:true,
+    id:"c7", name:"Daiquiri", glass:"Coupe", method:"Shake", liked:false, house:false,
     garnish:"Lime wheel", source:"Classic", mood:["bright","classic"],
     ingredients:[
       {name:"Rum", amount:"2 oz", kind:"Rum"},
@@ -258,7 +258,7 @@ const DEFAULT_COCKTAILS = [
     notes:"El Supremo 8 adds depth and molasses. Kraken for a spiced twist."
   },
   {
-    id:"c8", name:"Dark and Stormy", glass:"Highball", method:"Build", liked:true, house:false,
+    id:"c8", name:"Dark and Stormy", glass:"Highball", method:"Build", liked:false, house:false,
     garnish:"Lime wedge", source:"Classic", mood:["sweet","bright"],
     ingredients:[
       {name:"Rum", amount:"2 oz", kind:"Rum"},
@@ -270,7 +270,7 @@ const DEFAULT_COCKTAILS = [
     notes:"Kraken is perfect here. The grenadine adds a beautiful sunset effect."
   },
   {
-    id:"c9", name:"French 75", glass:"Highball", method:"Shake", liked:true, house:false,
+    id:"c9", name:"French 75", glass:"Highball", method:"Shake", liked:false, house:false,
     garnish:"Lemon twist", source:"Classic", mood:["bright","classic"],
     ingredients:[
       {name:"Gin", amount:"1.5 oz", kind:"Gin"},
@@ -281,7 +281,7 @@ const DEFAULT_COCKTAILS = [
     notes:"Deer Premium Dry keeps it crisp. Cognac version with Courvoisier is just as classic."
   },
   {
-    id:"c10", name:"Vieux Carre", glass:"Rocks", method:"Stir", liked:true, house:false,
+    id:"c10", name:"Vieux Carre", glass:"Rocks", method:"Stir", liked:false, house:false,
     garnish:"Lemon peel", source:"Hotel Monteleone New Orleans", mood:["strong","bitter"],
     ingredients:[
       {name:"Rye Whiskey", amount:"3/4 oz", kind:"Rye Whiskey"},
@@ -294,7 +294,7 @@ const DEFAULT_COCKTAILS = [
     notes:"New Orleans classic. Your Benedictine is essential here. Courvoisier VS works perfectly."
   },
   {
-    id:"c11", name:"Penicillin", glass:"Rocks", method:"Shake", liked:true, house:false,
+    id:"c11", name:"Penicillin", glass:"Rocks", method:"Shake", liked:false, house:false,
     garnish:"Candied ginger", source:"Sam Ross 2005", mood:["smoky","bright"],
     ingredients:[
       {name:"Blended Scotch", amount:"2 oz", kind:"Blended Scotch"},
@@ -327,7 +327,7 @@ const DEFAULT_COCKTAILS = [
     notes:"Your homemade honey ginger syrup adds a beautiful spice note to this Prohibition classic."
   },
   {
-    id:"c14", name:"Tequila Sour", glass:"Coupe", method:"Shake", liked:true, house:false,
+    id:"c14", name:"Tequila Sour", glass:"Coupe", method:"Shake", liked:false, house:false,
     garnish:"Lime wheel", source:"House", mood:["bright"],
     ingredients:[
       {name:"Tequila", amount:"2 oz", kind:"Tequila"},
@@ -339,7 +339,7 @@ const DEFAULT_COCKTAILS = [
     notes:"Don Julio 1942 elevates this massively. Cenote Ahumado for a smoky variation."
   },
   {
-    id:"c15", name:"Strawberry Daiquiri", glass:"Coupe", method:"Shake", liked:true, house:true,
+    id:"c15", name:"Strawberry Daiquiri", glass:"Coupe", method:"Shake", liked:false, house:false,
     garnish:"Fresh strawberry", source:"House", mood:["sweet","bright"],
     ingredients:[
       {name:"Rum", amount:"2 oz", kind:"Rum"},
@@ -362,7 +362,7 @@ const DEFAULT_COCKTAILS = [
     notes:"Grenadine adds color and sweetness. Monin keeps it consistent every time."
   },
   {
-    id:"c17", name:"Dry Martini", glass:"Coupe", method:"Stir", liked:true, house:false,
+    id:"c17", name:"Dry Martini", glass:"Coupe", method:"Stir", liked:false, house:false,
     garnish:"Lemon twist or olive", source:"Classic", mood:["strong","classic"],
     ingredients:[
       {name:"Gin", amount:"2.5 oz", kind:"Gin"},
@@ -372,7 +372,7 @@ const DEFAULT_COCKTAILS = [
     notes:"Tanqueray Ten is exceptional here. Dolin Dry for a softer, more floral result."
   },
   {
-    id:"c18", name:"Limoncello Collins", glass:"Highball", method:"Build", liked:true, house:true,
+    id:"c18", name:"Limoncello Collins", glass:"Highball", method:"Build", liked:false, house:false,
     garnish:"Lemon wheel + mint", source:"House", mood:["bright","sweet"],
     ingredients:[
       {name:"Gin", amount:"1.5 oz", kind:"Gin"},
