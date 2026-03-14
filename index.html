@@ -1885,8 +1885,8 @@
   }
 </style>
   <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -4494,7 +4494,7 @@ var FIREBASE_CONFIG = {
   apiKey: "AIzaSyBNQkPRZ8s0PVJCT6BMU1G07NZp2-_eKFY",
   authDomain: "vadi-bar-app.firebaseapp.com",
   projectId: "vadi-bar-app",
-  storageBucket: "vadi-bar-app.firebasestorage.app",
+  storageBucket: "vadi-bar-app.appspot.com",
   messagingSenderId: "733194758963",
   appId: "1:733194758963:web:fa71a539bf8a9d609a2c46"
 };
@@ -4603,7 +4603,7 @@ function syncFromCloud() {
     updateSyncBtn('synced');
   }).catch(function(e) {
     clearTimeout(watchdog);
-    console.warn('Sync from cloud failed:', e.code || e.message);
+    console.warn('Sync from cloud failed:', JSON.stringify({code: e.code, message: e.message}));
     updateSyncBtn('error');
   });
 }
@@ -4625,7 +4625,7 @@ function syncToCloud() {
       updateSyncBtn('synced');
     }).catch(function(e) {
       clearTimeout(watchdog);
-      console.warn('Sync to cloud failed:', e.code || e.message);
+      console.warn('Sync to cloud failed:', JSON.stringify({code: e.code, message: e.message}));
       updateSyncBtn('error');
     });
   }, 1200);
@@ -4684,7 +4684,7 @@ save = function() {
 };
 
 // Init on load
-initFirebase();
+window.addEventListener("load", function() { initFirebase(); });
 
 </script>
 
