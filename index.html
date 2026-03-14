@@ -4568,6 +4568,11 @@ function syncFromCloud() {
       // Add user-created recipes from cloud (non-default ids)
       cloudCocktails.filter(function(c){ return !defaultCkIds.has(c.id); })
         .forEach(function(c){ merged.push(c); });
+      // Rescue locally-added recipes not yet pushed to cloud (prevents loss on page reload)
+      var mergedCkIds = new Set(merged.map(function(c){ return c.id; }));
+      var localCocktails = JSON.parse(localStorage.getItem('vadi_cocktails') || '[]');
+      localCocktails.filter(function(c){ return c && c.id && !defaultCkIds.has(c.id) && !mergedCkIds.has(c.id); })
+        .forEach(function(c){ merged.push(c); });
       state.cocktails = merged;
 
       // ── Inventory: always use db.js inventory for defaults, on/off from cloud
@@ -4579,6 +4584,11 @@ function syncFromCloud() {
       });
       // Add user-added bottles from cloud (non-default ids)
       cloudInventory.filter(function(i){ return !defaultInvIds.has(i.id); })
+        .forEach(function(i){ mergedInv.push(i); });
+      // Rescue locally-added items not yet pushed to cloud
+      var mergedInvIds = new Set(mergedInv.map(function(i){ return i.id; }));
+      var localInventory = JSON.parse(localStorage.getItem('vadi_inv') || '[]');
+      localInventory.filter(function(i){ return i && i.id && !defaultInvIds.has(i.id) && !mergedInvIds.has(i.id); })
         .forEach(function(i){ mergedInv.push(i); });
       state.inventory = mergedInv;
 
@@ -4628,7 +4638,7 @@ function syncToCloud() {
       console.warn('Sync to cloud failed:', JSON.stringify({code: e.code, message: e.message}));
       updateSyncBtn('error');
     });
-  }, 1200);
+  }, 400);
 }
 
 function openCloudModal() {
@@ -4682,6 +4692,20 @@ save = function() {
   _origSave();
   syncToCloud();
 };
+
+// Flush any pending debounced sync immediately when the tab is hidden or closed
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'hidden' && syncTimeout && db && barCode && SYNC_CONFIGURED) {
+    clearTimeout(syncTimeout);
+    syncTimeout = null;
+    db.collection('bars').doc(barCode).set({
+      cocktails: state.cocktails,
+      inventory: state.inventory,
+      cart:      state.cart,
+      updatedAt: new Date().toISOString()
+    }).catch(function(e){ console.warn('Visibility sync failed:', e); });
+  }
+});
 
 // Init on load
 window.addEventListener("load", function() { initFirebase(); });
