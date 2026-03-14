@@ -4538,7 +4538,9 @@ function updateSyncBtn(state) {
 function syncFromCloud() {
   if (!db || !barCode || !SYNC_CONFIGURED) return;
   updateSyncBtn('syncing');
+  var watchdog = setTimeout(function() { updateSyncBtn('error'); }, 10000);
   db.collection('bars').doc(barCode).get().then(function(doc) {
+    clearTimeout(watchdog);
     if (doc.exists) {
       var data = doc.data();
       var cloudCocktails  = (data.cocktails  || []).filter(function(c){ return c && c.id; });
@@ -4600,7 +4602,8 @@ function syncFromCloud() {
     updateCartBadge();
     updateSyncBtn('synced');
   }).catch(function(e) {
-    console.warn('Sync from cloud failed:', e);
+    clearTimeout(watchdog);
+    console.warn('Sync from cloud failed:', e.code || e.message);
     updateSyncBtn('error');
   });
 }
@@ -4610,15 +4613,19 @@ function syncToCloud() {
   clearTimeout(syncTimeout);
   syncTimeout = setTimeout(function() {
     updateSyncBtn('syncing');
+    // Watchdog: if no response in 8s, show error
+    var watchdog = setTimeout(function() { updateSyncBtn('error'); }, 8000);
     db.collection('bars').doc(barCode).set({
       cocktails:  state.cocktails,
       inventory:  state.inventory,
       cart:       state.cart,
       updatedAt:  new Date().toISOString()
     }).then(function() {
+      clearTimeout(watchdog);
       updateSyncBtn('synced');
     }).catch(function(e) {
-      console.warn('Sync to cloud failed:', e);
+      clearTimeout(watchdog);
+      console.warn('Sync to cloud failed:', e.code || e.message);
       updateSyncBtn('error');
     });
   }, 1200);
@@ -4628,10 +4635,14 @@ function openCloudModal() {
   var code = localStorage.getItem('vadi_bar_code') || barCode || '——————';
   document.getElementById('cloud-code-display').textContent = code || '——————';
   document.getElementById('cloud-code-input').value = '';
-  var status = SYNC_CONFIGURED
-    ? 'Connected · last sync saved to cloud'
-    : 'Add your Firebase config to index.html to enable cloud sync';
-  setCloudStatus(status, SYNC_CONFIGURED ? 'ok' : '');
+  var syncBtn = document.getElementById('sync-btn');
+  var isError = syncBtn && syncBtn.classList.contains('error');
+  var status = !SYNC_CONFIGURED
+    ? 'Firebase not configured'
+    : isError
+      ? '⚠ Sync failed — Firestore rules may have expired. Go to Firebase Console → Firestore → Rules and set allow read, write: if true;'
+      : 'Connected · syncing to VADI4545';
+  setCloudStatus(status, isError ? 'err' : (SYNC_CONFIGURED ? 'ok' : ''));
   document.getElementById('cloud-modal-overlay').classList.add('open');
 }
 
