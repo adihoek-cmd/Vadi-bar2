@@ -175,6 +175,24 @@ const DEFAULT_INVENTORY = [
     source:"Liquor.com",
     notes:"Use fresh lime juice — bottled won't cut it. Patron Silver or Cenote Ahumado work beautifully here. Cointreau over cheaper triple sec makes a real difference."
   },
+  {
+    id:"c42", name:"Palmetto", glass:"Coupe", method:"Stir", liked:false, house:false,
+    garnish:"Orange twist (expressed and discarded)",
+    ingredients:[
+      {name:"Aged Rum", amount:"1.5 oz", kind:"Rum"},
+      {name:"Sweet Vermouth", amount:"1.5 oz", kind:"Sweet Vermouth"},
+      {name:"Orange Bitters", amount:"2 dashes", kind:"Orange Bitters"},
+    ],
+    steps:[
+      "Add all ingredients to a mixing glass filled with ice.",
+      "Stir until well chilled, about 20 seconds.",
+      "Strain into a chilled coupe glass.",
+      "Express an orange peel over the drink and discard."
+    ],
+    mood:["rich","stirred","classic"],
+    source:"Food & Wine / Savoy Cocktail Book 1930",
+    notes:"The rum Manhattan. Use your most characterful aged rum — Smith & Cross gives it a funky, Jamaican depth that sings against the vermouth. El Supremo 8 makes a smoother, rounder version. Carpano Antica or Julius Vermut work beautifully here."
+  },
 ];
 
 const DEFAULT_COCKTAILS = [
