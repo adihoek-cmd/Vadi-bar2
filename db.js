@@ -25,7 +25,6 @@ const DEFAULT_INVENTORY = [
   { id:"i103", cat:"Spirit", kind:"Irish Whiskey", label:"Jameson Irish Whiskey", on:true },
   // Blended Scotch
   { id:"i30", cat:"Spirit", kind:"Blended Scotch", label:"Compass Box Spice Tree", on:true },
-  { id:"i31", cat:"Spirit", kind:"Blended Scotch", label:"Talisker Select", on:true },
   // Peated Scotch
   { id:"i38", cat:"Spirit", kind:"Peated Scotch", label:"Barrach The Smoky 12", on:true },
   { id:"i36", cat:"Spirit", kind:"Peated Scotch", label:"Kilchoman Machir Bay", on:true },
@@ -45,12 +44,14 @@ const DEFAULT_INVENTORY = [
   { id:"i25", cat:"Spirit", kind:"Rum", label:"The Kraken Black Spiced", on:true },
   // Tequila
   { id:"i53", cat:"Spirit", kind:"Tequila", label:"Cenote Ahumado", on:true },
-  { id:"i52", cat:"Spirit", kind:"Tequila", label:"Cenote Anejo", on:true },
+  { id:"i52", cat:"Spirit", kind:"Tequila", label:"Cenote Blanco", on:true },
   { id:"i50", cat:"Spirit", kind:"Tequila", label:"Don Julio 1942", on:true },
   { id:"i51", cat:"Spirit", kind:"Tequila", label:"Jose Cuervo Especial", on:true },
   { id:"i54", cat:"Spirit", kind:"Tequila", label:"Patron Silver", on:true },
   // Mezcal
-  { id:"i58", cat:"Spirit", kind:"Mezcal", label:"Sin Broca Mezcal Joven", on:true },
+  { id:"i57", cat:"Spirit", kind:"Mezcal", label:"Espina Dorada", on:true },
+  { id:"i58", cat:"Spirit", kind:"Mezcal", label:"Se Busca Joven", on:true },
+  { id:"i59", cat:"Spirit", kind:"Mezcal", label:"Se Busca Reposado", on:true },
   // Cachaca
   { id:"i65", cat:"Spirit", kind:"Cachaca", label:"El Cachaca", on:true },
   // Cognac
@@ -70,7 +71,6 @@ const DEFAULT_INVENTORY = [
   { id:"i83", cat:"Modifier", kind:"Sweet Vermouth", label:"Martini Bianco", on:true },
   { id:"i84", cat:"Modifier", kind:"Sweet Vermouth", label:"Martini Rosso", on:true },
   // Dry Vermouth
-  { id:"i87", cat:"Modifier", kind:"Dry Vermouth", label:"Dolin Dry", on:true },
   // Campari
   { id:"i90", cat:"Modifier", kind:"Campari", label:"Campari", on:true },
   // Aperol
@@ -82,7 +82,6 @@ const DEFAULT_INVENTORY = [
   { id:"i95", cat:"Modifier", kind:"Triple Sec", label:"Cointreau", on:true },
   { id:"i96", cat:"Modifier", kind:"Triple Sec", label:"Grand Marnier", on:true },
   // Herbal Liqueur
-  { id:"i105", cat:"Modifier", kind:"Herbal Liqueur", label:"B&B Liqueur", on:true },
   { id:"i100", cat:"Modifier", kind:"Herbal Liqueur", label:"Benedictine", on:true },
   { id:"i110", cat:"Modifier", kind:"Herbal Liqueur", label:"Drambuie", on:true },
   { id:"i102", cat:"Modifier", kind:"Herbal Liqueur", label:"Genepi L\'Ancienne", on:true },
