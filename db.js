@@ -6,193 +6,133 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 const DEFAULT_INVENTORY = [
-  // ── GIN ──────────────────────────────────────────────────────────────────
-  { id:"i1",  cat:"Spirit", kind:"Gin", label:"Deer Premium Dry", on:true },
-  { id:"i2",  cat:"Spirit", kind:"Gin", label:"Deer Vegetable Dry", on:true },
-  { id:"i3",  cat:"Spirit", kind:"Gin", label:"Tanqueray No. Ten", on:true },
-  { id:"i4",  cat:"Spirit", kind:"Gin", label:"Tanqueray Rangpur", on:true },
-  { id:"i5",  cat:"Spirit", kind:"Gin", label:"Votanikon", on:true },
-  { id:"i6",  cat:"Spirit", kind:"Gin", label:"Zohara Gin", on:true },
-
-  // ── VODKA ─────────────────────────────────────────────────────────────────
-  { id:"i10", cat:"Spirit", kind:"Vodka", label:"Ketel One", on:true },
+  // ── SPIRIT ────────────────────────────────────────────
+  // Gin
+  { id:"i1", cat:"Spirit", kind:"Gin", label:"Deer Premium Dry", on:true },
+  { id:"i2", cat:"Spirit", kind:"Gin", label:"Deer Vegetable Dry", on:true },
+  { id:"i3", cat:"Spirit", kind:"Gin", label:"Tanqueray No. Ten", on:true },
+  { id:"i4", cat:"Spirit", kind:"Gin", label:"Tanqueray Rangpur", on:true },
+  { id:"i5", cat:"Spirit", kind:"Gin", label:"Votanikon", on:true },
+  { id:"i6", cat:"Spirit", kind:"Gin", label:"Zohara Gin", on:true },
+  // Vodka
   { id:"i11", cat:"Spirit", kind:"Vodka", label:"Berlin Vodka", on:true },
   { id:"i12", cat:"Spirit", kind:"Vodka", label:"Ciroc Vodka", on:true },
+  { id:"i10", cat:"Spirit", kind:"Vodka", label:"Ketel One", on:true },
   { id:"i14", cat:"Spirit", kind:"Vodka", label:"Stolichnaya Vanilla", on:true },
   { id:"i15", cat:"Spirit", kind:"Vodka", label:"Van Gogh Acai Blueberry", on:true },
   { id:"i16", cat:"Spirit", kind:"Vodka", label:"Zubrówka Palona", on:true },
-
-  // ── RUM ───────────────────────────────────────────────────────────────────
+  // Irish Whiskey
+  { id:"i103", cat:"Spirit", kind:"Irish Whiskey", label:"Jameson Irish Whiskey", on:true },
+  // Blended Scotch
+  { id:"i30", cat:"Spirit", kind:"Blended Scotch", label:"Compass Box Spice Tree", on:true },
+  { id:"i31", cat:"Spirit", kind:"Blended Scotch", label:"Talisker Select", on:true },
+  // Peated Scotch
+  { id:"i38", cat:"Spirit", kind:"Peated Scotch", label:"Barrach The Smoky 12", on:true },
+  { id:"i36", cat:"Spirit", kind:"Peated Scotch", label:"Kilchoman Machir Bay", on:true },
+  { id:"i35", cat:"Spirit", kind:"Peated Scotch", label:"Laphroaig 10", on:true },
+  { id:"i37", cat:"Spirit", kind:"Peated Scotch", label:"Talisker 10", on:true },
+  // Bourbon
+  { id:"i40", cat:"Spirit", kind:"Bourbon", label:"1792 Ridgewood Reserve", on:true },
+  { id:"i41", cat:"Spirit", kind:"Bourbon", label:"Woodford Reserve Bourbon", on:true },
+  // Rye Whiskey
+  { id:"i45", cat:"Spirit", kind:"Rye Whiskey", label:"Woodford Reserve Rye", on:true },
+  // Rum
   { id:"i20", cat:"Spirit", kind:"Rum", label:"Calypso Red Rum", on:true },
   { id:"i21", cat:"Spirit", kind:"Rum", label:"El Supremo 8", on:true },
+  { id:"i26", cat:"Spirit", kind:"Rum", label:"Jang & Wulff Barbados No. 3", on:true },
   { id:"i23", cat:"Spirit", kind:"Rum", label:"Smith & Cross", on:true },
   { id:"i24", cat:"Spirit", kind:"Rum", label:"Takamaka Zepis Kreol", on:true },
   { id:"i25", cat:"Spirit", kind:"Rum", label:"The Kraken Black Spiced", on:true },
-  { id:"i26", cat:"Spirit", kind:"Rum", label:"Jang & Wulff Barbados No. 3", on:true },
-
-  // ── BLENDED SCOTCH ────────────────────────────────────────────────────────
-  { id:"i30", cat:"Spirit", kind:"Blended Scotch", label:"Compass Box Spice Tree", on:true },
-  { id:"i31", cat:"Spirit", kind:"Blended Scotch", label:"Talisker Select", on:true },
-
-  // ── PEATED SCOTCH ─────────────────────────────────────────────────────────
-  { id:"i35", cat:"Spirit", kind:"Peated Scotch", label:"Laphroaig 10", on:true },
-  { id:"i36", cat:"Spirit", kind:"Peated Scotch", label:"Kilchoman Machir Bay", on:true },
-  { id:"i37", cat:"Spirit", kind:"Peated Scotch", label:"Talisker 10", on:true },
-  { id:"i38", cat:"Spirit", kind:"Peated Scotch", label:"Barrach The Smoky 12", on:true },
-
-  // ── BOURBON ───────────────────────────────────────────────────────────────
-  { id:"i40", cat:"Spirit", kind:"Bourbon", label:"1792 Ridgewood Reserve", on:true },
-  { id:"i41", cat:"Spirit", kind:"Bourbon", label:"Woodford Reserve Bourbon", on:true },
-
-  // ── RYE WHISKEY ───────────────────────────────────────────────────────────
-  { id:"i45", cat:"Spirit", kind:"Rye Whiskey", label:"Woodford Reserve Rye", on:true },
-
-  // ── TEQUILA ───────────────────────────────────────────────────────────────
+  // Tequila
+  { id:"i53", cat:"Spirit", kind:"Tequila", label:"Cenote Ahumado", on:true },
+  { id:"i52", cat:"Spirit", kind:"Tequila", label:"Cenote Anejo", on:true },
   { id:"i50", cat:"Spirit", kind:"Tequila", label:"Don Julio 1942", on:true },
   { id:"i51", cat:"Spirit", kind:"Tequila", label:"Jose Cuervo Especial", on:true },
-  { id:"i52", cat:"Spirit", kind:"Tequila", label:"Cenote Anejo", on:true },
-  { id:"i53", cat:"Spirit", kind:"Tequila", label:"Cenote Ahumado", on:true },
   { id:"i54", cat:"Spirit", kind:"Tequila", label:"Patron Silver", on:true },
-
-  // ── MEZCAL ────────────────────────────────────────────────────────────────
+  // Mezcal
   { id:"i58", cat:"Spirit", kind:"Mezcal", label:"Sin Broca Mezcal Joven", on:true },
-
-  // ── COGNAC / BRANDY ───────────────────────────────────────────────────────
+  // Cachaca
+  { id:"i65", cat:"Spirit", kind:"Cachaca", label:"El Cachaca", on:true },
+  // Cognac
   { id:"i60", cat:"Spirit", kind:"Cognac", label:"Courvoisier VS", on:true },
   { id:"i61", cat:"Spirit", kind:"Cognac", label:"Torres 10", on:true },
-
-  // ── CACHACA ───────────────────────────────────────────────────────────────
-  { id:"i65", cat:"Spirit", kind:"Cachaca", label:"El Cachaca", on:true },
-
-  // ── SCHNAPPS ──────────────────────────────────────────────────────────────
-  { id:"i68", cat:"Spirit", kind:"Schnapps", label:"Hollander Apple Schnapps", on:true },
-
-  // ── RAKIA ─────────────────────────────────────────────────────────────────
+  // Rakia
   { id:"i70", cat:"Spirit", kind:"Rakia", label:"Rakia Kvatka", on:true },
   { id:"i71", cat:"Spirit", kind:"Rakia", label:"Rakia Medvesica", on:true },
+  // Schnapps
+  { id:"i68", cat:"Spirit", kind:"Schnapps", label:"Hollander Apple Schnapps", on:true },
 
-  // ── SWEET VERMOUTH ────────────────────────────────────────────────────────
+  // ── MODIFIER ──────────────────────────────────────────
+  // Sweet Vermouth
   { id:"i80", cat:"Modifier", kind:"Sweet Vermouth", label:"Carpano Antica Formula", on:true },
-  { id:"i81", cat:"Modifier", kind:"Sweet Vermouth", label:"Julius Vermut", on:true },
   { id:"i82", cat:"Modifier", kind:"Sweet Vermouth", label:"Dolin Sweet", on:true },
+  { id:"i81", cat:"Modifier", kind:"Sweet Vermouth", label:"Julius Vermut", on:true },
   { id:"i83", cat:"Modifier", kind:"Sweet Vermouth", label:"Martini Bianco", on:true },
   { id:"i84", cat:"Modifier", kind:"Sweet Vermouth", label:"Martini Rosso", on:true },
-
-  // ── DRY VERMOUTH ──────────────────────────────────────────────────────────
+  // Dry Vermouth
   { id:"i87", cat:"Modifier", kind:"Dry Vermouth", label:"Dolin Dry", on:true },
-
-  // ── BITTER LIQUEURS ───────────────────────────────────────────────────────
+  // Campari
   { id:"i90", cat:"Modifier", kind:"Campari", label:"Campari", on:true },
+  // Aperol
   { id:"i91", cat:"Modifier", kind:"Aperol", label:"Aperol", on:true },
+  // Amaro
   { id:"i92", cat:"Modifier", kind:"Amaro", label:"Fernet-Branca", on:true },
   { id:"i93", cat:"Modifier", kind:"Amaro", label:"Picon", on:true },
-
-  // ── ORANGE LIQUEURS ───────────────────────────────────────────────────────
+  // Triple Sec
   { id:"i95", cat:"Modifier", kind:"Triple Sec", label:"Cointreau", on:true },
   { id:"i96", cat:"Modifier", kind:"Triple Sec", label:"Grand Marnier", on:true },
-
-  // ── HERBAL & BOTANICAL ────────────────────────────────────────────────────
-  { id:"i100", cat:"Modifier", kind:"Herbal Liqueur", label:"Benedictine", on:true },
+  // Herbal Liqueur
   { id:"i105", cat:"Modifier", kind:"Herbal Liqueur", label:"B&B Liqueur", on:true },
-  { id:"i106", cat:"Pantry", kind:"Grenadine", label:"Grenadine", on:false },
-  { id:"i151", cat:"Pantry", kind:"Tonic Water", label:"Tonic Water", on:true },
-  { id:"i152", cat:"Pantry", kind:"Salt", label:"Salt", on:true },
-  { id:"i101", cat:"Modifier", kind:"Herbal Liqueur", label:"Green Chartreuse", on:true },
-  { id:"i102", cat:"Modifier", kind:"Herbal Liqueur", label:"Genepi L\'Ancienne", on:true },
-  { id:"i103", cat:"Spirit", kind:"Irish Whiskey", label:"Jameson Irish Whiskey", on:true },
-  { id:"i104", cat:"Pantry", kind:"Ginger Beer", label:"Ginger Beer", on:true },
+  { id:"i100", cat:"Modifier", kind:"Herbal Liqueur", label:"Benedictine", on:true },
   { id:"i110", cat:"Modifier", kind:"Herbal Liqueur", label:"Drambuie", on:true },
-
-  // ── ANISE ─────────────────────────────────────────────────────────────────
+  { id:"i102", cat:"Modifier", kind:"Herbal Liqueur", label:"Genepi L\'Ancienne", on:true },
+  { id:"i101", cat:"Modifier", kind:"Herbal Liqueur", label:"Green Chartreuse", on:true },
+  // Anise Spirit
   { id:"i111", cat:"Modifier", kind:"Anise Spirit", label:"Askalon Arack Extra Fine", on:true },
   { id:"i150", cat:"Modifier", kind:"Anise Spirit", label:"Pernod Paris", on:true },
   { id:"i107", cat:"Modifier", kind:"Anise Spirit", label:"Pilavas Ouzo", on:true },
   { id:"i108", cat:"Modifier", kind:"Anise Spirit", label:"Sans Rival Ouzo", on:true },
   { id:"i109", cat:"Modifier", kind:"Anise Spirit", label:"Zoara Arak", on:true },
-
-  // ── OTHER LIQUEURS ────────────────────────────────────────────────────────
+  // Cream Liqueur
   { id:"i112", cat:"Modifier", kind:"Cream Liqueur", label:"Baileys", on:true },
-  { id:"i113", cat:"Modifier", kind:"Cherry Liqueur", label:"Cherry Liqueur", on:true },
+  // Coffee Liqueur
   { id:"i114", cat:"Modifier", kind:"Coffee Liqueur", label:"Coffee Liqueur", on:true },
+  // Cherry Liqueur
+  { id:"i113", cat:"Modifier", kind:"Cherry Liqueur", label:"Cherry Liqueur", on:true },
+  // Cassis
   { id:"i115", cat:"Modifier", kind:"Cassis", label:"Cassis", on:true },
+  // Limoncello
   { id:"i116", cat:"Modifier", kind:"Limoncello", label:"Limoncello (Homemade)", on:true },
 
-  // ── SYRUPS ────────────────────────────────────────────────────────────────
+  // ── SYRUP ─────────────────────────────────────────────
+  // Simple Syrup
   { id:"i120", cat:"Syrup", kind:"Simple Syrup", label:"Simple Syrup (Homemade)", on:true },
+  // Honey Ginger Syrup
   { id:"i121", cat:"Syrup", kind:"Honey Ginger Syrup", label:"Honey Ginger (Homemade)", on:true },
+  // Grenadine
   { id:"i122", cat:"Syrup", kind:"Grenadine", label:"Monin Grenadine", on:true },
+  // Strawberry Syrup
   { id:"i123", cat:"Syrup", kind:"Strawberry Syrup", label:"Monin Strawberry", on:true },
 
-  // ── PANTRY ────────────────────────────────────────────────────────────────
+  // ── PANTRY ────────────────────────────────────────────
+  // Angostura Bitters
   { id:"i130", cat:"Pantry", kind:"Angostura Bitters", label:"Angostura", on:true },
+  // Orange Bitters
   { id:"i131", cat:"Pantry", kind:"Orange Bitters", label:"Orange Bitters", on:true },
+  // Lemon Juice
   { id:"i132", cat:"Pantry", kind:"Lemon Juice", label:"Fresh", on:true },
+  // Lime Juice
   { id:"i133", cat:"Pantry", kind:"Lime Juice", label:"Fresh", on:true },
+  // Egg White
   { id:"i134", cat:"Pantry", kind:"Egg White", label:"Fresh", on:true },
-  {
-    id:"c39", name:"Gin & Tonic", glass:"Highball", method:"Build", liked:false, house:false,
-    garnish:"Lime wedge, cucumber slice or juniper berries",
-    ingredients:[
-      {name:"Gin", amount:"2 oz", kind:"Gin"},
-      {name:"Tonic Water", amount:"4 oz", kind:"Tonic Water"},
-      {name:"Fresh Lime Juice", amount:"1/2 oz", kind:"Lime Juice"},
-    ],
-    steps:["Fill a highball glass with ice.","Pour gin over the ice.","Add fresh lime juice.","Top with cold tonic water and stir gently once.","Garnish with a lime wedge."],
-    mood:["refreshing","citrus"],
-    source:"Classic",
-    notes:"Use your best gin — it's the star here. Tanqueray No. Ten or Deer Premium Dry work beautifully. Serve very cold."
-  },
-  {
-    id:"c40", name:"A1", glass:"Coupe", method:"Stir", liked:false, house:false,
-    garnish:"Lemon twist",
-    ingredients:[
-      {name:"Gin", amount:"1 3/4 shot", kind:"Gin"},
-      {name:"Grand Marnier", amount:"1 shot", kind:"Triple Sec"},
-      {name:"Lemon Juice", amount:"1/4 shot", kind:"Lemon Juice"},
-      {name:"Grenadine", amount:"1/8 shot", kind:"Grenadine"},
-    ],
-    steps:["Pour all ingredients into a cocktail shaker with ice.","Shake well until chilled.","Strain into a chilled coupe glass.","Garnish with a lemon twist."],
-    mood:["citrus","elegant"],
-    source:"TheCocktailDB",
-    notes:"A classic pre-Prohibition cocktail. Grand Marnier gives it a rich orange depth. Try with Tanqueray No. Ten for a bright, citrus-forward version."
-  },
-  {
-    id:"c41", name:"Margarita", glass:"Rocks", method:"Shake", liked:false, house:false,
-    garnish:"Salt rim, lime wheel",
-    ingredients:[
-      {name:"Blanco Tequila", amount:"2 oz", kind:"Tequila"},
-      {name:"Fresh Lime Juice", amount:"1 oz", kind:"Lime Juice"},
-      {name:"Cointreau", amount:"1 oz", kind:"Triple Sec"},
-    ],
-    steps:[
-      "Rim a rocks glass with salt and fill with ice.",
-      "Add tequila, lime juice, and Cointreau to a shaker filled with ice.",
-      "Shake until well chilled, about 15 seconds.",
-      "Strain into the prepared rocks glass over fresh ice.",
-      "Garnish with a lime wheel."
-    ],
-    mood:["citrus","refreshing"],
-    source:"Liquor.com",
-    notes:"Use fresh lime juice — bottled won't cut it. Patron Silver or Cenote Ahumado work beautifully here. Cointreau over cheaper triple sec makes a real difference."
-  },
-  {
-    id:"c42", name:"Palmetto", glass:"Coupe", method:"Stir", liked:false, house:false,
-    garnish:"Orange twist (expressed and discarded)",
-    ingredients:[
-      {name:"Aged Rum", amount:"1.5 oz", kind:"Rum"},
-      {name:"Sweet Vermouth", amount:"1.5 oz", kind:"Sweet Vermouth"},
-      {name:"Orange Bitters", amount:"2 dashes", kind:"Orange Bitters"},
-    ],
-    steps:[
-      "Add all ingredients to a mixing glass filled with ice.",
-      "Stir until well chilled, about 20 seconds.",
-      "Strain into a chilled coupe glass.",
-      "Express an orange peel over the drink and discard."
-    ],
-    mood:["rich","stirred","classic"],
-    source:"Food & Wine / Savoy Cocktail Book 1930",
-    notes:"The rum Manhattan. Use your most characterful aged rum — Smith & Cross gives it a funky, Jamaican depth that sings against the vermouth. El Supremo 8 makes a smoother, rounder version. Carpano Antica or Julius Vermut work beautifully here."
-  },
+  // Ginger Beer
+  { id:"i104", cat:"Pantry", kind:"Ginger Beer", label:"Ginger Beer", on:true },
+  // Tonic Water
+  { id:"i151", cat:"Pantry", kind:"Tonic Water", label:"Tonic Water", on:true },
+  // Grenadine
+  { id:"i106", cat:"Pantry", kind:"Grenadine", label:"Grenadine", on:false },
+  // Salt
+  { id:"i152", cat:"Pantry", kind:"Salt", label:"Salt", on:true },
 ];
 
 const DEFAULT_COCKTAILS = [
