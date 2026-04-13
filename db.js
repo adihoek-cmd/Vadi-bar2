@@ -35,6 +35,9 @@ const DEFAULT_INVENTORY = [
   { id:"i41", cat:"Spirit", kind:"Bourbon", label:"Woodford Reserve Bourbon", on:true },
   // Rye Whiskey
   { id:"i45", cat:"Spirit", kind:"Rye Whiskey", label:"Woodford Reserve Rye", on:true },
+  // English Whisky
+  { id:"i46", cat:"Spirit", kind:"English Whisky", label:"The Lakes Respeber", on:true },
+
   // Rum
   { id:"i20", cat:"Spirit", kind:"Rum", label:"Calypso Red Rum", on:true },
   { id:"i21", cat:"Spirit", kind:"Rum", label:"El Supremo 8", on:true },
