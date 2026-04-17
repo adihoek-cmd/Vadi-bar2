@@ -25,6 +25,9 @@ const DEFAULT_INVENTORY = [
   { id:"i103", cat:"Spirit", kind:"Irish Whiskey", label:"Jameson Irish Whiskey", on:true },
   // Blended Scotch
   { id:"i30", cat:"Spirit", kind:"Blended Scotch", label:"Compass Box Spice Tree", on:true },
+  // Highland Scotch
+  { id:"i32", cat:"Spirit", kind:"Highland Scotch", label:"Glenmorangie Triple Cask Reserve", on:true },
+
   // Peated Scotch
   { id:"i38", cat:"Spirit", kind:"Peated Scotch", label:"Barrach The Smoky 12", on:true },
   { id:"i36", cat:"Spirit", kind:"Peated Scotch", label:"Kilchoman Machir Bay", on:true },
