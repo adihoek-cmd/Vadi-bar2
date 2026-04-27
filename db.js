@@ -109,6 +109,7 @@ const DEFAULT_INVENTORY = [
   { id:"i115", cat:"Modifier", kind:"Cassis", label:"Cassis", on:true },
   // Limoncello
   { id:"i116", cat:"Modifier", kind:"Limoncello", label:"Limoncello (Homemade)", on:true },
+  { id:"i118", cat:"Modifier", kind:"Limoncello", label:"Machya 13 Lemons", on:true },
 
   // ── SYRUP ─────────────────────────────────────────────
   // Simple Syrup
