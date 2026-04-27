@@ -2269,13 +2269,14 @@ var KIND_RANKING = {
   'Dry Vermouth':  ['dolin dry','martini extra dry'],
   'Campari':       ['campari'],
   'Aperol':        ['aperol'],
+  'Limoncello':    ['homemade','limoncello (homemade)','machya'],
 };
 
 function getRecommendations(cocktail) {
   // Collect the unique spirit/modifier kinds this recipe needs
   var spiritKinds = ['Gin','Vodka','Rum','Bourbon','Rye Whiskey','Blended Scotch','Peated Scotch',
     'Irish Whiskey','Tequila','Mezcal','Cognac','Cachaca','Rakia','Triple Sec',
-    'Sweet Vermouth','Dry Vermouth','Campari','Aperol','Amaro','Herbal Liqueur','Anise Spirit'];
+    'Sweet Vermouth','Dry Vermouth','Campari','Aperol','Amaro','Herbal Liqueur','Anise Spirit','Limoncello'];
   var recs = [];
   cocktail.ingredients.forEach(function(ing) {
     if (!ing.kind || !spiritKinds.includes(ing.kind)) return;
