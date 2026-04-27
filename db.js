@@ -15,10 +15,11 @@ const DEFAULT_INVENTORY = [
   { id:"i5", cat:"Spirit", kind:"Gin", label:"Votanikon", on:true },
   { id:"i6", cat:"Spirit", kind:"Gin", label:"Zohara Gin", on:true },
   // Vodka
-  { id:"i11", cat:"Spirit", kind:"Vodka", label:"Berlin Vodka", on:true },
+  { id:"i11", cat:"Spirit", kind:"Vodka", label:"Berlin Vodka", on:false },
+  { id:"i17", cat:"Spirit", kind:"Vodka", label:"Belvedere", on:true },
   { id:"i12", cat:"Spirit", kind:"Vodka", label:"Ciroc Vodka", on:true },
   { id:"i10", cat:"Spirit", kind:"Vodka", label:"Ketel One", on:true },
-  { id:"i14", cat:"Spirit", kind:"Vodka", label:"Stolichnaya Vanilla", on:true },
+  { id:"i14", cat:"Spirit", kind:"Vodka", label:"Stolichnaya Vanilla", on:false },
   { id:"i15", cat:"Spirit", kind:"Vodka", label:"Van Gogh Acai Blueberry", on:true },
   { id:"i16", cat:"Spirit", kind:"Vodka", label:"Zubrówka Palona", on:true },
   // Irish Whiskey
