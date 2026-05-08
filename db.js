@@ -92,7 +92,7 @@ const DEFAULT_INVENTORY = [
   { id:"i100", cat:"Modifier", kind:"Herbal Liqueur", label:"Benedictine", on:true },
   { id:"i110", cat:"Modifier", kind:"Herbal Liqueur", label:"Drambuie", on:true },
   { id:"i102", cat:"Modifier", kind:"Herbal Liqueur", label:"Genepi L\'Ancienne", on:true },
-  { id:"i101", cat:"Modifier", kind:"Herbal Liqueur", label:"Green Chartreuse", on:true },
+  { id:"i101", cat:"Modifier", kind:"Chartreuse", label:"Green Chartreuse", on:true },
   // Anise Spirit
   { id:"i111", cat:"Modifier", kind:"Anise Spirit", label:"Askalon Arack Extra Fine", on:true },
   { id:"i150", cat:"Modifier", kind:"Anise Spirit", label:"Pernod Paris", on:true },

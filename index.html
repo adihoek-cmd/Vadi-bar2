@@ -2428,6 +2428,7 @@ function save() {
   var LABEL_KIND_MAP = [
     // Irish whiskeys
     {test: /benedictine|b&b|b and b|b & b|bénédictine|dom benedictine/i, kind:'Herbal Liqueur', cat:'Modifier'},
+    {test: /chartreuse/i, kind:'Chartreuse', cat:'Modifier'},
     {test: /cointreau|grand marnier|grand mariner|triple sec/i, kind:'Triple Sec', cat:'Modifier'},
     {test: /jameson|redbreast|bushmills|tullamore|powers|teeling|green.spot|yellow.spot|writers.tears|slane|proper.twelve|connemara|knappogue|west.cork|roe|method.and.madness/i, kind:'Irish Whiskey', cat:'Spirit'},
     // Gins
@@ -2483,6 +2484,7 @@ function save() {
 var BRAND_KIND_MAP = [
   // Irish Whiskey brands often mislabelled as Blended Scotch
   {brands:['benedictine','b&b','b and b'], kind:'Herbal Liqueur'},
+  {brands:['chartreuse','green chartreuse','yellow chartreuse'], kind:'Chartreuse'},
   {brands:['cointreau','grand marnier','grand mariner','triple sec'], kind:'Triple Sec'},
   {brands:['jameson','redbreast','bushmills','tullamore','powers','teeling','green spot','yellow spot','writers tears','slane','proper twelve','connemara','knappogue','west cork','roe','method and madness','irish whiskey'], kind:'Irish Whiskey'},
   // Specific gins sometimes stored under wrong kind
@@ -3463,6 +3465,7 @@ function guessKindFromName(name) {
     ['vermouth','Sweet Vermouth'],
     ['triple sec','Triple Sec'],['cointreau','Triple Sec'],['grand marnier','Triple Sec'],['grand mariner','Triple Sec'],
     ['benedictine','Herbal Liqueur'],['b&b','Herbal Liqueur'],['b and b','Herbal Liqueur'],['b & b','Herbal Liqueur'],['dom','Herbal Liqueur'],
+    ['chartreuse','Chartreuse'],['green chartreuse','Chartreuse'],['yellow chartreuse','Chartreuse'],
     ['grenadine','Grenadine'],['orange juice','Orange Juice'],['fresh orange juice','Orange Juice'],
     ['tonic water','Tonic Water'],['tonic','Tonic Water'],
     ['salt','Salt'],['kosher salt','Salt'],['sea salt','Salt'],['sugar','Sugar'],['simple syrup','Simple Syrup'],
