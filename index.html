@@ -2624,7 +2624,7 @@ function openModal(id) {
     <div class="modal-meta">
       <span class="modal-method-badge">${c.method}</span>
       <span class="modal-glass-label">${c.glass} · ${cm ? '<span style="color:var(--green)">✓ Can Make</span>' : '<span style="color:var(--red)">✗ Missing Ingredients</span>'}</span>
-      ${c.source ? `<span class="modal-glass-label" style="margin-left:auto;opacity:0.6">${c.source}</span>` : ''}
+      ${c.source ? (c.url ? `<a href="${c.url}" target="_blank" rel="noopener" class="modal-glass-label" style="margin-left:auto;opacity:0.7;text-decoration:none;border-bottom:1px solid rgba(201,168,76,0.4);">${c.source} ↗</a>` : `<span class="modal-glass-label" style="margin-left:auto;opacity:0.6">${c.source}</span>`) : ''}
     </div>
     <button class="modal-close" onclick="closeModal()">×</button>
   `;

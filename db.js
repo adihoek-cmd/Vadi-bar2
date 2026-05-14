@@ -370,7 +370,7 @@ const DEFAULT_COCKTAILS = [
     notes:"Your homemade limoncello is the star here — adjust sweetness to taste."
   },
   {
-    id:"c20", name:"Sidecar", glass:"Coupe", method:"Shake", liked:false, house:false,
+    id:"c20", name:"Sidecar", url:"https://www.liquor.com/recipes/sidecar/", glass:"Coupe", method:"Shake", liked:false, house:false,
     garnish:"Sugar rim, lemon twist", source:"Liquor.com", mood:["bright","classic"],
     ingredients:[
       {name:"Cognac", amount:"2 oz", kind:"Cognac"},
@@ -387,7 +387,7 @@ const DEFAULT_COCKTAILS = [
     notes:"A 1:1:1 ratio works but 2:3/4:3/4 is more spirit-forward. Use Courvoisier VS for an approachable version."
   },
   {
-    id:"c21", name:"Espresso Martini", glass:"Coupe", method:"Shake", liked:false, house:false,
+    id:"c21", name:"Espresso Martini", url:"https://www.liquor.com/recipes/espresso-martini/", glass:"Coupe", method:"Shake", liked:false, house:false,
     garnish:"3 coffee beans", source:"Liquor.com", mood:["strong","sweet"],
     ingredients:[
       {name:"Vodka", amount:"2 oz", kind:"Vodka"},
@@ -637,7 +637,7 @@ const DEFAULT_COCKTAILS = [
     notes:"A classic pre-Prohibition cocktail. Grand Marnier gives it rich orange depth. Try with Tanqueray No. Ten for a bright, citrus-forward version."
   },
   {
-    id:"c41", name:"Margarita", glass:"Rocks", method:"Shake", liked:false, house:false,
+    id:"c41", name:"Margarita", glass:"Rocks", method:"Shake", liked:false, house:false, url:"https://www.liquor.com/recipes/margarita/",
     garnish:"Salt rim, lime wheel",
     ingredients:[
       {name:"Blanco Tequila", amount:"2 oz", kind:"Tequila"},
