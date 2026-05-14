@@ -610,6 +610,47 @@ const DEFAULT_COCKTAILS = [
     notes:"A Prohibition-era classic by Harry MacElhone of Harry's New York Bar, Paris. The anise rinse gives it a mysterious depth. Use Pernod Paris from your bar."
   },
   {
+    id:"c39", name:"Gin & Tonic", glass:"Highball", method:"Build", liked:false, house:false,
+    garnish:"Lime wedge, cucumber slice",
+    ingredients:[
+      {name:"Gin", amount:"2 oz", kind:"Gin"},
+      {name:"Tonic Water", amount:"4 oz", kind:"Tonic Water"},
+      {name:"Fresh Lime Juice", amount:"0.5 oz", kind:"Lime Juice"},
+    ],
+    steps:["Fill a highball glass with ice.","Pour gin and lime juice over the ice.","Top with cold tonic water and stir gently once.","Garnish with a lime wedge."],
+    mood:["refreshing","citrus"],
+    source:"Classic",
+    notes:"Use your best gin — it's the star here. Tanqueray No. Ten or Deer Premium Dry work beautifully. Serve very cold."
+  },
+  {
+    id:"c40", name:"A1", glass:"Coupe", method:"Stir", liked:false, house:false,
+    garnish:"Lemon twist",
+    ingredients:[
+      {name:"Gin", amount:"1.75 oz", kind:"Gin"},
+      {name:"Grand Marnier", amount:"1 oz", kind:"Triple Sec"},
+      {name:"Fresh Lemon Juice", amount:"0.25 oz", kind:"Lemon Juice"},
+      {name:"Grenadine", amount:"0.125 oz", kind:"Grenadine"},
+    ],
+    steps:["Add all ingredients to a mixing glass with ice.","Stir until well chilled.","Strain into a chilled coupe.","Garnish with a lemon twist."],
+    mood:["citrus","elegant","classic"],
+    source:"TheCocktailDB",
+    notes:"A classic pre-Prohibition cocktail. Grand Marnier gives it rich orange depth. Try with Tanqueray No. Ten for a bright, citrus-forward version."
+  },
+  {
+    id:"c41", name:"Margarita", glass:"Rocks", method:"Shake", liked:false, house:false,
+    garnish:"Salt rim, lime wheel",
+    ingredients:[
+      {name:"Blanco Tequila", amount:"2 oz", kind:"Tequila"},
+      {name:"Fresh Lime Juice", amount:"1 oz", kind:"Lime Juice"},
+      {name:"Cointreau", amount:"0.75 oz", kind:"Triple Sec"},
+      {name:"Simple Syrup", amount:"0.25 oz", kind:"Simple Syrup"},
+    ],
+    steps:["Rim a rocks glass with salt and fill with ice.","Add all ingredients to a shaker filled with ice.","Shake until well chilled, about 15 seconds.","Strain into the prepared glass over fresh ice.","Garnish with a lime wheel."],
+    mood:["citrus","refreshing"],
+    source:"Liquor.com",
+    notes:"Use fresh lime juice — bottled won\'t cut it. Patron Silver or Cenote Blanco work beautifully here. Adjust the simple syrup to taste depending on your lime."
+  },
+  {
     id:"c42", name:"Monkey Gland No.2", glass:"Rocks", method:"Shake", liked:false, house:false,
     garnish:"Orange slice",
     ingredients:[
