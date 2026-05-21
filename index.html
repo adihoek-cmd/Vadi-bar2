@@ -1887,9 +1887,7 @@
     flex: 1;
   }
 </style>
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <!-- Firebase REST API — no SDK needed -->
 </head>
 <body>
 
@@ -4486,42 +4484,17 @@ initStepRows();
 updateCartBadge();
 
 
-// ── FIREBASE CLOUD SYNC ───────────────────────────────────────────────────────
-var FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBNQkPRZ8s0PVJCT6BMU1G07NZp2-_eKFY",
-  authDomain: "vadi-bar-app.firebaseapp.com",
-  projectId: "vadi-bar-app",
-  storageBucket: "vadi-bar-app.appspot.com",
-  messagingSenderId: "733194758963",
-  appId: "1:733194758963:web:fa71a539bf8a9d609a2c46"
-};
-// ↑ Replace with your own Firebase project config from:
-//   console.firebase.google.com → Project Settings → Your apps → SDK config
-
-var db = null;
-var barCode = null;
+// ── CLOUD SYNC — Pure REST API, no SDK required ──────────────────────────────
+var API_KEY    = "AIzaSyBNQkPRZ8s0PVJCT6BMU1G07NZp2-_eKFY";
+var PROJECT_ID = "vadi-bar-app";
+var barCode    = localStorage.getItem('vadi_bar_code') || 'VADI4545';
 var syncTimeout = null;
-var SYNC_CONFIGURED = false;
+var SYNC_CONFIGURED = true;
 
-function initFirebase() {
-  try {
-    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-    db = firebase.firestore();
-    // Use long polling for environments that block WebSocket (mobile browsers)
-    db.settings({ experimentalForceLongPolling: true, merge: true });
-    SYNC_CONFIGURED = true;
+if (!localStorage.getItem('vadi_bar_code')) localStorage.setItem('vadi_bar_code', barCode);
 
-    // Get or generate bar code
-    barCode = localStorage.getItem('vadi_bar_code');
-    if (!barCode) {
-      barCode = 'VADI4545'; // default shared bar
-      localStorage.setItem('vadi_bar_code', barCode);
-    }
-    updateSyncBtn('idle');
-    if (SYNC_CONFIGURED) syncFromCloud();
-  } catch(e) {
-    console.warn('Firebase init failed:', e);
-  }
+function firestoreUrl() {
+  return 'https://firestore.googleapis.com/v1/projects/' + PROJECT_ID + '/databases/(default)/documents/bars/' + barCode + '?key=' + API_KEY;
 }
 
 function updateSyncBtn(state) {
@@ -4531,169 +4504,124 @@ function updateSyncBtn(state) {
   if (state === 'syncing') { btn.classList.add('syncing'); btn.textContent = '↻'; }
   else if (state === 'synced') { btn.classList.add('synced'); btn.textContent = '✓'; setTimeout(function(){ updateSyncBtn('idle'); }, 2000); }
   else if (state === 'error')  { btn.classList.add('error');  btn.textContent = '!'; }
-  else { btn.textContent = SYNC_CONFIGURED ? '☁' : '☁'; btn.style.opacity = SYNC_CONFIGURED ? '0.7' : '0.35'; }
+  else { btn.textContent = '☁'; btn.style.opacity = '0.7'; }
+}
+
+// Convert JS value to Firestore REST format
+function toFS(val) {
+  if (val === null || val === undefined) return {nullValue: null};
+  if (typeof val === 'boolean') return {booleanValue: val};
+  if (typeof val === 'number') return Number.isInteger(val) ? {integerValue: String(val)} : {doubleValue: val};
+  if (typeof val === 'string') return {stringValue: val};
+  if (Array.isArray(val)) return {arrayValue: {values: val.map(toFS)}};
+  if (typeof val === 'object') return {mapValue: {fields: Object.fromEntries(Object.entries(val).map(function(e){ return [e[0], toFS(e[1])]; }))}};
+  return {stringValue: String(val)};
+}
+
+// Convert Firestore REST format back to JS
+function fromFS(val) {
+  if (!val) return null;
+  if ('nullValue'    in val) return null;
+  if ('booleanValue' in val) return val.booleanValue;
+  if ('integerValue' in val) return parseInt(val.integerValue);
+  if ('doubleValue'  in val) return val.doubleValue;
+  if ('stringValue'  in val) return val.stringValue;
+  if ('arrayValue'   in val) return (val.arrayValue.values || []).map(fromFS);
+  if ('mapValue'     in val) return Object.fromEntries(Object.entries(val.mapValue.fields || {}).map(function(e){ return [e[0], fromFS(e[1])]; }));
+  return null;
 }
 
 function syncFromCloud() {
-  if (!db || !barCode || !SYNC_CONFIGURED) return;
+  if (!SYNC_CONFIGURED) return;
   updateSyncBtn('syncing');
-  var watchdog = setTimeout(function() { updateSyncBtn('error'); }, 10000);
-  db.collection('bars').doc(barCode).get().then(function(doc) {
-    clearTimeout(watchdog);
-    if (doc.exists) {
-      var data = doc.data();
-      var cloudCocktails  = (data.cocktails  || []).filter(function(c){ return c && c.id; });
-      var cloudInventory  = (data.inventory  || []).filter(function(i){ return i && i.id; });
+  var watchdog = setTimeout(function(){ updateSyncBtn('error'); }, 12000);
+  fetch(firestoreUrl())
+    .then(function(r){ return r.json(); })
+    .then(function(doc) {
+      clearTimeout(watchdog);
+      if (doc.fields) {
+        var data = fromFS({mapValue: doc});
+        var cloudCocktails  = (data.fields.cocktails  || []).filter(function(c){ return c && c.id; });
+        var cloudInventory  = (data.fields.inventory  || []).filter(function(i){ return i && i.id; });
+        var defaultCkIds    = new Set(DEFAULT_COCKTAILS.map(function(dc){ return dc.id; }));
+        var defaultInvIds   = new Set(DEFAULT_INVENTORY.map(function(di){ return di.id; }));
+        var cloudCkById     = {};
+        var cloudInvById    = {};
+        cloudCocktails.forEach(function(c){ cloudCkById[c.id]  = c; });
+        cloudInventory.forEach(function(i){ cloudInvById[i.id] = i; });
 
-      // Build lookup maps
-      var defaultCkIds  = new Set(DEFAULT_COCKTAILS.map(function(dc){ return dc.id; }));
-      var defaultInvIds = new Set(DEFAULT_INVENTORY.map(function(di){ return di.id; }));
-      var cloudCkById   = {};
-      var cloudInvById  = {};
-      cloudCocktails.forEach(function(c){ cloudCkById[c.id]  = c; });
-      cloudInventory.forEach(function(i){ cloudInvById[i.id] = i; });
+        var merged = DEFAULT_COCKTAILS.map(function(dc) {
+          var cloud = cloudCkById[dc.id];
+          var result = JSON.parse(JSON.stringify(dc));
+          if (cloud) { result.liked = cloud.liked||false; result.house = cloud.house||false; result.tried = cloud.tried||false; }
+          return result;
+        });
+        cloudCocktails.filter(function(c){ return !defaultCkIds.has(c.id); }).forEach(function(c){ merged.push(c); });
+        state.cocktails = merged;
 
-      // ── Cocktails: always use db.js recipe data for defaults, flags from cloud
-      var merged = DEFAULT_COCKTAILS.map(function(dc) {
-        var cloud = cloudCkById[dc.id];
-        var result = JSON.parse(JSON.stringify(dc));
-        if (cloud) {
-          result.liked = cloud.liked || false;
-          result.house = cloud.house || false;
-          result.tried = cloud.tried || false;
-        }
-        return result;
-      });
-      // Add user-created recipes from cloud (non-default ids)
-      cloudCocktails.filter(function(c){ return !defaultCkIds.has(c.id); })
-        .forEach(function(c){ merged.push(c); });
-      // Rescue locally-added recipes not yet pushed to cloud (prevents loss on page reload)
-      var mergedCkIds = new Set(merged.map(function(c){ return c.id; }));
-      var localCocktails = JSON.parse(localStorage.getItem('vadi_cocktails') || '[]');
-      localCocktails.filter(function(c){ return c && c.id && !defaultCkIds.has(c.id) && !mergedCkIds.has(c.id); })
-        .forEach(function(c){ merged.push(c); });
-      state.cocktails = merged;
+        var mergedInv = DEFAULT_INVENTORY.map(function(di) {
+          var cloud = cloudInvById[di.id];
+          var result = JSON.parse(JSON.stringify(di));
+          if (cloud) result.on = cloud.on;
+          return result;
+        });
+        cloudInventory.filter(function(i){ return !defaultInvIds.has(i.id); }).forEach(function(i){ mergedInv.push(i); });
+        state.inventory = mergedInv;
 
-      // ── Inventory: always use db.js inventory for defaults, on/off from cloud
-      var mergedInv = DEFAULT_INVENTORY.map(function(di) {
-        var cloud = cloudInvById[di.id];
-        var result = JSON.parse(JSON.stringify(di));
-        if (cloud) result.on = cloud.on;
-        return result;
-      });
-      // Add user-added bottles from cloud (non-default ids)
-      cloudInventory.filter(function(i){ return !defaultInvIds.has(i.id); })
-        .forEach(function(i){ mergedInv.push(i); });
-      // Rescue locally-added items not yet pushed to cloud
-      var mergedInvIds = new Set(mergedInv.map(function(i){ return i.id; }));
-      var localInventory = JSON.parse(localStorage.getItem('vadi_inv') || '[]');
-      localInventory.filter(function(i){ return i && i.id && !defaultInvIds.has(i.id) && !mergedInvIds.has(i.id); })
-        .forEach(function(i){ mergedInv.push(i); });
-      state.inventory = mergedInv;
-
-      if (data.cart) state.cart = data.cart;
-
-      // Backfill mood tags on any cocktail saved with mood:[] using keyword matching
-      state.cocktails.forEach(function(c) {
-        if (!c.mood || c.mood.length === 0) {
-          var searchText = (c.name + ' ' + (c.notes||'') + ' ' + (c.ingredients||[]).map(function(i){ return i.name; }).join(' ')).toLowerCase();
-          c.mood = Object.keys(MOOD_KEYWORDS).filter(function(m){ return (MOOD_KEYWORDS[m]||[]).some(function(k){ return searchText.includes(k); }); });
-        }
-      });
-
-      localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
-      localStorage.setItem('vadi_inv',       JSON.stringify(state.inventory));
-      localStorage.setItem('vadi_cart',      JSON.stringify(state.cart));
-
-      // Write merged state back so Firestore always has the latest defaults
-      db.collection('bars').doc(barCode).set({
-        cocktails: state.cocktails,
-        inventory: state.inventory,
-        cart:      state.cart,
-        updatedAt: new Date().toISOString()
-      }).catch(function(e){ console.warn('Write-back failed:', e); });
-    }
-
-    renderCocktails();
-    renderInventory();
-    updateCartBadge();
-    updateSyncBtn('synced');
-  }).catch(function(e) {
-    clearTimeout(watchdog);
-    var btn = document.getElementById('sync-btn'); if(btn) btn.dataset.lastError = e.code||'unknown';
-    console.warn('Sync from cloud failed:', JSON.stringify({code: e.code, message: e.message}));
-    updateSyncBtn('error');
-  });
+        if (data.fields.cart) state.cart = data.fields.cart;
+        localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
+        localStorage.setItem('vadi_inv',       JSON.stringify(state.inventory));
+        localStorage.setItem('vadi_cart',      JSON.stringify(state.cart));
+      }
+      renderCocktails(); renderInventory(); updateCartBadge();
+      updateSyncBtn('synced');
+      syncToCloud(); // write back merged state
+    })
+    .catch(function(e) {
+      clearTimeout(watchdog);
+      console.warn('syncFromCloud failed:', e);
+      updateSyncBtn('error');
+    });
 }
 
 function syncToCloud() {
-  if (!db || !barCode || !SYNC_CONFIGURED) return;
+  if (!SYNC_CONFIGURED) return;
   clearTimeout(syncTimeout);
   syncTimeout = setTimeout(function() {
     updateSyncBtn('syncing');
-    // Watchdog: if no response in 8s, show error
-    var watchdog = setTimeout(function() { updateSyncBtn('error'); }, 8000);
-    db.collection('bars').doc(barCode).set({
+    var watchdog = setTimeout(function(){ updateSyncBtn('error'); }, 12000);
+    var body = JSON.stringify({ fields: toFS({
       cocktails:  state.cocktails,
       inventory:  state.inventory,
       cart:       state.cart,
       updatedAt:  new Date().toISOString()
-    }).then(function() {
-      clearTimeout(watchdog);
-      updateSyncBtn('synced');
-    }).catch(function(e) {
-      clearTimeout(watchdog);
-      var btn = document.getElementById('sync-btn'); if(btn) btn.dataset.lastError = e.code||'unknown';
-    console.warn('Sync to cloud failed:', JSON.stringify({code: e.code, message: e.message}));
-      updateSyncBtn('error');
-    });
-  }, 400);
+    }).mapValue.fields });
+    fetch(firestoreUrl(), { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: body })
+      .then(function(r){ clearTimeout(watchdog); return r.json(); })
+      .then(function(){ updateSyncBtn('synced'); })
+      .catch(function(e){ clearTimeout(watchdog); console.warn('syncToCloud failed:', e); updateSyncBtn('error'); });
+  }, 1200);
 }
 
 function openCloudModal() {
-  var code = localStorage.getItem('vadi_bar_code') || barCode || '——————';
-  document.getElementById('cloud-code-display').textContent = code || '——————';
+  document.getElementById('cloud-code-display').textContent = barCode;
   document.getElementById('cloud-code-input').value = '';
-  var syncBtn = document.getElementById('sync-btn');
-  var isError = syncBtn && syncBtn.classList.contains('error');
-  var status = !SYNC_CONFIGURED
-    ? 'Firebase not configured'
-    : isError
-      ? (function(){
-        var btn = document.getElementById('sync-btn');
-        var cls = btn && btn.dataset.lastError;
-        if (cls === 'permission-denied') return '⚠ Firestore rules blocking access. Go to Firebase Console → Firestore → Rules → set allow read, write: if true → Publish';
-        if (cls === 'unavailable') return '⚠ Firestore unavailable — check internet connection';
-        return '⚠ Sync failed — tap here for help. Try: Firebase Console → Firestore → Rules → allow read, write: if true → Publish';
-      })()
-      : 'Connected · syncing to VADI4545';
-  setCloudStatus(status, isError ? 'err' : (SYNC_CONFIGURED ? 'ok' : ''));
+  var btn = document.getElementById('sync-btn');
+  var isError = btn && btn.classList.contains('error');
+  setCloudStatus(isError ? '⚠ Sync error — check console for details' : '✓ Connected · ' + barCode, isError ? 'err' : 'ok');
   document.getElementById('cloud-modal-overlay').classList.add('open');
 }
-
-function closeCloudModal() {
-  document.getElementById('cloud-modal-overlay').classList.remove('open');
-}
-
-function copyBarCode() {
-  var code = document.getElementById('cloud-code-display').textContent;
-  if (navigator.clipboard) navigator.clipboard.writeText(code);
-  toast('Bar code copied!');
-}
-
+function closeCloudModal() { document.getElementById('cloud-modal-overlay').classList.remove('open'); }
+function copyBarCode() { if (navigator.clipboard) navigator.clipboard.writeText(barCode); toast('Bar code copied!'); }
 function joinBar() {
   var input = document.getElementById('cloud-code-input').value.trim().toUpperCase();
   if (input.length !== 8) { setCloudStatus('Bar code must be 8 characters', 'err'); return; }
-  if (!SYNC_CONFIGURED)   { setCloudStatus('Firebase not configured yet', 'err'); return; }
   barCode = input;
   localStorage.setItem('vadi_bar_code', barCode);
   document.getElementById('cloud-code-display').textContent = barCode;
-  document.getElementById('cloud-code-input').value = '';
-  setCloudStatus('Joining bar…', '');
   closeCloudModal();
   syncFromCloud();
 }
-
 function setCloudStatus(msg, cls) {
   var el = document.getElementById('cloud-status');
   if (!el) return;
@@ -4701,29 +4629,13 @@ function setCloudStatus(msg, cls) {
   el.className = 'cloud-status' + (cls ? ' ' + cls : '');
 }
 
-// Override save() to also sync to cloud
+// Override save to also sync
 var _origSave = save;
-save = function() {
-  _origSave();
-  syncToCloud();
-};
-
-// Flush any pending debounced sync immediately when the tab is hidden or closed
-document.addEventListener('visibilitychange', function() {
-  if (document.visibilityState === 'hidden' && syncTimeout && db && barCode && SYNC_CONFIGURED) {
-    clearTimeout(syncTimeout);
-    syncTimeout = null;
-    db.collection('bars').doc(barCode).set({
-      cocktails: state.cocktails,
-      inventory: state.inventory,
-      cart:      state.cart,
-      updatedAt: new Date().toISOString()
-    }).catch(function(e){ console.warn('Visibility sync failed:', e); });
-  }
-});
+save = function() { _origSave(); syncToCloud(); };
 
 // Init on load
-window.addEventListener("load", function() { initFirebase(); });
+window.addEventListener('load', function() { syncFromCloud(); });
+
 
 </script>
 
