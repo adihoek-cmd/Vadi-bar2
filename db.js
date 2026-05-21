@@ -29,6 +29,9 @@ const DEFAULT_INVENTORY = [
   // Highland Scotch
   { id:"i32", cat:"Spirit", kind:"Highland Scotch", label:"Glenmorangie Triple Cask Reserve", on:true },
 
+  // Israeli Whisky
+  { id:"i160", cat:"Spirit", kind:"Israeli Whisky", label:"Ruach Chosen 421", on:true },
+
   // Peated Scotch
   { id:"i38", cat:"Spirit", kind:"Peated Scotch", label:"Barrach The Smoky 12", on:true },
   { id:"i36", cat:"Spirit", kind:"Peated Scotch", label:"Kilchoman Machir Bay", on:true },
