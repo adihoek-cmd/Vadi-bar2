@@ -2339,8 +2339,14 @@ const INV_VERSION = "v11";
 })();
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
+// Also force-rebuilds when DB_VERSION changes so recipe updates always show.
+var DB_VERSION = 18; // bump whenever db.js recipe content changes
 (function() {
-  var saved = JSON.parse(localStorage.getItem('vadi_cocktails')) || [];
+  var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
+  var forceRebuild = storedDbVer !== DB_VERSION;
+  localStorage.setItem('vadi_db_version', DB_VERSION);
+  var saved = forceRebuild ? [] : (JSON.parse(localStorage.getItem('vadi_cocktails')) || []);
+  if (forceRebuild) console.log('DB version changed — rebuilding recipes from defaults');
   saved = saved.filter(function(c){ return c && c.id && c.name !== 'Search on Liquor.com'; });
   var savedById = {};
   saved.forEach(function(c){ savedById[c.id] = c; });
@@ -4501,6 +4507,8 @@ function initFirebase() {
   try {
     if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.firestore();
+    // Use long polling for environments that block WebSocket (mobile browsers)
+    db.settings({ experimentalForceLongPolling: true, merge: true });
     SYNC_CONFIGURED = true;
 
     // Get or generate bar code
@@ -4612,6 +4620,7 @@ function syncFromCloud() {
     updateSyncBtn('synced');
   }).catch(function(e) {
     clearTimeout(watchdog);
+    var btn = document.getElementById('sync-btn'); if(btn) btn.dataset.lastError = e.code||'unknown';
     console.warn('Sync from cloud failed:', JSON.stringify({code: e.code, message: e.message}));
     updateSyncBtn('error');
   });
@@ -4634,7 +4643,8 @@ function syncToCloud() {
       updateSyncBtn('synced');
     }).catch(function(e) {
       clearTimeout(watchdog);
-      console.warn('Sync to cloud failed:', JSON.stringify({code: e.code, message: e.message}));
+      var btn = document.getElementById('sync-btn'); if(btn) btn.dataset.lastError = e.code||'unknown';
+    console.warn('Sync to cloud failed:', JSON.stringify({code: e.code, message: e.message}));
       updateSyncBtn('error');
     });
   }, 400);
@@ -4649,7 +4659,13 @@ function openCloudModal() {
   var status = !SYNC_CONFIGURED
     ? 'Firebase not configured'
     : isError
-      ? '⚠ Sync failed — Firestore rules may have expired. Go to Firebase Console → Firestore → Rules and set allow read, write: if true;'
+      ? (function(){
+        var btn = document.getElementById('sync-btn');
+        var cls = btn && btn.dataset.lastError;
+        if (cls === 'permission-denied') return '⚠ Firestore rules blocking access. Go to Firebase Console → Firestore → Rules → set allow read, write: if true → Publish';
+        if (cls === 'unavailable') return '⚠ Firestore unavailable — check internet connection';
+        return '⚠ Sync failed — tap here for help. Try: Firebase Console → Firestore → Rules → allow read, write: if true → Publish';
+      })()
       : 'Connected · syncing to VADI4545';
   setCloudStatus(status, isError ? 'err' : (SYNC_CONFIGURED ? 'ok' : ''));
   document.getElementById('cloud-modal-overlay').classList.add('open');
