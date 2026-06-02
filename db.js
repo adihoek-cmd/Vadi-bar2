@@ -684,7 +684,7 @@ const DEFAULT_COCKTAILS = [
     steps:["Add all ingredients to a shaker with ice.","Shake hard for 8-10 seconds.","Strain up into a chilled martini or coupe glass.","Garnish with an orange peel."],
     notes:"Clean and bright. The marmalade adds candied orange punch. No egg white needed - Irish whiskey's low tannins keep it smooth."
   }  ,{
-    id:"c38", name:"White Negroni", glass:"Rocks", method:"Stir", liked:false, house:true,
+    id:"c43", name:"White Negroni", glass:"Rocks", method:"Stir", liked:false, house:true,
     garnish:"Lemon twist", source:"Classic",
     mood:["spirit-forward","bitter","elegant"],
     ingredients:[
