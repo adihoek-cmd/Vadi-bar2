@@ -81,10 +81,13 @@ const DEFAULT_INVENTORY = [
   { id:"i83", cat:"Modifier", kind:"Sweet Vermouth", label:"Martini Bianco", on:true },
   { id:"i84", cat:"Modifier", kind:"Sweet Vermouth", label:"Martini Rosso", on:true },
   // Dry Vermouth
+  { id:"i85", cat:"Modifier", kind:"Dry Vermouth", label:"Dolin Dry", on:true },
   // Campari
   { id:"i90", cat:"Modifier", kind:"Campari", label:"Campari", on:true },
   // Aperol
   { id:"i91", cat:"Modifier", kind:"Aperol", label:"Aperol", on:true },
+  // Bitter Bianco
+  { id:"i153", cat:"Modifier", kind:"Bitter Bianco", label:"Luxardo Bitter Bianco", on:true },
   // Amaro
   { id:"i92", cat:"Modifier", kind:"Amaro", label:"Fernet-Branca", on:true },
   { id:"i93", cat:"Modifier", kind:"Amaro", label:"Picon", on:true },
@@ -680,5 +683,17 @@ const DEFAULT_COCKTAILS = [
     ],
     steps:["Add all ingredients to a shaker with ice.","Shake hard for 8-10 seconds.","Strain up into a chilled martini or coupe glass.","Garnish with an orange peel."],
     notes:"Clean and bright. The marmalade adds candied orange punch. No egg white needed - Irish whiskey's low tannins keep it smooth."
+  }  ,{
+    id:"c38", name:"White Negroni", glass:"Rocks", method:"Stir", liked:false, house:true,
+    garnish:"Lemon twist", source:"Classic",
+    mood:["spirit-forward","bitter","elegant"],
+    ingredients:[
+      {name:"Gin", amount:"1 1/2 oz", kind:"Gin"},
+      {name:"Luxardo Bitter Bianco", amount:"3/4 oz", kind:"Bitter Bianco"},
+      {name:"Dolin Dry", amount:"3/4 oz", kind:"Dry Vermouth"},
+    ],
+    steps:["Combine all ingredients in a mixing glass over ice.","Stir for 30–40 rotations until well-chilled.","Strain into a rocks glass over a large ice cube.","Express a lemon twist over the glass and place on the rim."],
+    notes:"Use Tanqueray No. Ten or Gin Mare for the best result — both complement the herbal bitterness of the Bianco. The Dolin Dry keeps it dry and clean; avoid sweet vermouth. 1.5:0.75:0.75 is spirit-forward; go 1:1:1 for a more aperitivo-style build."
   }
 ];
+
