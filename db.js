@@ -695,5 +695,18 @@ const DEFAULT_COCKTAILS = [
     steps:["Combine all ingredients in a mixing glass over ice.","Stir for 30–40 rotations until well-chilled.","Strain into a rocks glass over a large ice cube.","Express a lemon twist over the glass and place on the rim."],
     notes:"Use Tanqueray No. Ten or Gin Mare for the best result — both complement the herbal bitterness of the Bianco. The Dolin Dry keeps it dry and clean; avoid sweet vermouth. 1.5:0.75:0.75 is spirit-forward; go 1:1:1 for a more aperitivo-style build."
   }
+  ,{
+    id:"c44", name:"Blanco Diablo", glass:"Rocks", method:"Stir", liked:true, house:true,
+    garnish:"Orange peel", source:"Vadi Bar",
+    mood:["spirit-forward","bitter","smoky"],
+    ingredients:[
+      {name:"Mezcal Joven", amount:"1 1/2 oz", kind:"Mezcal"},
+      {name:"Luxardo Bitter Bianco", amount:"3/4 oz", kind:"Bitter Bianco"},
+      {name:"Dolin Dry", amount:"3/4 oz", kind:"Dry Vermouth"},
+      {name:"Orange Bitters", amount:"2 dashes", kind:"Orange Bitters"},
+    ],
+    steps:["Chill a rocks glass with ice water or place in freezer.","Combine all ingredients in a mixing glass over ice.","Stir 35–40 rotations until well-chilled.","Discard chilling ice. Strain into rocks glass over one large cube.","Express a wide orange peel over the glass, rub the rim, and drop it in."],
+    notes:"Se Busca Joven keeps smoke in the background so the Bitter Bianco leads. Use Espina Dorada for a bolder, smokier version. Orange bitters are essential — they bridge the mezcal and Bianco's herbal notes. Try a 50/50 mezcal/gin split for a more complex base."
+  }
 ];
 
