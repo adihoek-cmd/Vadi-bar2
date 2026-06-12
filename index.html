@@ -3202,7 +3202,14 @@ async function recipeSearch() {
     if (/^https?:\/\//i.test(q)) {
       // Pasted a link — import the recipe directly from the page
       res.innerHTML = '<div class="recipe-search-loading"><span class="spin-anim">⟳</span> Importing recipe from link…</div>';
-      cdbResults = await importRecipeFromUrl(q);
+      try {
+        cdbResults = await importRecipeFromUrl(q);
+      } catch(importErr) {
+        btn.textContent = 'Search';
+        btn.disabled = false;
+        res.innerHTML = '<div class="recipe-search-empty">⚠ Import failed: ' + importErr.message + '<br><br>You can still add it manually below, or <a href="' + q.replace(/"/g,'&quot;') + '" target="_blank" style="color:var(--gold)">open the page ↗</a> and copy the recipe.</div>';
+        return;
+      }
     } else {
       if (searchSource === 'all' || searchSource === 'cdb') {
         cdbResults = await searchCocktailDB(q);
@@ -3284,20 +3291,37 @@ async function recipeSearch() {
 
 async function importRecipeFromUrl(url) {
   var proxies = [
-    'https://corsproxy.io/?url=' + encodeURIComponent(url),
-    'https://api.allorigins.win/raw?url=' + encodeURIComponent(url)
+    function(u){ return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
+    function(u){ return 'https://corsproxy.io/?url=' + encodeURIComponent(u); },
+    function(u){ return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); }
   ];
+
   var html = null;
+  var bestHtml = null;
+  var lastErr = '';
   for (var i = 0; i < proxies.length && !html; i++) {
     try {
-      var resp = await fetch(proxies[i]);
-      if (resp.ok) {
-        var text = await resp.text();
-        if (text && text.length > 500) html = text;
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 10000) : null;
+      var resp = await fetch(proxies[i](url), ctrl ? { signal: ctrl.signal } : {});
+      if (timer) clearTimeout(timer);
+      if (!resp.ok) { lastErr = 'proxy returned ' + resp.status; continue; }
+      var text = await resp.text();
+      if (!text || text.length < 500) { lastErr = 'empty response from proxy'; continue; }
+      // Only accept pages that actually contain recipe structured data;
+      // otherwise keep as fallback and try the next proxy
+      if (text.indexOf('ld+json') !== -1) {
+        html = text;
+      } else if (!bestHtml || text.length > bestHtml.length) {
+        bestHtml = text;
+        lastErr = 'page had no structured recipe data';
       }
-    } catch(e) { /* try next proxy */ }
+    } catch(e) {
+      lastErr = (e && e.name === 'AbortError') ? 'proxy timed out' : 'network error reaching proxy';
+    }
   }
-  if (!html) { toast('Could not fetch that page — the site may be blocking access'); return []; }
+  if (!html) html = bestHtml;
+  if (!html) throw new Error('could not fetch the page (' + (lastErr || 'all proxies failed') + '). The site may be blocking access.');
 
   // Extract all JSON-LD blocks and find Recipe nodes
   var recipes = [];
@@ -3315,7 +3339,7 @@ async function importRecipeFromUrl(url) {
       });
     } catch(e) { /* skip malformed blocks */ }
   }
-  if (!recipes.length) { toast('No structured recipe found on that page'); return []; }
+  if (!recipes.length) throw new Error('no recipe data found on that page. It may not be a recipe page, or the site uses an unsupported format.');
 
   var host = '';
   try { host = new URL(url).hostname.replace(/^www\./, ''); } catch(e) {}
@@ -3333,7 +3357,7 @@ async function importRecipeFromUrl(url) {
     var steps = [];
     var instr = r.recipeInstructions || [];
     if (typeof instr === 'string') {
-      steps = instr.split(/(?<=\.)\s+/).map(function(s){ return s.trim(); }).filter(Boolean);
+      steps = instr.split(/\.\s+/).map(function(s){ return s.trim(); }).filter(Boolean).map(function(s){ return /\.$/.test(s) ? s : s + '.'; });
     } else if (Array.isArray(instr)) {
       instr.forEach(function(st) {
         if (typeof st === 'string') steps.push(st.trim());
