@@ -3199,11 +3199,17 @@ async function recipeSearch() {
   var liquorResults = [];
 
   try {
-    if (searchSource === 'all' || searchSource === 'cdb') {
-      cdbResults = await searchCocktailDB(q);
-    }
-    if (searchSource === 'all' || searchSource === 'liquor') {
-      liquorResults = searchLiquorCom(q);
+    if (/^https?:\/\//i.test(q)) {
+      // Pasted a link — import the recipe directly from the page
+      res.innerHTML = '<div class="recipe-search-loading"><span class="spin-anim">⟳</span> Importing recipe from link…</div>';
+      cdbResults = await importRecipeFromUrl(q);
+    } else {
+      if (searchSource === 'all' || searchSource === 'cdb') {
+        cdbResults = await searchCocktailDB(q);
+      }
+      if (searchSource === 'all' || searchSource === 'liquor') {
+        liquorResults = searchLiquorCom(q);
+      }
     }
   } catch(e) { /* handled per-source */ }
 
@@ -3212,7 +3218,7 @@ async function recipeSearch() {
 
   var all = cdbResults.concat(liquorResults);
   if (!all.length) {
-    res.innerHTML = '<div class="recipe-search-empty">No results found for "' + q + '".<br>Try a different spelling or search the other source.</div>';
+    res.innerHTML = '<div class="recipe-search-empty">No results found for "' + q + '".<br>Try a different spelling, search the other source, or paste a recipe link (e.g. from liquor.com) to import it directly.</div>';
     return;
   }
 
@@ -3270,6 +3276,99 @@ async function recipeSearch() {
       if (enc) openRDetail(enc);
     });
   });
+}
+
+// ── URL RECIPE IMPORT ────────────────────────────────────────────────────────
+// Fetches a recipe page (via CORS proxy) and parses schema.org JSON-LD data.
+// Works with liquor.com, punchdrink.com, and most recipe sites.
+
+async function importRecipeFromUrl(url) {
+  var proxies = [
+    'https://corsproxy.io/?url=' + encodeURIComponent(url),
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(url)
+  ];
+  var html = null;
+  for (var i = 0; i < proxies.length && !html; i++) {
+    try {
+      var resp = await fetch(proxies[i]);
+      if (resp.ok) {
+        var text = await resp.text();
+        if (text && text.length > 500) html = text;
+      }
+    } catch(e) { /* try next proxy */ }
+  }
+  if (!html) { toast('Could not fetch that page — the site may be blocking access'); return []; }
+
+  // Extract all JSON-LD blocks and find Recipe nodes
+  var recipes = [];
+  var re = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  var m;
+  while ((m = re.exec(html)) !== null) {
+    try {
+      var data = JSON.parse(m[1]);
+      var nodes = Array.isArray(data) ? data : (data['@graph'] ? data['@graph'] : [data]);
+      nodes.forEach(function(node) {
+        if (!node) return;
+        var t = node['@type'];
+        var isRecipe = t === 'Recipe' || (Array.isArray(t) && t.indexOf('Recipe') !== -1);
+        if (isRecipe) recipes.push(node);
+      });
+    } catch(e) { /* skip malformed blocks */ }
+  }
+  if (!recipes.length) { toast('No structured recipe found on that page'); return []; }
+
+  var host = '';
+  try { host = new URL(url).hostname.replace(/^www\./, ''); } catch(e) {}
+
+  return recipes.slice(0, 3).map(function(r) {
+    var garnish = '';
+    var ings = [];
+    (r.recipeIngredient || []).forEach(function(s) {
+      var norm = normalizeIngredientText(s);
+      var gm = norm.match(/^garnish\s*:?\s*(.+)$/i);
+      if (gm) { garnish = gm[1].trim(); return; }
+      ings.push(norm);
+    });
+
+    var steps = [];
+    var instr = r.recipeInstructions || [];
+    if (typeof instr === 'string') {
+      steps = instr.split(/(?<=\.)\s+/).map(function(s){ return s.trim(); }).filter(Boolean);
+    } else if (Array.isArray(instr)) {
+      instr.forEach(function(st) {
+        if (typeof st === 'string') steps.push(st.trim());
+        else if (st && st.text) steps.push(String(st.text).trim());
+        else if (st && st.itemListElement) {
+          st.itemListElement.forEach(function(el){ if (el && el.text) steps.push(String(el.text).trim()); });
+        }
+      });
+    }
+
+    return {
+      name: r.name || 'Imported Recipe',
+      source: host || 'Web',
+      glass: 'Rocks',
+      method: guessMethod('', steps.join(' ')),
+      garnish: garnish,
+      notes: r.description ? String(r.description).replace(/<[^>]*>/g, '').slice(0, 200) : '',
+      ingredients: ings,
+      steps: steps,
+      mood: [],
+      url: url,
+      isLink: false
+    };
+  });
+}
+
+function normalizeIngredientText(s) {
+  return String(s)
+    .replace(/<[^>]*>/g, '')
+    .replace(/\bounces?\b/gi, 'oz')
+    .replace(/\bteaspoons?\b/gi, 'tsp')
+    .replace(/\btablespoons?\b/gi, 'tbsp')
+    .replace(/\bmilliliters?\b/gi, 'ml')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 async function searchCocktailDB(q) {
