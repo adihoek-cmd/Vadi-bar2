@@ -3148,6 +3148,7 @@ function saveRecipe() {
     garnish: document.getElementById('r-garnish').value.trim(),
     source: document.getElementById('r-source').value.trim(),
     notes: document.getElementById('r-notes').value.trim(),
+    url: pendingSourceUrl || '',
     mood: (function() {
       const searchText = (name + ' ' + ingredients.map(i => i.name).join(' ')).toLowerCase();
       return Object.keys(MOOD_KEYWORDS).filter(m => (MOOD_KEYWORDS[m] || []).some(k => searchText.includes(k)));
@@ -3164,6 +3165,7 @@ function saveRecipe() {
 }
 
 function clearRecipeForm() {
+  pendingSourceUrl = '';
   ['r-name','r-garnish','r-source','r-notes'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('r-liked-toggle').classList.remove('on');
   document.getElementById('r-house-toggle').classList.remove('on');
@@ -3261,6 +3263,7 @@ async function recipeSearch() {
       html += '<button class="recipe-result-card-add saved" disabled onclick="event.stopPropagation()">✓ In Collection</button>';
     } else {
       html += '<button class="recipe-result-card-add" data-encoded="' + encoded.replace(/"/g,'&quot;') + '">+ Add to My Bar</button>';
+      html += '<button class="recipe-result-card-add recipe-result-card-edit" data-edit-encoded="' + encoded.replace(/"/g,'&quot;') + '" style="background:var(--bg3);color:var(--gold);border:1px solid var(--border2);margin-top:6px;">✎ Edit before adding</button>';
     }
     html += '</div>';
   });
@@ -3271,6 +3274,8 @@ async function recipeSearch() {
   res.querySelectorAll('.recipe-result-card-add:not([disabled])').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
       e.stopPropagation();
+      var encEdit = btn.getAttribute('data-edit-encoded');
+      if (encEdit) { editRecipeBeforeAdd(encEdit); return; }
       var enc = btn.getAttribute('data-encoded');
       if (enc) oneClickAddRecipe(enc, btn);
     });
@@ -3399,6 +3404,17 @@ function jsonLdToResult(r, url, host) {
 }
 
 // Parse a recipe from Jina reader markdown output (heuristic)
+function nameFromUrlSlug(url) {
+  try {
+    var seg = new URL(url).pathname.split('/').filter(Boolean).pop() || '';
+    seg = seg.replace(/\.(html?|php|aspx?)$/i, '');
+    seg = seg.replace(/-\d+$/, '');
+    seg = seg.replace(/-(cocktail-recipe|drink-recipe|recipe|cocktail)$/i, '');
+    if (!seg || /^\d+$/.test(seg)) return '';
+    return seg.split('-').map(function(w){ return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
+  } catch(e) { return ''; }
+}
+
 function parseMarkdownRecipe(md, url, host) {
   var lines = md.split('\n');
 
@@ -3456,6 +3472,13 @@ function parseMarkdownRecipe(md, url, host) {
     } else if (inSteps && /^#{1,6}\s/.test(ln)) {
       break;
     }
+  }
+
+  // Prefer the URL slug name when the page title looks like an article
+  // headline rather than a recipe name (e.g. "This Rum Riff Takes…")
+  var slugName = nameFromUrlSlug(url);
+  if (slugName && (!name || name.length > 32 || /^(this|the \w+ way|how |why |meet )/i.test(name))) {
+    name = slugName;
   }
 
   return {
@@ -3649,6 +3672,56 @@ function guessMethod(category, instructions) {
   return 'Shake';
 }
 
+var pendingSourceUrl = '';
+
+// Pre-fill the manual "create from scratch" form with an imported recipe
+// so the user can edit name/ingredients/steps before saving.
+function editRecipeBeforeAdd(encoded) {
+  var r = JSON.parse(decodeURIComponent(encoded));
+
+  document.getElementById('r-name').value = r.name || '';
+  document.getElementById('r-glass').value = r.glass || 'Rocks';
+  document.getElementById('r-method').value = r.method || 'Stir';
+  document.getElementById('r-garnish').value = r.garnish || '';
+  document.getElementById('r-source').value = r.source || '';
+  document.getElementById('r-notes').value = r.notes || '';
+  pendingSourceUrl = r.url || '';
+
+  // Ingredients
+  var ingList = document.getElementById('ing-list');
+  ingList.innerHTML = '';
+  (r.ingredients || []).forEach(function(s) {
+    var name, amount;
+    if (s && typeof s === 'object') {
+      name = s.name || ''; amount = s.measure || '';
+    } else {
+      var m = String(s).match(/^([\d\s\/\.½¼¾]+(?:oz|cl|ml|tsp|tbsp|dashes?|dash|cup|parts?|barspoons?)?\.?)\s*(.+)$/i);
+      amount = m ? m[1].trim() : ''; name = m ? m[2].trim() : String(s).trim();
+    }
+    addIngRow();
+    var row = ingList.lastElementChild;
+    var inputs = row.querySelectorAll('input');
+    inputs[0].value = name;
+    inputs[1].value = amount;
+    inputs[2].value = guessKindFromName(name);
+  });
+  if (!ingList.children.length) { addIngRow(); addIngRow(); }
+
+  // Steps
+  var stepList = document.getElementById('step-list');
+  stepList.innerHTML = '';
+  (r.steps || []).forEach(function(s) {
+    addStepRow();
+    stepList.lastElementChild.querySelector('input').value = s;
+  });
+  if (!stepList.children.length) { addStepRow(); addStepRow(); }
+
+  toast('Recipe loaded into the form — edit and save below ✎');
+  // Scroll to the form
+  var formAnchor = document.getElementById('r-name');
+  if (formAnchor) formAnchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 function oneClickAddRecipe(encoded, btnEl) {
   var r = JSON.parse(decodeURIComponent(encoded));
 
@@ -3683,6 +3756,7 @@ function oneClickAddRecipe(encoded, btnEl) {
     source: r.source || '',
     notes: r.notes || '',
     mood: r.mood || [],
+    url: r.url || '',
     ingredients: parsedIngs,
     steps: steps
   };
