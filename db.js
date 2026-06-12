@@ -14,8 +14,9 @@ const DEFAULT_INVENTORY = [
   { id:"i4", cat:"Spirit", kind:"Gin", label:"Tanqueray Rangpur", on:true },
   { id:"i5", cat:"Spirit", kind:"Gin", label:"Votanikon", on:true },
   { id:"i6", cat:"Spirit", kind:"Gin", label:"Zohara Gin", on:true },
+  { id:"i154", cat:"Spirit", kind:"Gin", label:"Gin Mare Capri", on:true },
   // Vodka
-  { id:"i11", cat:"Spirit", kind:"Vodka", label:"Berlin Vodka", on:true },
+  { id:"i11", cat:"Spirit", kind:"Vodka", label:"Berlin Vodka", on:false },
   { id:"i17", cat:"Spirit", kind:"Vodka", label:"Belvedere", on:true },
   { id:"i12", cat:"Spirit", kind:"Vodka", label:"Ciroc Vodka", on:true },
   { id:"i10", cat:"Spirit", kind:"Vodka", label:"Ketel One", on:true },
