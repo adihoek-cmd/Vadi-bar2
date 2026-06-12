@@ -2385,9 +2385,10 @@ var DB_VERSION = 18; // bump whenever db.js recipe content changes
     return;
   }
   var savedIds = new Set(savedInv.map(function(i){ return i.id; }));
+  var deletedIds = new Set(JSON.parse(localStorage.getItem('vadi_deleted')) || []);
   var dirty = false;
   DEFAULT_INVENTORY.forEach(function(di) {
-    if (!savedIds.has(di.id)) {
+    if (!savedIds.has(di.id) && !deletedIds.has(di.id)) {
       savedInv.push(JSON.parse(JSON.stringify(di)));
       dirty = true;
     }
@@ -2400,6 +2401,7 @@ let state = {
   inventory: JSON.parse(localStorage.getItem('vadi_inv')) || JSON.parse(JSON.stringify(DEFAULT_INVENTORY)),
   cart: JSON.parse(localStorage.getItem('vadi_cart')) || [],
   storage: JSON.parse(localStorage.getItem('vadi_storage')) || [],
+  deleted: JSON.parse(localStorage.getItem('vadi_deleted')) || [],
   cocktails: JSON.parse(localStorage.getItem('vadi_cocktails')) || JSON.parse(JSON.stringify(DEFAULT_COCKTAILS)),
   filter: 'all',
   wheelMode: 'all',
@@ -2422,11 +2424,13 @@ let state = {
 })();
 
 // GUARANTEE: ensure every DEFAULT_INVENTORY item is present in state
+// (unless the user explicitly deleted it — tracked in state.deleted)
 (function() {
   var stateIds = new Set(state.inventory.map(function(i){ return i.id; }));
+  var deletedIds = new Set(state.deleted);
   var added = false;
   DEFAULT_INVENTORY.forEach(function(di) {
-    if (!stateIds.has(di.id)) {
+    if (!stateIds.has(di.id) && !deletedIds.has(di.id)) {
       state.inventory.push(JSON.parse(JSON.stringify(di)));
       added = true;
     }
@@ -2434,11 +2438,44 @@ let state = {
   if (added) localStorage.setItem('vadi_inv', JSON.stringify(state.inventory));
 })();
 
+// DEDUPE: remove duplicate bottles (same label+kind, case-insensitive).
+// Prefer keeping the db.js default item; tombstone the removed copies so
+// cloud sync can't resurrect them.
+(function() {
+  var defaultIds = new Set(DEFAULT_INVENTORY.map(function(di){ return di.id; }));
+  var seen = {};
+  var removedIds = [];
+  var keep = [];
+  // Sort so default items are considered first
+  var sorted = state.inventory.slice().sort(function(a, b) {
+    var ad = defaultIds.has(a.id) ? 0 : 1;
+    var bd = defaultIds.has(b.id) ? 0 : 1;
+    return ad - bd;
+  });
+  sorted.forEach(function(item) {
+    var key = ((item.label || '') + '|' + (item.kind || '')).toLowerCase().trim();
+    if (seen[key]) { removedIds.push(item.id); return; }
+    seen[key] = true;
+    keep.push(item);
+  });
+  if (removedIds.length) {
+    // restore original order for kept items
+    var keepIds = new Set(keep.map(function(i){ return i.id; }));
+    state.inventory = state.inventory.filter(function(i){ return keepIds.has(i.id); });
+    removedIds.forEach(function(id) {
+      if (state.deleted.indexOf(id) === -1) state.deleted.push(id);
+    });
+    localStorage.setItem('vadi_inv', JSON.stringify(state.inventory));
+    localStorage.setItem('vadi_deleted', JSON.stringify(state.deleted));
+  }
+})();
+
 function save() {
   localStorage.setItem('vadi_inv', JSON.stringify(state.inventory));
   localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
   localStorage.setItem('vadi_cart', JSON.stringify(state.cart));
   localStorage.setItem('vadi_storage', JSON.stringify(state.storage));
+  localStorage.setItem('vadi_deleted', JSON.stringify(state.deleted));
   updateCartBadge();
 }
 
@@ -2835,7 +2872,9 @@ function toggleTreeType(kindKey) {
 
 function deleteInvItem(id) {
   state.inventory = state.inventory.filter(i => i.id !== id);
+  if (state.deleted.indexOf(id) === -1) state.deleted.push(id);
   save();
+  syncToCloud();
   renderInventory();
   renderCocktails();
   toast('Removed from bar');
@@ -4683,18 +4722,26 @@ function syncFromCloud() {
         cloudCocktails.filter(function(c){ return !defaultCkIds.has(c.id); }).forEach(function(c){ merged.push(c); });
         state.cocktails = merged;
 
-        var mergedInv = DEFAULT_INVENTORY.map(function(di) {
+        // Union deleted tombstones from cloud + local
+        var cloudDeleted = data.fields.deleted || [];
+        cloudDeleted.forEach(function(id) {
+          if (state.deleted.indexOf(id) === -1) state.deleted.push(id);
+        });
+        var delSet = new Set(state.deleted);
+
+        var mergedInv = DEFAULT_INVENTORY.filter(function(di){ return !delSet.has(di.id); }).map(function(di) {
           var cloud = cloudInvById[di.id];
           var result = JSON.parse(JSON.stringify(di));
           if (cloud) result.on = cloud.on;
           return result;
         });
-        cloudInventory.filter(function(i){ return !defaultInvIds.has(i.id); }).forEach(function(i){ mergedInv.push(i); });
+        cloudInventory.filter(function(i){ return !defaultInvIds.has(i.id) && !delSet.has(i.id); }).forEach(function(i){ mergedInv.push(i); });
         state.inventory = mergedInv;
 
         if (data.fields.cart) state.cart = data.fields.cart;
         if (data.fields.storage) state.storage = data.fields.storage;
         localStorage.setItem('vadi_storage', JSON.stringify(state.storage));
+        localStorage.setItem('vadi_deleted', JSON.stringify(state.deleted));
         localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
         localStorage.setItem('vadi_inv',       JSON.stringify(state.inventory));
         localStorage.setItem('vadi_cart',      JSON.stringify(state.cart));
@@ -4721,6 +4768,7 @@ function syncToCloud() {
       inventory:  state.inventory,
       cart:       state.cart,
       storage:    state.storage,
+      deleted:    state.deleted,
       updatedAt:  new Date().toISOString()
     }).mapValue.fields });
     fetch(firestoreUrl(), { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: body })
