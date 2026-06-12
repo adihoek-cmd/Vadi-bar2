@@ -3290,40 +3290,58 @@ async function recipeSearch() {
 // Works with liquor.com, punchdrink.com, and most recipe sites.
 
 async function importRecipeFromUrl(url) {
-  var proxies = [
-    function(u){ return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
-    function(u){ return 'https://corsproxy.io/?url=' + encodeURIComponent(u); },
-    function(u){ return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); }
+  // Multiple fetch strategies, tried in order. Each returns either raw HTML
+  // (parsed for JSON-LD) or markdown (parsed heuristically via Jina reader).
+  var attempts = [
+    { label: 'allorigins',     kind: 'alljson',  make: function(u){ return 'https://api.allorigins.win/get?url=' + encodeURIComponent(u); } },
+    { label: 'allorigins-raw', kind: 'html',     make: function(u){ return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); } },
+    { label: 'codetabs',       kind: 'html',     make: function(u){ return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); } },
+    { label: 'cors-workers',   kind: 'html',     make: function(u){ return 'https://test.cors.workers.dev/?' + u; } },
+    { label: 'jina-reader',    kind: 'markdown', make: function(u){ return 'https://r.jina.ai/' + u; } }
   ];
 
-  var html = null;
-  var bestHtml = null;
-  var lastErr = '';
-  for (var i = 0; i < proxies.length && !html; i++) {
+  var errs = [];
+  var host = '';
+  try { host = new URL(url).hostname.replace(/^www\./, ''); } catch(e) {}
+
+  for (var i = 0; i < attempts.length; i++) {
+    var a = attempts[i];
+    var text = null;
     try {
       var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
       var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 10000) : null;
-      var resp = await fetch(proxies[i](url), ctrl ? { signal: ctrl.signal } : {});
+      var resp = await fetch(a.make(url), ctrl ? { signal: ctrl.signal } : {});
       if (timer) clearTimeout(timer);
-      if (!resp.ok) { lastErr = 'proxy returned ' + resp.status; continue; }
-      var text = await resp.text();
-      if (!text || text.length < 500) { lastErr = 'empty response from proxy'; continue; }
-      // Only accept pages that actually contain recipe structured data;
-      // otherwise keep as fallback and try the next proxy
-      if (text.indexOf('ld+json') !== -1) {
-        html = text;
-      } else if (!bestHtml || text.length > bestHtml.length) {
-        bestHtml = text;
-        lastErr = 'page had no structured recipe data';
-      }
+      if (!resp.ok) { errs.push(a.label + ': HTTP ' + resp.status); continue; }
+      text = await resp.text();
     } catch(e) {
-      lastErr = (e && e.name === 'AbortError') ? 'proxy timed out' : 'network error reaching proxy';
+      errs.push(a.label + ': ' + ((e && e.name === 'AbortError') ? 'timeout' : 'network error'));
+      continue;
     }
-  }
-  if (!html) html = bestHtml;
-  if (!html) throw new Error('could not fetch the page (' + (lastErr || 'all proxies failed') + '). The site may be blocking access.');
+    if (!text || text.length < 200) { errs.push(a.label + ': empty response'); continue; }
 
-  // Extract all JSON-LD blocks and find Recipe nodes
+    if (a.kind === 'alljson') {
+      try { text = JSON.parse(text).contents || ''; } catch(e) { errs.push(a.label + ': bad wrapper'); continue; }
+      if (!text || text.length < 200) { errs.push(a.label + ': empty contents'); continue; }
+    }
+
+    if (a.kind === 'markdown') {
+      var mdResult = parseMarkdownRecipe(text, url, host);
+      if (mdResult) return [mdResult];
+      errs.push(a.label + ': could not parse recipe from page text');
+      continue;
+    }
+
+    // HTML path — look for schema.org JSON-LD Recipe nodes
+    var recipes = extractJsonLdRecipes(text);
+    if (recipes.length) return recipes.slice(0, 3).map(function(r){ return jsonLdToResult(r, url, host); });
+    errs.push(a.label + ': no recipe data in page');
+  }
+
+  throw new Error('all sources failed — ' + errs.join('; '));
+}
+
+function extractJsonLdRecipes(html) {
   var recipes = [];
   var re = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
   var m;
@@ -3334,54 +3352,125 @@ async function importRecipeFromUrl(url) {
       nodes.forEach(function(node) {
         if (!node) return;
         var t = node['@type'];
-        var isRecipe = t === 'Recipe' || (Array.isArray(t) && t.indexOf('Recipe') !== -1);
-        if (isRecipe) recipes.push(node);
+        if (t === 'Recipe' || (Array.isArray(t) && t.indexOf('Recipe') !== -1)) recipes.push(node);
       });
-    } catch(e) { /* skip malformed blocks */ }
+    } catch(e) { /* skip */ }
   }
-  if (!recipes.length) throw new Error('no recipe data found on that page. It may not be a recipe page, or the site uses an unsupported format.');
+  return recipes;
+}
 
-  var host = '';
-  try { host = new URL(url).hostname.replace(/^www\./, ''); } catch(e) {}
-
-  return recipes.slice(0, 3).map(function(r) {
-    var garnish = '';
-    var ings = [];
-    (r.recipeIngredient || []).forEach(function(s) {
-      var norm = normalizeIngredientText(s);
-      var gm = norm.match(/^garnish\s*:?\s*(.+)$/i);
-      if (gm) { garnish = gm[1].trim(); return; }
-      ings.push(norm);
-    });
-
-    var steps = [];
-    var instr = r.recipeInstructions || [];
-    if (typeof instr === 'string') {
-      steps = instr.split(/\.\s+/).map(function(s){ return s.trim(); }).filter(Boolean).map(function(s){ return /\.$/.test(s) ? s : s + '.'; });
-    } else if (Array.isArray(instr)) {
-      instr.forEach(function(st) {
-        if (typeof st === 'string') steps.push(st.trim());
-        else if (st && st.text) steps.push(String(st.text).trim());
-        else if (st && st.itemListElement) {
-          st.itemListElement.forEach(function(el){ if (el && el.text) steps.push(String(el.text).trim()); });
-        }
-      });
-    }
-
-    return {
-      name: r.name || 'Imported Recipe',
-      source: host || 'Web',
-      glass: 'Rocks',
-      method: guessMethod('', steps.join(' ')),
-      garnish: garnish,
-      notes: r.description ? String(r.description).replace(/<[^>]*>/g, '').slice(0, 200) : '',
-      ingredients: ings,
-      steps: steps,
-      mood: [],
-      url: url,
-      isLink: false
-    };
+function jsonLdToResult(r, url, host) {
+  var garnish = '';
+  var ings = [];
+  (r.recipeIngredient || []).forEach(function(s) {
+    var norm = normalizeIngredientText(s);
+    var gm = norm.match(/^garnish\s*:?\s*(.+)$/i);
+    if (gm) { garnish = gm[1].trim(); return; }
+    ings.push(norm);
   });
+
+  var steps = [];
+  var instr = r.recipeInstructions || [];
+  if (typeof instr === 'string') {
+    steps = instr.split(/\.\s+/).map(function(s){ return s.trim(); }).filter(Boolean).map(function(s){ return /\.$/.test(s) ? s : s + '.'; });
+  } else if (Array.isArray(instr)) {
+    instr.forEach(function(st) {
+      if (typeof st === 'string') steps.push(st.trim());
+      else if (st && st.text) steps.push(String(st.text).trim());
+      else if (st && st.itemListElement) {
+        st.itemListElement.forEach(function(el){ if (el && el.text) steps.push(String(el.text).trim()); });
+      }
+    });
+  }
+
+  return {
+    name: r.name || 'Imported Recipe',
+    source: host || 'Web',
+    glass: 'Rocks',
+    method: guessMethod('', steps.join(' ')),
+    garnish: garnish,
+    notes: r.description ? String(r.description).replace(/<[^>]*>/g, '').slice(0, 200) : '',
+    ingredients: ings,
+    steps: steps,
+    mood: [],
+    url: url,
+    isLink: false
+  };
+}
+
+// Parse a recipe from Jina reader markdown output (heuristic)
+function parseMarkdownRecipe(md, url, host) {
+  var lines = md.split('\n');
+
+  // Name: "Title: X" header from Jina, or first markdown heading
+  var name = '';
+  for (var i = 0; i < Math.min(lines.length, 10); i++) {
+    var tm = lines[i].match(/^Title:\s*(.+)$/i);
+    if (tm) { name = tm[1].replace(/\s*(Recipe|Cocktail Recipe).*$/i, '').trim(); break; }
+  }
+  if (!name) {
+    for (var j = 0; j < lines.length; j++) {
+      var hm = lines[j].match(/^#\s+(.+)$/);
+      if (hm) { name = hm[1].trim(); break; }
+    }
+  }
+
+  // Ingredients: bullet lines after an "Ingredients" heading, until next heading
+  var ings = [];
+  var garnish = '';
+  var inIngs = false;
+  for (var k = 0; k < lines.length; k++) {
+    var line = lines[k].trim();
+    if (/^#{0,6}\s*\**\s*ingredients\s*\**\s*:?$/i.test(line)) { inIngs = true; continue; }
+    if (inIngs) {
+      if (/^#{1,6}\s/.test(line) || /^\**\s*(steps|directions|instructions)/i.test(line)) break;
+      var bm = line.match(/^[*\-+]\s+(.+)$/);
+      if (bm) {
+        var norm = normalizeIngredientText(bm[1].replace(/\[([^\]]*)\]\([^)]*\)/g, '$1'));
+        var gm2 = norm.match(/^garnish\s*:?\s*(.+)$/i);
+        if (gm2) garnish = gm2[1].trim();
+        else if (norm.length > 1) ings.push(norm);
+      }
+    }
+  }
+  // Fallback: any bullet line that smells like a measured ingredient
+  if (!ings.length) {
+    lines.forEach(function(l) {
+      var bm = l.trim().match(/^[*\-+]\s+(.+)$/);
+      if (bm && /\d|½|¼|¾|dash|barspoon/i.test(bm[1]) && /oz|ounce|ml|cl|tsp|tbsp|dash|barspoon|cube|leaves|sprig/i.test(bm[1])) {
+        ings.push(normalizeIngredientText(bm[1].replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')));
+      }
+    });
+  }
+  if (!ings.length) return null;
+
+  // Steps: numbered lines, prefer those after a steps/directions heading
+  var steps = [];
+  var inSteps = false;
+  for (var s = 0; s < lines.length; s++) {
+    var ln = lines[s].trim();
+    if (/^#{0,6}\s*\**\s*(steps|directions|instructions)\s*\**\s*:?$/i.test(ln)) { inSteps = true; continue; }
+    var nm = ln.match(/^\d+\.\s+(.+)$/);
+    if (nm && (inSteps || steps.length || s > 0)) {
+      steps.push(nm[1].replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').trim());
+    } else if (inSteps && /^#{1,6}\s/.test(ln)) {
+      break;
+    }
+  }
+
+  return {
+    name: name || 'Imported Recipe',
+    source: host || 'Web',
+    glass: 'Rocks',
+    method: guessMethod('', steps.join(' ')),
+    garnish: garnish,
+    notes: '',
+    ingredients: ings,
+    steps: steps,
+    mood: [],
+    url: url,
+    isLink: false
+  };
 }
 
 function normalizeIngredientText(s) {
