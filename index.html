@@ -2264,7 +2264,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=22"></script>
+<script src="db.js?v=23"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2358,8 +2358,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 22; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.22'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 23; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.23'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -5125,6 +5125,7 @@ function fromFS(val) {
 
 function syncFromCloud() {
   if (!SYNC_CONFIGURED) return;
+  if (typeof _lastSync !== 'undefined') _lastSync = Date.now();
   updateSyncBtn('syncing');
   var watchdog = setTimeout(function(){ updateSyncBtn('error'); }, 12000);
   fetch(firestoreUrl())
@@ -5259,6 +5260,13 @@ function openCloudModal() {
 }
 function closeCloudModal() { document.getElementById('cloud-modal-overlay').classList.remove('open'); }
 function copyBarCode() { if (navigator.clipboard) navigator.clipboard.writeText(barCode); toast('Bar code copied!'); }
+function forceRefreshFromCloud() {
+  setCloudStatus('Refreshing from cloud…', '');
+  syncFromCloud();
+  setTimeout(function(){ setCloudStatus('✓ Refreshed · ' + barCode, 'ok'); }, 1500);
+  toast('Pulling latest from cloud ↻');
+}
+
 function joinBar() {
   var input = document.getElementById('cloud-code-input').value.trim().toUpperCase();
   if (input.length !== 8) { setCloudStatus('Bar code must be 8 characters', 'err'); return; }
@@ -5281,6 +5289,23 @@ save = function() { _origSave(); syncToCloud(); };
 
 // Init on load
 window.addEventListener('load', function() { syncFromCloud(); });
+
+// Keep devices current without needing a full reopen:
+// 1) Re-sync whenever the app regains focus / becomes visible
+// 2) Re-sync periodically while open
+var _lastSync = Date.now();
+function maybeResync(minGapMs) {
+  if (Date.now() - _lastSync < (minGapMs || 0)) return;
+  _lastSync = Date.now();
+  syncFromCloud();
+}
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible') maybeResync(3000);
+});
+window.addEventListener('focus', function() { maybeResync(3000); });
+setInterval(function() {
+  if (document.visibilityState === 'visible') maybeResync(0);
+}, 60000); // every 60s while open
 
 
 </script>
@@ -5309,6 +5334,7 @@ window.addEventListener('load', function() { syncFromCloud(); });
 
       <div class="btn-row">
         <button class="btn btn-gold" onclick="joinBar()">Join Bar</button>
+        <button class="btn btn-outline" onclick="forceRefreshFromCloud()">↻ Refresh Now</button>
         <button class="btn btn-outline" onclick="closeCloudModal()">Close</button>
       </div>
     </div>
