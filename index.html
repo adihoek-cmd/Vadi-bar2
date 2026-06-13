@@ -2263,7 +2263,7 @@
 <div class="toast" id="toast"></div>
 
 
-<script src="db.js?v=19"></script>
+<script src="db.js?v=20"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2357,7 +2357,7 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 19; // bump whenever db.js recipe content changes
+var DB_VERSION = 20; // bump whenever db.js recipe content changes
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -2796,17 +2796,17 @@ function closeModal(e) {
 
 function toggleLiked(id) {
   const c = state.cocktails.find(x => x.id === id);
-  if (c) { c.liked = !c.liked; save(); openModal(id); renderCocktails(); }
+  if (c) { c.liked = !c.liked; save(); syncToCloud(); openModal(id); renderCocktails(); }
 }
 
 function toggleHouse(id) {
   const c = state.cocktails.find(x => x.id === id);
-  if (c) { c.house = !c.house; save(); openModal(id); renderCocktails(); }
+  if (c) { c.house = !c.house; save(); syncToCloud(); openModal(id); renderCocktails(); }
 }
 
 function toggleTried(id) {
   const c = state.cocktails.find(x => x.id === id);
-  if (c) { c.tried = !c.tried; save(); openModal(id); renderCocktails(); }
+  if (c) { c.tried = !c.tried; save(); syncToCloud(); openModal(id); renderCocktails(); }
 }
 
 function deleteRecipe(id) {
