@@ -1,0 +1,15 @@
+{
+  "name": "The Vadi Bar",
+  "short_name": "Vadi Bar",
+  "description": "Private cocktail recipe & inventory manager for The Vadi Bar",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0a07",
+  "theme_color": "#0d0a07",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
