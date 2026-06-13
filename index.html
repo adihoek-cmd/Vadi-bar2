@@ -2263,7 +2263,7 @@
 <div class="toast" id="toast"></div>
 
 
-<script src="db.js?v=20"></script>
+<script src="db.js?v=21"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2357,7 +2357,7 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 20; // bump whenever db.js recipe content changes
+var DB_VERSION = 21; // bump whenever db.js recipe content changes
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -2796,17 +2796,17 @@ function closeModal(e) {
 
 function toggleLiked(id) {
   const c = state.cocktails.find(x => x.id === id);
-  if (c) { c.liked = !c.liked; save(); syncToCloud(); openModal(id); renderCocktails(); }
+  if (c) { c.liked = !c.liked; c.flagTs = Date.now(); save(); syncToCloud(); openModal(id); renderCocktails(); }
 }
 
 function toggleHouse(id) {
   const c = state.cocktails.find(x => x.id === id);
-  if (c) { c.house = !c.house; save(); syncToCloud(); openModal(id); renderCocktails(); }
+  if (c) { c.house = !c.house; c.flagTs = Date.now(); save(); syncToCloud(); openModal(id); renderCocktails(); }
 }
 
 function toggleTried(id) {
   const c = state.cocktails.find(x => x.id === id);
-  if (c) { c.tried = !c.tried; save(); syncToCloud(); openModal(id); renderCocktails(); }
+  if (c) { c.tried = !c.tried; c.flagTs = Date.now(); save(); syncToCloud(); openModal(id); renderCocktails(); }
 }
 
 function deleteRecipe(id) {
@@ -5130,13 +5130,46 @@ function syncFromCloud() {
         });
         var delCkSet = new Set(state.deletedCocktails);
 
+        // Local flags by id, so we can keep whichever side changed more recently
+        var localCkById = {};
+        state.cocktails.forEach(function(c){ localCkById[c.id] = c; });
+
+        function pickFlags(local, cloud) {
+          // Returns {liked, house, tried, flagTs} choosing the newer source.
+          var lTs = (local && local.flagTs) || 0;
+          var cTs = (cloud && cloud.flagTs) || 0;
+          var src = (cTs > lTs) ? cloud : (local || cloud);
+          return {
+            liked: !!(src && src.liked),
+            house: !!(src && src.house),
+            tried: !!(src && src.tried),
+            flagTs: Math.max(lTs, cTs)
+          };
+        }
+
         var merged = DEFAULT_COCKTAILS.filter(function(dc){ return !delCkSet.has(dc.id); }).map(function(dc) {
           var cloud = cloudCkById[dc.id];
+          var local = localCkById[dc.id];
           var result = JSON.parse(JSON.stringify(dc));
-          if (cloud) { result.liked = cloud.liked||false; result.house = cloud.house||false; result.tried = cloud.tried||false; }
+          var f = pickFlags(local, cloud);
+          result.liked = f.liked; result.house = f.house; result.tried = f.tried; result.flagTs = f.flagTs;
           return result;
         });
-        cloudCocktails.filter(function(c){ return !defaultCkIds.has(c.id) && !delCkSet.has(c.id); }).forEach(function(c){ merged.push(c); });
+        // User-created (non-default) recipes: prefer the newer of local/cloud copy
+        var seenCustom = {};
+        cloudCocktails.filter(function(c){ return !defaultCkIds.has(c.id) && !delCkSet.has(c.id); }).forEach(function(cloudC) {
+          var local = localCkById[cloudC.id];
+          var lTs = (local && local.flagTs) || 0;
+          var cTs = (cloudC && cloudC.flagTs) || 0;
+          merged.push((local && lTs > cTs) ? local : cloudC);
+          seenCustom[cloudC.id] = true;
+        });
+        // Local-only custom recipes not yet in cloud
+        state.cocktails.forEach(function(local) {
+          if (!defaultCkIds.has(local.id) && !delCkSet.has(local.id) && !seenCustom[local.id]) {
+            merged.push(local);
+          }
+        });
         state.cocktails = merged;
 
         // Union deleted tombstones from cloud + local
@@ -5264,7 +5297,26 @@ window.addEventListener('load', function() { syncFromCloud(); });
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('sw.js').catch(function(e){ console.warn('SW registration failed:', e); });
+      navigator.serviceWorker.register('sw.js').then(function(reg) {
+        // Check for updates on every load and whenever one is found,
+        // activate it immediately so stale app code never lingers.
+        reg.update();
+        reg.addEventListener('updatefound', function() {
+          var nw = reg.installing;
+          if (!nw) return;
+          nw.addEventListener('statechange', function() {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+              nw.postMessage('skipWaiting');
+            }
+          });
+        });
+      }).catch(function(e){ console.warn('SW registration failed:', e); });
+      var refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function() {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
     });
   }
 </script>
