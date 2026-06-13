@@ -1,12 +1,15 @@
 // The Vadi Bar — service worker
-// Network-first so updates always come through when online; cache fallback
-// keeps the app usable offline behind the bar.
-const CACHE = 'vadi-bar-v1';
-const ASSETS = ['./', './index.html', './db.js', './manifest.json', './icon-192.png', './icon-512.png'];
+// IMPORTANT: index.html and db.js are ALWAYS fetched fresh from the network
+// (never served stale from cache) so app-logic bugs can't get "stuck". Only
+// static assets (icons, manifest) are cached, purely for offline launch.
+const CACHE = 'vadi-bar-v3';
+const STATIC_ASSETS = ['./manifest.json', './icon-192.png', './icon-512.png'];
+// These must never be served from cache while online:
+const ALWAYS_FRESH = ['index.html', 'db.js', '/'];
 
 self.addEventListener('install', function(e) {
   self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then(function(cache){ return cache.addAll(ASSETS).catch(function(){}); }));
+  e.waitUntil(caches.open(CACHE).then(function(cache){ return cache.addAll(STATIC_ASSETS).catch(function(){}); }));
 });
 
 self.addEventListener('activate', function(e) {
@@ -19,18 +22,34 @@ self.addEventListener('activate', function(e) {
 
 self.addEventListener('fetch', function(e) {
   var url = new URL(e.request.url);
-  // Only handle same-origin GETs; let Firebase, proxies, fonts pass through
   if (e.request.method !== 'GET' || url.origin !== self.location.origin) return;
 
+  var path = url.pathname.split('/').pop() || '/';
+  var isAppCode = ALWAYS_FRESH.indexOf(path) !== -1 || url.pathname.endsWith('/');
+
+  if (isAppCode) {
+    // Network-only with offline fallback — never serve a cached old version while online
+    e.respondWith(
+      fetch(e.request).catch(function() {
+        return caches.match(e.request).then(function(hit){ return hit || caches.match('./index.html'); });
+      })
+    );
+    return;
+  }
+
+  // Static assets: cache-first (fine to serve from cache, they rarely change)
   e.respondWith(
-    fetch(e.request).then(function(resp) {
-      var copy = resp.clone();
-      caches.open(CACHE).then(function(cache){ cache.put(e.request, copy).catch(function(){}); });
-      return resp;
-    }).catch(function() {
-      return caches.match(e.request).then(function(hit) {
-        return hit || caches.match('./index.html');
+    caches.match(e.request).then(function(hit) {
+      return hit || fetch(e.request).then(function(resp) {
+        var copy = resp.clone();
+        caches.open(CACHE).then(function(cache){ cache.put(e.request, copy).catch(function(){}); });
+        return resp;
       });
     })
   );
+});
+
+// Allow the page to tell a waiting SW to activate immediately
+self.addEventListener('message', function(e) {
+  if (e.data === 'skipWaiting') self.skipWaiting();
 });
