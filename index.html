@@ -2264,7 +2264,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=26"></script>
+<script src="db.js?v=27"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2358,8 +2358,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 26; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.26'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 27; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.27'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -2757,6 +2757,7 @@ function openModal(id) {
     <button class="btn btn-outline" onclick="toggleHouse('${c.id}')">${c.house ? '🏠 House' : '+ House Menu'}</button>
     <button class="btn ${c.tried ? 'btn-tried-on' : 'btn-outline'}" onclick="toggleTried('${c.id}')" style="${c.tried ? 'background:rgba(120,160,255,0.15);color:#8aaaff;border-color:rgba(120,160,255,0.4)' : ''}">${c.tried ? '✓ Tried It' : '◎ Tried It?'}</button>
     <button class="btn btn-outline" onclick="editExistingCocktail('${c.id}')">✎ Edit</button>
+    ${ (c.edited && DEFAULT_COCKTAILS.some(function(dc){ return dc.id === c.id; })) ? `<button class="btn btn-outline" onclick="resetRecipeToDefault('${c.id}')">↺ Reset to Default</button>` : '' }
     <button class="btn btn-outline" style="color:var(--red);border-color:rgba(200,80,80,0.3)" onclick="removeFromMenu('${c.id}')">✕ Remove</button>
   </div>`;
 
@@ -2787,6 +2788,31 @@ function openModal(id) {
   overlay.classList.add('open');
 }
 
+
+function resetRecipeToDefault(id) {
+  var def = DEFAULT_COCKTAILS.find(function(dc){ return dc.id === id; });
+  if (!def) { toast('No default version exists for this recipe'); return; }
+  var cur = state.cocktails.find(function(x){ return x.id === id; });
+  if (!cur) return;
+  if (!confirm('Reset "' + cur.name + '" to the original recipe? Your edits to its ingredients, steps, and notes will be discarded. Liked/House/Tried marks are kept.')) return;
+
+  // Rebuild from the default, but preserve the user's flags
+  var fresh = JSON.parse(JSON.stringify(def));
+  fresh.liked = cur.liked || false;
+  fresh.house = cur.house || false;
+  fresh.tried = cur.tried || false;
+  fresh.flagTs = Date.now();
+  // edited flag is intentionally dropped → back to pristine default content
+
+  var idx = state.cocktails.findIndex(function(x){ return x.id === id; });
+  if (idx >= 0) state.cocktails[idx] = fresh;
+
+  save();
+  syncToCloud();
+  renderCocktails();
+  openModal(id);
+  toast('Reset to original recipe ↺');
+}
 
 function removeFromMenu(id) {
   var c = state.cocktails.find(function(x){ return x.id === id; });
