@@ -1369,6 +1369,27 @@
   .bottle-section {
     padding: 20px 24px 0;
   }
+  .bottle-info-btn {
+    background: var(--bg3); color: var(--gold); border: 1px solid var(--border2);
+    border-radius: 8px; padding: 4px 10px; font-size: 11px; letter-spacing: 0.04em;
+    cursor: pointer; font-family: 'Jost', sans-serif;
+  }
+  .bottle-info-btn:active { transform: scale(0.96); }
+  .bottle-info-label {
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--text3); margin-bottom: 3px; display: block;
+  }
+  .bottle-info-value { font-size: 15px; color: var(--gold2); font-weight: 500; }
+  .bottle-info-desc {
+    font-size: 14px; line-height: 1.55; color: var(--text2);
+    font-family: 'Cormorant Garamond', serif; font-size: 17px;
+  }
+  .bottle-info-form input, .bottle-info-form textarea {
+    width: 100%; background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 8px; padding: 9px 11px; color: var(--text); font-size: 14px;
+    margin-bottom: 10px; font-family: 'Jost', sans-serif; box-sizing: border-box;
+  }
+  .bottle-info-form input:focus, .bottle-info-form textarea:focus { outline: none; border-color: var(--gold3); }
   .bottle-section-title {
     font-size: 11px;
     letter-spacing: 0.18em;
@@ -2264,7 +2285,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=27"></script>
+<script src="db.js?v=28"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2358,8 +2379,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 27; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.27'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 28; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.28'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -4414,6 +4435,136 @@ const KIND_TO_COCKTAILDB = {
   "Orange Bitters": "orange bitters",
 };
 
+// ── BOTTLE INFO (ABV / origin / tasting notes) ───────────────────────────────
+
+function renderBottleInfoSection(item) {
+  var info = item.info || {};
+  var hasInfo = info.abv || info.origin || info.description;
+  var h = '<div class="bottle-section" id="bottle-info-section">';
+  h += '<div class="bottle-section-title" style="display:flex;justify-content:space-between;align-items:center;">'
+     + '<span>About this bottle</span>'
+     + '<span style="display:flex;gap:8px;">'
+     + '<button class="bottle-info-btn" onclick="fetchBottleInfo(\'' + item.id + '\')" title="Fetch from web">⟳ Web</button>'
+     + '<button class="bottle-info-btn" onclick="editBottleInfo(\'' + item.id + '\')" title="Edit">✎ Edit</button>'
+     + '</span></div>';
+
+  h += '<div id="bottle-info-content">';
+  if (hasInfo) {
+    if (info.abv || info.origin) {
+      h += '<div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px;">';
+      if (info.abv)    h += '<div><div class="bottle-info-label">ABV</div><div class="bottle-info-value">' + info.abv + '</div></div>';
+      if (info.origin) h += '<div><div class="bottle-info-label">Origin</div><div class="bottle-info-value">' + info.origin + '</div></div>';
+      h += '</div>';
+    }
+    if (info.description) h += '<div class="bottle-info-desc">' + info.description + '</div>';
+  } else {
+    h += '<div class="bottle-empty" style="padding:10px 0;">No info yet. Tap <b>⟳ Web</b> to fetch details, or <b>✎ Edit</b> to add your own.</div>';
+  }
+  h += '</div></div>';
+  return h;
+}
+
+function editBottleInfo(itemId) {
+  var item = state.inventory.find(function(i){ return i.id === itemId; });
+  if (!item) return;
+  var info = item.info || {};
+  var content = document.getElementById('bottle-info-content');
+  if (!content) return;
+  content.innerHTML =
+    '<div class="bottle-info-form">'
+    + '<label class="bottle-info-label">ABV</label>'
+    + '<input id="bi-abv" type="text" placeholder="e.g. 40%" value="' + (info.abv || '').replace(/"/g,'&quot;') + '">'
+    + '<label class="bottle-info-label">Origin</label>'
+    + '<input id="bi-origin" type="text" placeholder="e.g. Galicia, Spain" value="' + (info.origin || '').replace(/"/g,'&quot;') + '">'
+    + '<label class="bottle-info-label">Description / tasting notes</label>'
+    + '<textarea id="bi-desc" rows="4" placeholder="Botanicals, flavor, character…">' + (info.description || '') + '</textarea>'
+    + '<div style="display:flex;gap:8px;margin-top:10px;">'
+    + '<button class="btn btn-gold" style="flex:1;" onclick="saveBottleInfo(\'' + itemId + '\')">Save</button>'
+    + '<button class="btn btn-outline" style="flex:1;" onclick="openBottleModal(\'' + itemId + '\')">Cancel</button>'
+    + '</div></div>';
+}
+
+function saveBottleInfo(itemId) {
+  var item = state.inventory.find(function(i){ return i.id === itemId; });
+  if (!item) return;
+  item.info = {
+    abv: document.getElementById('bi-abv').value.trim(),
+    origin: document.getElementById('bi-origin').value.trim(),
+    description: document.getElementById('bi-desc').value.trim()
+  };
+  item.infoTs = Date.now();
+  save();
+  syncToCloud();
+  toast('Bottle info saved');
+  openBottleModal(itemId);
+}
+
+async function fetchBottleInfo(itemId) {
+  var item = state.inventory.find(function(i){ return i.id === itemId; });
+  if (!item) return;
+  var content = document.getElementById('bottle-info-content');
+  if (content) content.innerHTML = '<div class="discover-loading"><span class="spin-anim">\u27F3</span> Searching the web for ' + item.label + '\u2026</div>';
+
+  try {
+    var query = item.label + ' ' + item.kind + ' abv tasting notes';
+    var url = 'https://r.jina.ai/https://www.google.com/search?q=' + encodeURIComponent(query);
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 12000) : null;
+    var resp = await fetch(url, ctrl ? { signal: ctrl.signal } : {});
+    if (timer) clearTimeout(timer);
+    if (!resp.ok) throw new Error('search failed (' + resp.status + ')');
+    var text = await resp.text();
+
+    var parsed = parseBottleInfoFromText(text, item);
+    if (!parsed.abv && !parsed.description) {
+      toast('Couldn\'t find clear info — add it manually');
+      editBottleInfo(itemId);
+      return;
+    }
+    // Pre-fill the edit form with fetched values so the user can confirm/tweak
+    item._fetched = parsed;
+    editBottleInfo(itemId);
+    setTimeout(function() {
+      if (document.getElementById('bi-abv') && parsed.abv) document.getElementById('bi-abv').value = parsed.abv;
+      if (document.getElementById('bi-origin') && parsed.origin) document.getElementById('bi-origin').value = parsed.origin;
+      if (document.getElementById('bi-desc') && parsed.description) document.getElementById('bi-desc').value = parsed.description;
+    }, 50);
+    toast('Found info — review and Save ✓');
+  } catch(e) {
+    toast('Web fetch failed: ' + (e.message || 'error') + '. Add manually.');
+    editBottleInfo(itemId);
+  }
+}
+
+function parseBottleInfoFromText(text, item) {
+  var result = { abv: '', origin: '', description: '' };
+
+  // ABV — look for "40% ABV", "ABV: 40%", "40% alcohol"
+  var abvM = text.match(/(\d{1,2}(?:\.\d)?)\s*%\s*(?:abv|alc|alcohol)/i)
+          || text.match(/(?:abv|alcohol)[:\s]*?(\d{1,2}(?:\.\d)?)\s*%/i);
+  if (abvM) result.abv = abvM[1] + '%';
+
+  // Origin — country/region cues
+  var originM = text.match(/(?:from|origin|produced in|made in|distilled in)\s+([A-Z][a-zA-Z]+(?:,?\s+[A-Z][a-zA-Z]+){0,2})/);
+  if (originM) result.origin = originM[1].replace(/\s+/g, ' ').trim();
+
+  // Description — grab the first substantial sentence mentioning the product or its category
+  var clean = text.replace(/\[[^\]]*\]\([^)]*\)/g, '').replace(/[#*_>`]/g, ' ').replace(/\s+/g, ' ');
+  var sentences = clean.split(/(?<=[.!?])\s+/);
+  var kindWord = (item.kind || '').split(' ')[0].toLowerCase();
+  for (var i = 0; i < sentences.length; i++) {
+    var s = sentences[i].trim();
+    if (s.length > 50 && s.length < 320 &&
+        (s.toLowerCase().indexOf(kindWord) !== -1 ||
+         /botanical|flavou?r|notes|palate|aroma|smooth|distill|tasting|character/i.test(s)) &&
+        !/cookie|privacy|sign in|subscribe|©|http/i.test(s)) {
+      result.description = s;
+      break;
+    }
+  }
+  return result;
+}
+
 async function openBottleModal(itemId) {
   try {
     const item = state.inventory.find(function(i){ return i.id === itemId; });
@@ -4430,7 +4581,12 @@ async function openBottleModal(itemId) {
       return c.ingredients.some(function(i){ return i.kind === item.kind; });
     });
 
-    let html = '<div class="bottle-section">';
+    let html = '';
+
+    // ── Bottle info card (ABV / origin / description) ──
+    html += renderBottleInfoSection(item);
+
+    html += '<div class="bottle-section">';
     html += '<div class="bottle-section-title">In Your Collection</div>';
     if (yours.length) {
       html += '<div class="bottle-cocktail-grid">';
@@ -5248,10 +5404,18 @@ function syncFromCloud() {
         });
         var delSet = new Set(state.deleted);
 
+        var localInvById = {};
+        state.inventory.forEach(function(it){ localInvById[it.id] = it; });
         var mergedInv = DEFAULT_INVENTORY.filter(function(di){ return !delSet.has(di.id); }).map(function(di) {
           var cloud = cloudInvById[di.id];
+          var local = localInvById[di.id];
           var result = JSON.parse(JSON.stringify(di));
           if (cloud) result.on = cloud.on;
+          // Carry bottle info — keep whichever side has the newer infoTs
+          var cInfo = cloud && cloud.info, cTs = (cloud && cloud.infoTs) || 0;
+          var lInfo = local && local.info, lTs = (local && local.infoTs) || 0;
+          if (cTs >= lTs && cInfo) { result.info = cInfo; result.infoTs = cTs; }
+          else if (lInfo) { result.info = lInfo; result.infoTs = lTs; }
           return result;
         });
         cloudInventory.filter(function(i){ return !defaultInvIds.has(i.id) && !delSet.has(i.id); }).forEach(function(i){ mergedInv.push(i); });
