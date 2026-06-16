@@ -15,6 +15,7 @@ const DEFAULT_INVENTORY = [
   { id:"i5", cat:"Spirit", kind:"Gin", label:"Votanikon", on:true },
   { id:"i6", cat:"Spirit", kind:"Gin", label:"Zohara Gin", on:true },
   { id:"i154", cat:"Spirit", kind:"Gin", label:"Gin Mare Capri", on:true },
+  { id:"i155", cat:"Spirit", kind:"Gin", label:"Nordés Atlantic Galician Gin", on:true },
   // Vodka
   { id:"i11", cat:"Spirit", kind:"Vodka", label:"Berlin Vodka", on:false },
   { id:"i17", cat:"Spirit", kind:"Vodka", label:"Belvedere", on:true },
@@ -94,6 +95,7 @@ const DEFAULT_INVENTORY = [
   { id:"i93", cat:"Modifier", kind:"Amaro", label:"Picon", on:true },
   // Triple Sec
   { id:"i95", cat:"Modifier", kind:"Triple Sec", label:"Cointreau", on:true },
+  { id:"i156", cat:"Modifier", kind:"Whiskey Liqueur", label:"Southern Comfort", on:true },
   { id:"i96", cat:"Modifier", kind:"Triple Sec", label:"Grand Marnier", on:true },
   // Herbal Liqueur
   { id:"i100", cat:"Modifier", kind:"Herbal Liqueur", label:"Benedictine", on:true },
