@@ -2264,7 +2264,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=25"></script>
+<script src="db.js?v=26"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2358,8 +2358,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 25; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.25'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 26; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.26'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -2378,8 +2378,15 @@ var APP_VERSION = '1.25'; // shown in the page footer; bump on every deploy
   var deletedCk = new Set(JSON.parse(localStorage.getItem('vadi_deleted_cocktails')) || []);
   var merged = DEFAULT_COCKTAILS.filter(function(dc){ return !deletedCk.has(dc.id); }).map(function(dc) {
     var s = savedById[dc.id];
-    if (s) return Object.assign(JSON.parse(JSON.stringify(dc)), { liked: s.liked||false, house: s.house||false, tried: s.tried||false });
-    return JSON.parse(JSON.stringify(dc));
+    if (!s) return JSON.parse(JSON.stringify(dc));
+    // User edited this recipe's content — keep their version entirely.
+    if (s.edited) return JSON.parse(JSON.stringify(s));
+    // Un-edited default: refresh recipe content from db.js, but carry over
+    // the user's flags (liked/house/tried) and their timestamps.
+    return Object.assign(JSON.parse(JSON.stringify(dc)), {
+      liked: s.liked||false, house: s.house||false, tried: s.tried||false,
+      flagTs: s.flagTs||0
+    });
   });
 
   // Append user-created recipes
@@ -3202,6 +3209,10 @@ function saveRecipe() {
     // Preserve tried flag that isn't captured in the form
     var prev = idx >= 0 ? state.cocktails[idx] : null;
     if (prev && prev.tried) c.tried = true;
+    // Mark as user-edited so a future DB_VERSION rebuild won't revert this
+    // recipe's content back to the db.js default.
+    c.edited = true;
+    c.flagTs = Date.now();
     if (idx >= 0) state.cocktails[idx] = c; else state.cocktails.push(c);
     // If editing a default that was previously tombstoned, un-tombstone it
     state.deletedCocktails = state.deletedCocktails.filter(function(d){ return d !== editingCocktailId; });
@@ -5173,6 +5184,15 @@ function syncFromCloud() {
         var merged = DEFAULT_COCKTAILS.filter(function(dc){ return !delCkSet.has(dc.id); }).map(function(dc) {
           var cloud = cloudCkById[dc.id];
           var local = localCkById[dc.id];
+          // If either side edited this recipe's content, keep the newer edited copy.
+          var localEdited = local && local.edited;
+          var cloudEdited = cloud && cloud.edited;
+          if (localEdited || cloudEdited) {
+            var lTs = (local && local.flagTs) || 0;
+            var cTs = (cloud && cloud.flagTs) || 0;
+            var winner = (cloudEdited && cTs >= lTs) ? cloud : (localEdited ? local : cloud);
+            return JSON.parse(JSON.stringify(winner));
+          }
           var result = JSON.parse(JSON.stringify(dc));
           var f = pickFlags(local, cloud);
           result.liked = f.liked; result.house = f.house; result.tried = f.tried; result.flagTs = f.flagTs;
