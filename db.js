@@ -80,8 +80,8 @@ const DEFAULT_INVENTORY = [
   { id:"i80", cat:"Modifier", kind:"Sweet Vermouth", label:"Carpano Antica Formula", on:true, info:{ abv:"16.5%", origin:"Italy", description:"Carpano Antica Formula is a rich, full-bodied sweet vermouth with vanilla, dried fig, cocoa and bitter-orange depth. A premium choice for a Manhattan or Negroni." } },
   { id:"i82", cat:"Modifier", kind:"Sweet Vermouth", label:"Dolin Sweet", on:true, info:{ abv:"16%", origin:"France", description:"Dolin Rouge (Sweet) is a lighter, more delicate sweet vermouth from Chambéry — floral, gently bitter and less sugary than Italian styles." } },
   { id:"i81", cat:"Modifier", kind:"Sweet Vermouth", label:"Julius Vermut", on:true },
-  { id:"i83", cat:"Modifier", kind:"Sweet Vermouth", label:"Martini Bianco", on:true },
-  { id:"i84", cat:"Modifier", kind:"Sweet Vermouth", label:"Martini Rosso", on:true },
+  { id:"i83", cat:"Modifier", kind:"Sweet Vermouth", label:"Martini Bianco", on:true, info:{ abv:"15%", origin:"Pessione, Italy", description:"Martini Bianco is a sweet white (bianco) vermouth with vanilla, citrus peel and Alpine herbs over a Trebbiano wine base. Floral and lightly spiced — great over ice, in a spritz, or a White Negroni." } },
+  { id:"i84", cat:"Modifier", kind:"Sweet Vermouth", label:"Martini Rosso", on:true, info:{ abv:"15%", origin:"Pessione, Italy", description:"Martini Rosso is the original Italian sweet red vermouth (since 1863) — fuller-bodied and caramelized with a subtle bitterness from over 30 botanicals. A classic in the Negroni, Americano and Manhattan." } },
   // Dry Vermouth
   { id:"i85", cat:"Modifier", kind:"Dry Vermouth", label:"Dolin Dry", on:true, info:{ abv:"17.5%", origin:"France", description:"Dolin Dry is a pale, crisp dry vermouth from Chambéry with alpine-herb and white-flower notes. Lighter and more floral than the French standard." } },
   // Campari
@@ -111,7 +111,7 @@ const DEFAULT_INVENTORY = [
   // Cream Liqueur
   { id:"i112", cat:"Modifier", kind:"Cream Liqueur", label:"Baileys", on:true, info:{ abv:"17%", origin:"Ireland", description:"Baileys is an Irish cream liqueur blending Irish whiskey with dairy cream and cocoa. Smooth, sweet and dessert-like." } },
   // Coffee Liqueur
-  { id:"i114", cat:"Modifier", kind:"Coffee Liqueur", label:"Coffee Liqueur", on:true },
+  { id:"i114", cat:"Modifier", kind:"Coffee Liqueur", label:"Kahlúa", on:true, info:{ abv:"20%", origin:"Veracruz, Mexico", description:"Kahlúa is a Mexican coffee liqueur made from rum, Arabica coffee and sugar. Rich, sweet and unmistakably coffee-forward — the base of the Espresso Martini, White Russian and Mudslide." } },
   // Cherry Liqueur
   { id:"i113", cat:"Modifier", kind:"Cherry Liqueur", label:"Cherry Liqueur", on:true },
   // Cassis
