@@ -2285,7 +2285,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=28"></script>
+<script src="db.js?v=29"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2379,8 +2379,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 28; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.28'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 29; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.29'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -2428,9 +2428,19 @@ var APP_VERSION = '1.28'; // shown in the page footer; bump on every deploy
   var savedIds = new Set(savedInv.map(function(i){ return i.id; }));
   var deletedIds = new Set(JSON.parse(localStorage.getItem('vadi_deleted')) || []);
   var dirty = false;
+  var defInfoById = {};
+  DEFAULT_INVENTORY.forEach(function(di){ if (di.info) defInfoById[di.id] = di.info; });
   DEFAULT_INVENTORY.forEach(function(di) {
     if (!savedIds.has(di.id) && !deletedIds.has(di.id)) {
       savedInv.push(JSON.parse(JSON.stringify(di)));
+      dirty = true;
+    }
+  });
+  // Backfill default bottle info onto existing saved items that don't have
+  // any info yet (user-entered info is never overwritten).
+  savedInv.forEach(function(it) {
+    if (!it.info && defInfoById[it.id]) {
+      it.info = JSON.parse(JSON.stringify(defInfoById[it.id]));
       dirty = true;
     }
   });
