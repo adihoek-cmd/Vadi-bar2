@@ -10,40 +10,40 @@ const DEFAULT_INVENTORY = [
   // Gin
   { id:"i1", cat:"Spirit", kind:"Gin", label:"Deer Premium Dry", on:true },
   { id:"i2", cat:"Spirit", kind:"Gin", label:"Deer Vegetable Dry", on:true },
-  { id:"i3", cat:"Spirit", kind:"Gin", label:"Tanqueray No. Ten", on:true },
-  { id:"i4", cat:"Spirit", kind:"Gin", label:"Tanqueray Rangpur", on:true },
+  { id:"i3", cat:"Spirit", kind:"Gin", label:"Tanqueray No. Ten", on:true, info:{ abv:"47.3%", origin:"Scotland", description:"Tanqueray No. Ten is a small-batch gin distilled with fresh whole citrus (orange, lime, grapefruit) and chamomile, giving a bright, fresh-pressed citrus character with a smooth juniper backbone. Named after the 'Tiny Ten' still." } },
+  { id:"i4", cat:"Spirit", kind:"Gin", label:"Tanqueray Rangpur", on:true, info:{ abv:"41.3%", origin:"Scotland", description:"Tanqueray Rangpur is infused with rangpur limes (a citrus hybrid), bay leaf and ginger, producing a zesty, lime-forward gin that shines in a Gin & Tonic." } },
   { id:"i5", cat:"Spirit", kind:"Gin", label:"Votanikon", on:true },
   { id:"i6", cat:"Spirit", kind:"Gin", label:"Zohara Gin", on:true },
-  { id:"i154", cat:"Spirit", kind:"Gin", label:"Gin Mare Capri", on:true },
-  { id:"i155", cat:"Spirit", kind:"Gin", label:"Nordés Atlantic Galician Gin", on:true },
+  { id:"i154", cat:"Spirit", kind:"Gin", label:"Gin Mare Capri", on:true, info:{ abv:"42.7%", origin:"Capri, Italy", description:"Gin Mare Capri is a Mediterranean gin built on savory botanicals — Arbequina olives, rosemary, thyme and basil — with this edition adding Capri lemon for a brighter citrus lift. Distinctly herbal rather than juniper-forward." } },
+  { id:"i155", cat:"Spirit", kind:"Gin", label:"Nordés Atlantic Galician Gin", on:true, info:{ abv:"40%", origin:"Galicia, Spain", description:"Nordés is an Atlantic Galician gin made with a grape-based spirit (Albariño) and 11 botanicals including local herbs, eucalyptus and bay. Soft, floral and slightly saline, reflecting its coastal origin." } },
   // Vodka
   { id:"i11", cat:"Spirit", kind:"Vodka", label:"Berlin Vodka", on:false },
-  { id:"i17", cat:"Spirit", kind:"Vodka", label:"Belvedere", on:true },
-  { id:"i12", cat:"Spirit", kind:"Vodka", label:"Ciroc Vodka", on:true },
-  { id:"i10", cat:"Spirit", kind:"Vodka", label:"Ketel One", on:true },
+  { id:"i17", cat:"Spirit", kind:"Vodka", label:"Belvedere", on:true, info:{ abv:"40%", origin:"Poland", description:"Belvedere is a Polish rye vodka made from Dankowskie rye and purified water, four times distilled. Full-bodied with a touch of vanilla sweetness and a clean, rounded finish." } },
+  { id:"i12", cat:"Spirit", kind:"Vodka", label:"Ciroc Vodka", on:true, info:{ abv:"40%", origin:"France", description:"Cîroc is unusual in being distilled from French grapes (Mauzac Blanc and Ugni Blanc) rather than grain, giving a smooth, slightly fruity and crisp character." } },
+  { id:"i10", cat:"Spirit", kind:"Vodka", label:"Ketel One", on:true, info:{ abv:"40%", origin:"Netherlands", description:"Ketel One is a wheat-based vodka from the Nolet distillery, distilled in copper pot stills. Crisp and clean with a subtle citrus and honey note." } },
   { id:"i14", cat:"Spirit", kind:"Vodka", label:"Stolichnaya Vanilla", on:true },
   { id:"i15", cat:"Spirit", kind:"Vodka", label:"Van Gogh Acai Blueberry", on:true },
   { id:"i16", cat:"Spirit", kind:"Vodka", label:"Zubrówka Palona", on:true },
   // Irish Whiskey
-  { id:"i103", cat:"Spirit", kind:"Irish Whiskey", label:"Jameson Irish Whiskey", on:true },
+  { id:"i103", cat:"Spirit", kind:"Irish Whiskey", label:"Jameson Irish Whiskey", on:true, info:{ abv:"40%", origin:"Ireland", description:"Jameson is a triple-distilled blend of pot still and grain whiskey, matured in oak. Smooth and approachable with notes of vanilla, toasted wood and light spice." } },
   // Blended Scotch
-  { id:"i30", cat:"Spirit", kind:"Blended Scotch", label:"Compass Box Spice Tree", on:true },
+  { id:"i30", cat:"Spirit", kind:"Blended Scotch", label:"Compass Box Spice Tree", on:true, info:{ abv:"46%", origin:"Scotland", description:"Compass Box Spice Tree is a blended malt finished with French oak, delivering warm baking spice, clove and nutmeg over a rich malty base. Bottled without chill-filtration." } },
   // Highland Scotch
-  { id:"i32", cat:"Spirit", kind:"Highland Scotch", label:"Glenmorangie Triple Cask Reserve", on:true },
+  { id:"i32", cat:"Spirit", kind:"Highland Scotch", label:"Glenmorangie Triple Cask Reserve", on:true, info:{ abv:"40%", origin:"Highlands, Scotland", description:"Glenmorangie Triple Cask Reserve is matured in three cask types including charred oak, giving extra sweetness and spice over the classic 10-year — honey, vanilla and a hint of cinnamon." } },
 
   // Israeli Whisky
   { id:"i160", cat:"Spirit", kind:"Israeli Whisky", label:"Ruach Chosen 421", on:true },
 
   // Peated Scotch
   { id:"i38", cat:"Spirit", kind:"Peated Scotch", label:"Barrach The Smoky 12", on:true },
-  { id:"i36", cat:"Spirit", kind:"Peated Scotch", label:"Kilchoman Machir Bay", on:true },
-  { id:"i35", cat:"Spirit", kind:"Peated Scotch", label:"Laphroaig 10", on:true },
-  { id:"i37", cat:"Spirit", kind:"Peated Scotch", label:"Talisker 10", on:true },
+  { id:"i36", cat:"Spirit", kind:"Peated Scotch", label:"Kilchoman Machir Bay", on:true, info:{ abv:"46%", origin:"Islay, Scotland", description:"Kilchoman Machir Bay is a heavily peated Islay single malt with maritime smoke, citrus and vanilla. Non-chill-filtered, from one of Islay's smallest farm distilleries." } },
+  { id:"i35", cat:"Spirit", kind:"Peated Scotch", label:"Laphroaig 10", on:true, info:{ abv:"40%", origin:"Islay, Scotland", description:"Laphroaig 10 is the quintessential medicinal Islay malt — intense peat smoke, iodine, seaweed and a sweet vanilla core. Bold and unmistakable." } },
+  { id:"i37", cat:"Spirit", kind:"Peated Scotch", label:"Talisker 10", on:true, info:{ abv:"45.8%", origin:"Isle of Skye, Scotland", description:"Talisker 10 is a maritime single malt with peppery smoke, brine and a warming, peaty finish. Famous for its 'lava' pepper kick." } },
   // Bourbon
-  { id:"i40", cat:"Spirit", kind:"Bourbon", label:"1792 Ridgewood Reserve", on:true },
-  { id:"i41", cat:"Spirit", kind:"Bourbon", label:"Woodford Reserve Bourbon", on:true },
+  { id:"i40", cat:"Spirit", kind:"Bourbon", label:"1792 Ridgewood Reserve", on:true, info:{ abv:"46.85%", origin:"Kentucky, USA", description:"1792 is a high-rye small-batch bourbon, bold and spicy with caramel, vanilla and a dry, peppery finish." } },
+  { id:"i41", cat:"Spirit", kind:"Bourbon", label:"Woodford Reserve Bourbon", on:true, info:{ abv:"43.2%", origin:"Kentucky, USA", description:"Woodford Reserve is a small-batch bourbon with rich notes of dried fruit, vanilla, toffee and spice, distilled partly in copper pot stills." } },
   // Rye Whiskey
-  { id:"i45", cat:"Spirit", kind:"Rye Whiskey", label:"Woodford Reserve Rye", on:true },
+  { id:"i45", cat:"Spirit", kind:"Rye Whiskey", label:"Woodford Reserve Rye", on:true, info:{ abv:"45.2%", origin:"Kentucky, USA", description:"Woodford Reserve Rye is a spicy, full-bodied rye with black pepper, mint and baking-spice notes balanced by sweet oak." } },
   // English Whisky
   { id:"i46", cat:"Spirit", kind:"English Whisky", label:"The Lakes Respeber", on:true },
 
@@ -51,15 +51,15 @@ const DEFAULT_INVENTORY = [
   { id:"i20", cat:"Spirit", kind:"Rum", label:"Calypso Red Rum", on:true },
   { id:"i21", cat:"Spirit", kind:"Rum", label:"El Supremo 8", on:true },
   { id:"i26", cat:"Spirit", kind:"Rum", label:"Jang & Wulff Barbados No. 3", on:true },
-  { id:"i23", cat:"Spirit", kind:"Rum", label:"Smith & Cross", on:true },
+  { id:"i23", cat:"Spirit", kind:"Rum", label:"Smith & Cross", on:true, info:{ abv:"57%", origin:"Jamaica", description:"Smith & Cross is a navy-strength Jamaican pot still rum bursting with funky, overripe-banana esters, molasses and tropical fruit. A classic tiki and Mai Tai workhorse." } },
   { id:"i24", cat:"Spirit", kind:"Rum", label:"Takamaka Zepis Kreol", on:true },
-  { id:"i25", cat:"Spirit", kind:"Rum", label:"The Kraken Black Spiced", on:true },
+  { id:"i25", cat:"Spirit", kind:"Rum", label:"The Kraken Black Spiced", on:true, info:{ abv:"40%", origin:"Trinidad & Tobago", description:"The Kraken is a dark spiced rum flavored with cinnamon, clove and ginger, named after the legendary sea monster. Rich, sweet and bold." } },
   // Tequila
   { id:"i53", cat:"Spirit", kind:"Tequila", label:"Cenote Ahumado", on:true },
   { id:"i52", cat:"Spirit", kind:"Tequila", label:"Cenote Blanco", on:true },
-  { id:"i50", cat:"Spirit", kind:"Tequila", label:"Don Julio 1942", on:true },
-  { id:"i51", cat:"Spirit", kind:"Tequila", label:"Jose Cuervo Especial", on:true },
-  { id:"i54", cat:"Spirit", kind:"Tequila", label:"Patron Silver", on:true },
+  { id:"i50", cat:"Spirit", kind:"Tequila", label:"Don Julio 1942", on:true, info:{ abv:"40%", origin:"Jalisco, Mexico", description:"Don Julio 1942 is a luxury añejo aged at least 2.5 years in American oak, with rich caramel, vanilla, roasted agave and warm spice. Smooth enough to sip neat." } },
+  { id:"i51", cat:"Spirit", kind:"Tequila", label:"Jose Cuervo Especial", on:true, info:{ abv:"38%", origin:"Jalisco, Mexico", description:"Jose Cuervo Especial is a gold mixto tequila, smooth and lightly sweet — a margarita staple." } },
+  { id:"i54", cat:"Spirit", kind:"Tequila", label:"Patron Silver", on:true, info:{ abv:"40%", origin:"Jalisco, Mexico", description:"Patrón Silver is a crisp, handcrafted blanco tequila with fresh agave, citrus and light pepper. Versatile in cocktails." } },
   // Mezcal
   { id:"i57", cat:"Spirit", kind:"Mezcal", label:"Espina Dorada", on:true },
   { id:"i58", cat:"Spirit", kind:"Mezcal", label:"Se Busca Joven", on:true },
@@ -67,7 +67,7 @@ const DEFAULT_INVENTORY = [
   // Cachaca
   { id:"i65", cat:"Spirit", kind:"Cachaca", label:"El Cachaca", on:true },
   // Cognac
-  { id:"i60", cat:"Spirit", kind:"Cognac", label:"Courvoisier VS", on:true },
+  { id:"i60", cat:"Spirit", kind:"Cognac", label:"Courvoisier VS", on:true, info:{ abv:"40%", origin:"Cognac, France", description:"Courvoisier VS is a young cognac with bright fruit, vanilla and a touch of oak. A solid mixing brandy for Sidecars and Sazeracs." } },
   { id:"i61", cat:"Spirit", kind:"Cognac", label:"Torres 10", on:true },
   // Rakia
   { id:"i70", cat:"Spirit", kind:"Rakia", label:"Rakia Kvatka", on:true },
@@ -77,31 +77,31 @@ const DEFAULT_INVENTORY = [
 
   // ── MODIFIER ──────────────────────────────────────────
   // Sweet Vermouth
-  { id:"i80", cat:"Modifier", kind:"Sweet Vermouth", label:"Carpano Antica Formula", on:true },
-  { id:"i82", cat:"Modifier", kind:"Sweet Vermouth", label:"Dolin Sweet", on:true },
+  { id:"i80", cat:"Modifier", kind:"Sweet Vermouth", label:"Carpano Antica Formula", on:true, info:{ abv:"16.5%", origin:"Italy", description:"Carpano Antica Formula is a rich, full-bodied sweet vermouth with vanilla, dried fig, cocoa and bitter-orange depth. A premium choice for a Manhattan or Negroni." } },
+  { id:"i82", cat:"Modifier", kind:"Sweet Vermouth", label:"Dolin Sweet", on:true, info:{ abv:"16%", origin:"France", description:"Dolin Rouge (Sweet) is a lighter, more delicate sweet vermouth from Chambéry — floral, gently bitter and less sugary than Italian styles." } },
   { id:"i81", cat:"Modifier", kind:"Sweet Vermouth", label:"Julius Vermut", on:true },
   { id:"i83", cat:"Modifier", kind:"Sweet Vermouth", label:"Martini Bianco", on:true },
   { id:"i84", cat:"Modifier", kind:"Sweet Vermouth", label:"Martini Rosso", on:true },
   // Dry Vermouth
-  { id:"i85", cat:"Modifier", kind:"Dry Vermouth", label:"Dolin Dry", on:true },
+  { id:"i85", cat:"Modifier", kind:"Dry Vermouth", label:"Dolin Dry", on:true, info:{ abv:"17.5%", origin:"France", description:"Dolin Dry is a pale, crisp dry vermouth from Chambéry with alpine-herb and white-flower notes. Lighter and more floral than the French standard." } },
   // Campari
-  { id:"i90", cat:"Modifier", kind:"Campari", label:"Campari", on:true },
+  { id:"i90", cat:"Modifier", kind:"Campari", label:"Campari", on:true, info:{ abv:"25%", origin:"Italy", description:"Campari is a bright-red bitter aperitivo with intense bitter-orange and herbal notes. The backbone of the Negroni, Americano and Spritz." } },
   // Aperol
-  { id:"i91", cat:"Modifier", kind:"Aperol", label:"Aperol", on:true },
+  { id:"i91", cat:"Modifier", kind:"Aperol", label:"Aperol", on:true, info:{ abv:"11%", origin:"Italy", description:"Aperol is a low-proof orange aperitivo, gently bitter and sweet with rhubarb and orange. The classic Spritz base." } },
   // Bitter Bianco
-  { id:"i153", cat:"Modifier", kind:"Bitter Bianco", label:"Luxardo Bitter Bianco", on:true },
+  { id:"i153", cat:"Modifier", kind:"Bitter Bianco", label:"Luxardo Bitter Bianco", on:true, info:{ abv:"30%", origin:"Italy", description:"Luxardo Bitter Bianco is a clear bitter aperitivo — delicate, herbaceous and citrusy with rosemary and white pepper. A refined, colorless alternative to Campari for a White Negroni." } },
   // Amaro
-  { id:"i92", cat:"Modifier", kind:"Amaro", label:"Fernet-Branca", on:true },
-  { id:"i93", cat:"Modifier", kind:"Amaro", label:"Picon", on:true },
+  { id:"i92", cat:"Modifier", kind:"Amaro", label:"Fernet-Branca", on:true, info:{ abv:"39%", origin:"Italy", description:"Fernet-Branca is a powerful, bitter amaro with menthol, myrrh and saffron. Bracing as a digestif and key to the Hanky Panky." } },
+  { id:"i93", cat:"Modifier", kind:"Amaro", label:"Picon", on:true, info:{ abv:"21%", origin:"France", description:"Picon is an orange-flavored bitter apéritif with gentian and quinine, traditionally added to beer or used to deepen a Negroni." } },
   // Triple Sec
-  { id:"i95", cat:"Modifier", kind:"Triple Sec", label:"Cointreau", on:true },
-  { id:"i156", cat:"Modifier", kind:"Whiskey Liqueur", label:"Southern Comfort", on:true },
-  { id:"i96", cat:"Modifier", kind:"Triple Sec", label:"Grand Marnier", on:true },
+  { id:"i95", cat:"Modifier", kind:"Triple Sec", label:"Cointreau", on:true, info:{ abv:"40%", origin:"France", description:"Cointreau is a premium triple sec — clear, balanced sweet-and-bitter orange from sun-dried peels. Essential in the Margarita, Sidecar and Cosmopolitan." } },
+  { id:"i156", cat:"Modifier", kind:"Whiskey Liqueur", label:"Southern Comfort", on:true, info:{ abv:"35%", origin:"USA", description:"Southern Comfort is a fruit-and-spice whiskey liqueur with peach, citrus and warm baking spice. Sweet and smooth, used in punches and the Alabama Slammer." } },
+  { id:"i96", cat:"Modifier", kind:"Triple Sec", label:"Grand Marnier", on:true, info:{ abv:"40%", origin:"France", description:"Grand Marnier blends cognac with bitter-orange liqueur for a richer, oakier orange note than plain triple sec." } },
   // Herbal Liqueur
-  { id:"i100", cat:"Modifier", kind:"Herbal Liqueur", label:"Benedictine", on:true },
-  { id:"i110", cat:"Modifier", kind:"Herbal Liqueur", label:"Drambuie", on:true },
+  { id:"i100", cat:"Modifier", kind:"Herbal Liqueur", label:"Benedictine", on:true, info:{ abv:"40%", origin:"France", description:"Bénédictine is a herbal liqueur of 27 plants and spices with honeyed, saffron and citrus-peel sweetness. Found in the Vieux Carré and Singapore Sling." } },
+  { id:"i110", cat:"Modifier", kind:"Herbal Liqueur", label:"Drambuie", on:true, info:{ abv:"40%", origin:"Scotland", description:"Drambuie is a Scotch-whisky liqueur sweetened with heather honey, herbs and spice — the heart of the Rusty Nail." } },
   { id:"i102", cat:"Modifier", kind:"Herbal Liqueur", label:"Genepi L\'Ancienne", on:true },
-  { id:"i101", cat:"Modifier", kind:"Chartreuse", label:"Green Chartreuse", on:true },
+  { id:"i101", cat:"Modifier", kind:"Chartreuse", label:"Green Chartreuse", on:true, info:{ abv:"55%", origin:"France", description:"Green Chartreuse is a 110-proof herbal liqueur made by Carthusian monks from 130 plants. Intensely complex, vegetal and spicy — the Last Word's signature." } },
   // Anise Spirit
   { id:"i111", cat:"Modifier", kind:"Anise Spirit", label:"Askalon Arack Extra Fine", on:true },
   { id:"i150", cat:"Modifier", kind:"Anise Spirit", label:"Pernod Paris", on:true },
@@ -109,7 +109,7 @@ const DEFAULT_INVENTORY = [
   { id:"i108", cat:"Modifier", kind:"Anise Spirit", label:"Sans Rival Ouzo", on:true },
   { id:"i109", cat:"Modifier", kind:"Anise Spirit", label:"Zoara Arak", on:true },
   // Cream Liqueur
-  { id:"i112", cat:"Modifier", kind:"Cream Liqueur", label:"Baileys", on:true },
+  { id:"i112", cat:"Modifier", kind:"Cream Liqueur", label:"Baileys", on:true, info:{ abv:"17%", origin:"Ireland", description:"Baileys is an Irish cream liqueur blending Irish whiskey with dairy cream and cocoa. Smooth, sweet and dessert-like." } },
   // Coffee Liqueur
   { id:"i114", cat:"Modifier", kind:"Coffee Liqueur", label:"Coffee Liqueur", on:true },
   // Cherry Liqueur
