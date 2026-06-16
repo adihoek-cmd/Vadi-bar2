@@ -21,9 +21,9 @@ const DEFAULT_INVENTORY = [
   { id:"i17", cat:"Spirit", kind:"Vodka", label:"Belvedere", on:true, info:{ abv:"40%", origin:"Poland", description:"Belvedere is a Polish rye vodka made from Dankowskie rye and purified water, four times distilled. Full-bodied with a touch of vanilla sweetness and a clean, rounded finish." } },
   { id:"i12", cat:"Spirit", kind:"Vodka", label:"Ciroc Vodka", on:true, info:{ abv:"40%", origin:"France", description:"Cîroc is unusual in being distilled from French grapes (Mauzac Blanc and Ugni Blanc) rather than grain, giving a smooth, slightly fruity and crisp character." } },
   { id:"i10", cat:"Spirit", kind:"Vodka", label:"Ketel One", on:true, info:{ abv:"40%", origin:"Netherlands", description:"Ketel One is a wheat-based vodka from the Nolet distillery, distilled in copper pot stills. Crisp and clean with a subtle citrus and honey note." } },
-  { id:"i14", cat:"Spirit", kind:"Vodka", label:"Stolichnaya Vanilla", on:true },
+  { id:"i14", cat:"Spirit", kind:"Vodka", label:"Stolichnaya Vanilla", on:true, info:{ abv:"37.5%", origin:"Latvia (Stoli)", description:"Stoli Vanil is a vanilla-flavored vodka with smooth, sweet Madagascar-vanilla character. Easy in dessert cocktails, White Russians and coffee drinks." } },
   { id:"i15", cat:"Spirit", kind:"Vodka", label:"Van Gogh Acai Blueberry", on:true },
-  { id:"i16", cat:"Spirit", kind:"Vodka", label:"Zubrówka Palona", on:true },
+  { id:"i16", cat:"Spirit", kind:"Vodka", label:"Zubrówka Palona", on:true, info:{ abv:"40%", origin:"Białystok, Poland", description:"Żubrówka is a Polish rye vodka infused with bison grass from the Białowieża Forest, giving notes of vanilla, almond and fresh-cut grass. The Palona expression adds a toasted, caramel character." } },
   // Irish Whiskey
   { id:"i103", cat:"Spirit", kind:"Irish Whiskey", label:"Jameson Irish Whiskey", on:true, info:{ abv:"40%", origin:"Ireland", description:"Jameson is a triple-distilled blend of pot still and grain whiskey, matured in oak. Smooth and approachable with notes of vanilla, toasted wood and light spice." } },
   // Blended Scotch
@@ -52,7 +52,7 @@ const DEFAULT_INVENTORY = [
   { id:"i21", cat:"Spirit", kind:"Rum", label:"El Supremo 8", on:true },
   { id:"i26", cat:"Spirit", kind:"Rum", label:"Jang & Wulff Barbados No. 3", on:true },
   { id:"i23", cat:"Spirit", kind:"Rum", label:"Smith & Cross", on:true, info:{ abv:"57%", origin:"Jamaica", description:"Smith & Cross is a navy-strength Jamaican pot still rum bursting with funky, overripe-banana esters, molasses and tropical fruit. A classic tiki and Mai Tai workhorse." } },
-  { id:"i24", cat:"Spirit", kind:"Rum", label:"Takamaka Zepis Kreol", on:true },
+  { id:"i24", cat:"Spirit", kind:"Rum", label:"Takamaka Zepis Kreol", on:true, info:{ abv:"43%", origin:"Seychelles", description:"Takamaka Zepis Kreol is a Seychelles spiced rum infused with island botanicals — cinnamon, nutmeg, vanilla and citrus. Warm, aromatic and tropical." } },
   { id:"i25", cat:"Spirit", kind:"Rum", label:"The Kraken Black Spiced", on:true, info:{ abv:"40%", origin:"Trinidad & Tobago", description:"The Kraken is a dark spiced rum flavored with cinnamon, clove and ginger, named after the legendary sea monster. Rich, sweet and bold." } },
   // Tequila
   { id:"i53", cat:"Spirit", kind:"Tequila", label:"Cenote Ahumado", on:true },
@@ -68,7 +68,7 @@ const DEFAULT_INVENTORY = [
   { id:"i65", cat:"Spirit", kind:"Cachaca", label:"El Cachaca", on:true },
   // Cognac
   { id:"i60", cat:"Spirit", kind:"Cognac", label:"Courvoisier VS", on:true, info:{ abv:"40%", origin:"Cognac, France", description:"Courvoisier VS is a young cognac with bright fruit, vanilla and a touch of oak. A solid mixing brandy for Sidecars and Sazeracs." } },
-  { id:"i61", cat:"Spirit", kind:"Cognac", label:"Torres 10", on:true },
+  { id:"i61", cat:"Spirit", kind:"Cognac", label:"Torres 10", on:true, info:{ abv:"38%", origin:"Penedès, Spain", description:"Torres 10 is Spain's best-known brandy — a 10-year solera-aged blend in American oak (since 1928), rich and rounded with vanilla, cinnamon and oak spice." } },
   // Rakia
   { id:"i70", cat:"Spirit", kind:"Rakia", label:"Rakia Kvatka", on:true },
   { id:"i71", cat:"Spirit", kind:"Rakia", label:"Rakia Medvesica", on:true },
@@ -104,7 +104,7 @@ const DEFAULT_INVENTORY = [
   { id:"i101", cat:"Modifier", kind:"Chartreuse", label:"Green Chartreuse", on:true, info:{ abv:"55%", origin:"France", description:"Green Chartreuse is a 110-proof herbal liqueur made by Carthusian monks from 130 plants. Intensely complex, vegetal and spicy — the Last Word's signature." } },
   // Anise Spirit
   { id:"i111", cat:"Modifier", kind:"Anise Spirit", label:"Askalon Arack Extra Fine", on:true },
-  { id:"i150", cat:"Modifier", kind:"Anise Spirit", label:"Pernod Paris", on:true },
+  { id:"i150", cat:"Modifier", kind:"Anise Spirit", label:"Pernod Paris", on:true, info:{ abv:"40%", origin:"France", description:"Pernod is France's classic anise liqueur, made from star anise, fennel and 14 botanicals including coriander and mint. Lower in licorice than pastis; turns milky (louche) with water. A successor to absinthe." } },
   { id:"i107", cat:"Modifier", kind:"Anise Spirit", label:"Pilavas Ouzo", on:true },
   { id:"i108", cat:"Modifier", kind:"Anise Spirit", label:"Sans Rival Ouzo", on:true },
   { id:"i109", cat:"Modifier", kind:"Anise Spirit", label:"Zoara Arak", on:true },
@@ -126,13 +126,13 @@ const DEFAULT_INVENTORY = [
   // Honey Ginger Syrup
   { id:"i121", cat:"Syrup", kind:"Honey Ginger Syrup", label:"Honey Ginger (Homemade)", on:true },
   // Grenadine
-  { id:"i122", cat:"Syrup", kind:"Grenadine", label:"Monin Grenadine", on:true },
+  { id:"i122", cat:"Syrup", kind:"Grenadine", label:"Monin Grenadine", on:true, info:{ abv:"0%", origin:"France", description:"Monin Grenadine is a pomegranate-flavored syrup used for color and sweetness in cocktails like the Tequila Sunrise and Shirley Temple." } },
   // Strawberry Syrup
-  { id:"i123", cat:"Syrup", kind:"Strawberry Syrup", label:"Monin Strawberry", on:true },
+  { id:"i123", cat:"Syrup", kind:"Strawberry Syrup", label:"Monin Strawberry", on:true, info:{ abv:"0%", origin:"France", description:"Monin Strawberry is a bright, sweet strawberry syrup for daiquiris, lemonades and fruit cocktails." } },
 
   // ── PANTRY ────────────────────────────────────────────
   // Angostura Bitters
-  { id:"i130", cat:"Pantry", kind:"Angostura Bitters", label:"Angostura", on:true },
+  { id:"i130", cat:"Pantry", kind:"Angostura Bitters", label:"Angostura", on:true, info:{ abv:"44.7%", origin:"Trinidad & Tobago", description:"Angostura aromatic bitters is the world's classic cocktail bitter — a concentrated gentian-and-spice tincture used by the dash in the Old Fashioned, Manhattan and countless others. High proof but used in tiny amounts." } },
   // Orange Bitters
   { id:"i131", cat:"Pantry", kind:"Orange Bitters", label:"Orange Bitters", on:true },
   // Lemon Juice
