@@ -21,6 +21,7 @@ const DEFAULT_INVENTORY = [
   { id:"i17", cat:"Spirit", kind:"Vodka", label:"Belvedere", on:true, info:{ abv:"40%", origin:"Poland", description:"Belvedere is a Polish rye vodka made from Dankowskie rye and purified water, four times distilled. Full-bodied with a touch of vanilla sweetness and a clean, rounded finish." } },
   { id:"i12", cat:"Spirit", kind:"Vodka", label:"Ciroc Vodka", on:true, info:{ abv:"40%", origin:"France", description:"Cîroc is unusual in being distilled from French grapes (Mauzac Blanc and Ugni Blanc) rather than grain, giving a smooth, slightly fruity and crisp character." } },
   { id:"i10", cat:"Spirit", kind:"Vodka", label:"Ketel One", on:true, info:{ abv:"40%", origin:"Netherlands", description:"Ketel One is a wheat-based vodka from the Nolet distillery, distilled in copper pot stills. Crisp and clean with a subtle citrus and honey note." } },
+  { id:"i170", cat:"Spirit", kind:"Vodka", label:"Stolichnaya", on:true, info:{ abv:"40%", origin:"Latvia", description:"Stolichnaya (Stoli) is a classic Russian-style wheat and rye vodka, distilled and blended in Latvia. Clean and neutral with a subtle grain sweetness — versatile across all vodka cocktails." } },
   { id:"i14", cat:"Spirit", kind:"Vodka", label:"Stolichnaya Vanilla", on:true, info:{ abv:"37.5%", origin:"Latvia (Stoli)", description:"Stoli Vanil is a vanilla-flavored vodka with smooth, sweet Madagascar-vanilla character. Easy in dessert cocktails, White Russians and coffee drinks." } },
   { id:"i15", cat:"Spirit", kind:"Vodka", label:"Van Gogh Acai Blueberry", on:true },
   { id:"i16", cat:"Spirit", kind:"Vodka", label:"Zubrówka Palona", on:true, info:{ abv:"40%", origin:"Białystok, Poland", description:"Żubrówka is a Polish rye vodka infused with bison grass from the Białowieża Forest, giving notes of vanilla, almond and fresh-cut grass. The Palona expression adds a toasted, caramel character." } },
@@ -75,6 +76,7 @@ const DEFAULT_INVENTORY = [
   { id:"i71", cat:"Spirit", kind:"Rakia", label:"Rakia Medvesica", on:true },
   // Schnapps
   { id:"i68", cat:"Spirit", kind:"Schnapps", label:"Hollander Apple Schnapps", on:true },
+  { id:"i166", cat:"Spirit", kind:"Schnapps", label:"Silvretta House Schnapps", on:true, info:{ abv:"?%", origin:"Ischgl, Austria", description:"A house-made schnapps gifted from the Silvretta Sport Hotel in Ischgl, Austria — a traditional Alpine Selbstgebrannter (home-distilled spirit). Herbaceous and warming." } },
 
   // ── MODIFIER ──────────────────────────────────────────
   // Sweet Vermouth
@@ -130,6 +132,21 @@ const DEFAULT_INVENTORY = [
   { id:"i122", cat:"Syrup", kind:"Grenadine", label:"Monin Grenadine", on:true, info:{ abv:"0%", origin:"France", description:"Monin Grenadine is a pomegranate-flavored syrup used for color and sweetness in cocktails like the Tequila Sunrise and Shirley Temple." } },
   // Strawberry Syrup
   { id:"i123", cat:"Syrup", kind:"Strawberry Syrup", label:"Monin Strawberry", on:true, info:{ abv:"0%", origin:"France", description:"Monin Strawberry is a bright, sweet strawberry syrup for daiquiris, lemonades and fruit cocktails." } },
+  // Salted Caramel Syrup
+  { id:"i162", cat:"Syrup", kind:"Salted Caramel Syrup", label:"Monin Salted Caramel", on:true, info:{ abv:"0%", origin:"France", description:"Monin Salted Caramel syrup — rich buttery caramel balanced with a hint of salt. Excellent in espresso martinis, whisky sours and dessert cocktails." } },
+  // White Peach Syrup
+  { id:"i163", cat:"Syrup", kind:"White Peach Syrup", label:"Monin White Peach", on:true, info:{ abv:"0%", origin:"France", description:"Monin White Peach (Pêche Blanche) — a delicate, floral peach syrup. Lighter and more elegant than yellow peach; ideal in Bellinis, gin fizzes and spritz cocktails." } },
+  // Blackcurrant Syrup
+  { id:"i164", cat:"Syrup", kind:"Blackcurrant Syrup", label:"Monin Blackcurrant", on:true, info:{ abv:"0%", origin:"France", description:"Monin Blackcurrant (Cassis) syrup — deep, tart berry intensity. The non-alcoholic stand-in for crème de cassis; perfect in Kir-style mocktails, gin sours and sparkling drinks." } },
+
+  // Honey Liqueur
+  { id:"i165", cat:"Modifier", kind:"Honey Liqueur", label:"Rakomelo", on:true, info:{ abv:"~22%", origin:"Crete, Greece", description:"Rakomelo is a traditional Cretan liqueur made from tsikoudia (Cretan grappa) infused with honey and herbs (typically cinnamon and cloves). Warm, aromatic and slightly sweet — drunk warm in winter or over ice." } },
+  // Rhubarb Liqueur
+  { id:"i167", cat:"Modifier", kind:"Rhubarb Liqueur", label:"Rabarbara Rhubarb Liqueur", on:true, info:{ abv:"21%", origin:"Reykjavik, Iceland", description:"Rabarbara by Reykjavik Distillery is an Icelandic rhubarb liqueur — bright, tart and fruity with a distinctive Nordic rhubarb character. Excellent in spritz cocktails and as a sour modifier." } },
+  // Homemade Liqueur
+  { id:"i168", cat:"Modifier", kind:"Homemade Liqueur", label:"Vadi Buckthorn Liqueur", on:true, info:{ abv:"27%", origin:"Vadi Bar (Homemade)", description:"House-made sea buckthorn liqueur — a Vadi Bar original. Bright citrus-forward berry intensity with a slight tartness and natural sweetness. Unique to the bar." } },
+  // Herbal Tonic / Bitters
+  { id:"i169", cat:"Modifier", kind:"Herbal Tonic", label:"Über Herbal Tonic", on:true, info:{ abv:"37%", origin:"Israel", description:"Über Elixir Herbal Tonic by Bitters of Israel — a 37% herbal spirit in the style of a botanical elixir. Complex, bitter-sweet and aromatic; functions as both a digestif and a cocktail modifier." } },
 
   // ── PANTRY ────────────────────────────────────────────
   // Angostura Bitters
@@ -713,4 +730,5 @@ const DEFAULT_COCKTAILS = [
     notes:"Se Busca Joven keeps smoke in the background so the Bitter Bianco leads. Use Espina Dorada for a bolder, smokier version. Orange bitters are essential — they bridge the mezcal and Bianco's herbal notes. Try a 50/50 mezcal/gin split for a more complex base."
   }
 ];
+
 
