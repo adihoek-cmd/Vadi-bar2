@@ -729,6 +729,46 @@ const DEFAULT_COCKTAILS = [
     steps:["Chill a rocks glass with ice water or place in freezer.","Combine all ingredients in a mixing glass over ice.","Stir 35–40 rotations until well-chilled.","Discard chilling ice. Strain into rocks glass over one large cube.","Express a wide orange peel over the glass, rub the rim, and drop it in."],
     notes:"Se Busca Joven keeps smoke in the background so the Bitter Bianco leads. Use Espina Dorada for a bolder, smokier version. Orange bitters are essential — they bridge the mezcal and Bianco's herbal notes. Try a 50/50 mezcal/gin split for a more complex base."
   }
+  ,{
+    id:"c45", name:"El Diablo", glass:"Highball", method:"Build", liked:false, house:false,
+    garnish:"Lime wedge, candied ginger",
+    source:"Classic",
+    mood:["refreshing","fruity","spicy"],
+    ingredients:[
+      {name:"Tequila Blanco", amount:"1 1/2 oz", kind:"Tequila"},
+      {name:"Crème de Cassis", amount:"1/2 oz", kind:"Cassis"},
+      {name:"Fresh Lime Juice", amount:"1/2 oz", kind:"Lime Juice"},
+      {name:"Ginger Beer", amount:"3 oz", kind:"Ginger Beer"},
+    ],
+    steps:[
+      "Fill a highball glass with ice.",
+      "Add tequila and lime juice directly into the glass.",
+      "Pour crème de cassis — it will sink to the bottom.",
+      "Top with ginger beer and give one gentle stir to combine.",
+      "Garnish with a lime wedge and a piece of candied ginger on the rim."
+    ],
+    notes:"Cenote Blanco or Patron Silver work best here — the cassis and ginger need a clean, bright tequila to shine. Don't over-stir; let the cassis bleed up through the drink for visual drama. For a smokier twist, swap half the tequila for Se Busca Joven."
+  }
+  ,{
+    id:"c46", name:"The Bramble", glass:"Rocks", method:"Build", liked:false, house:false,
+    garnish:"Lemon slice, fresh blackberries or blackcurrant",
+    source:"Dick Bradsell, 1984",
+    mood:["fruity","sour","refreshing"],
+    ingredients:[
+      {name:"Gin", amount:"2 oz", kind:"Gin"},
+      {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
+      {name:"Simple Syrup", amount:"1/2 oz", kind:"Simple Syrup"},
+      {name:"Crème de Cassis", amount:"1/2 oz", kind:"Cassis"},
+    ],
+    steps:[
+      "Fill a rocks glass with crushed ice.",
+      "Add gin, lemon juice and simple syrup directly over the ice.",
+      "Give a brief stir to combine.",
+      "Slowly drizzle the crème de cassis over the top — let it bleed down through the ice.",
+      "Garnish with a lemon slice and blackberries or blackcurrant on top."
+    ],
+    notes:"Tanqueray No. Ten is the pick here — its citrus botanicals amplify the lemon-cassis pairing beautifully. Nordés also works for a softer, Atlantic character. The cassis float is essential — don't stir it in. Crushed ice is non-negotiable for the classic presentation. Dial the simple syrup up or down depending on how tart your lemon is."
+  }
 ];
 
 
