@@ -118,7 +118,7 @@ const DEFAULT_INVENTORY = [
   // Cherry Liqueur
   { id:"i113", cat:"Modifier", kind:"Cherry Liqueur", label:"Cherry Liqueur", on:true },
   // Cassis
-  { id:"i115", cat:"Modifier", kind:"Cassis", label:"Cassis", on:true },
+  { id:"i115", cat:"Modifier", kind:"Cassis", label:"Crème de Cassis de Dijon", on:true, info:{ abv:"20%", origin:"Alsace, France", description:"G.E. Massenez Crème de Cassis de Dijon — a classic blackcurrant liqueur from the Villé Valley in Alsace, made since 1870. Rich, deep and intensely fruity with real cassis character. The heart of a Kir, Kir Royale and El Diablo." } },
   // Limoncello
   { id:"i116", cat:"Modifier", kind:"Limoncello", label:"Limoncello (Homemade)", on:true },
   { id:"i118", cat:"Modifier", kind:"Limoncello", label:"Machya 13 Lemons", on:true },
