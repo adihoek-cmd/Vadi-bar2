@@ -851,6 +851,65 @@ const DEFAULT_COCKTAILS = [
     steps:["Combine all ingredients in a shaker without ice (dry shake) for 15 seconds to emulsify the egg white.","Add ice and shake hard for another 15 seconds.","Double-strain into a chilled coupe.","Let the foam settle and garnish with a dehydrated lemon wheel or a few sea buckthorn berries."],
     notes:"A Vadi Bar original built around the house-made buckthorn liqueur. Sea buckthorn is intensely tart and citrus-forward — balance is key. Taste the liqueur batch by batch and adjust simple syrup accordingly. Belvedere or Ketel One for the vodka base — neutral enough to let the buckthorn lead. This is the bar's signature sour."
   }
+  ,{
+    id:"c53", name:"Mojito", glass:"Highball", method:"Build", liked:false, house:false,
+    garnish:"Fresh mint sprig, lime wheel",
+    source:"Classic",
+    mood:["refreshing","bright","garden"],
+    ingredients:[
+      {name:"White Rum", amount:"2 oz", kind:"White Rum"},
+      {name:"Fresh Lime Juice", amount:"3/4 oz", kind:"Lime Juice"},
+      {name:"Simple Syrup", amount:"3/4 oz", kind:"Simple Syrup"},
+      {name:"Fresh Mint", amount:"10 leaves", kind:"Herb"},
+      {name:"Soda Water", amount:"2 oz", kind:"Soda Water"},
+    ],
+    steps:["Add mint leaves and simple syrup to a highball glass.","Gently muddle — press and twist, don't shred.","Add lime juice and rum.","Fill with crushed ice and stir briefly to combine.","Top with soda water and give one gentle stir.","Garnish with a fresh mint sprig (slap it first to release the oils) and a lime wheel."],
+    notes:"Use garden-fresh mint — the difference from supermarket mint is remarkable. Bacardi Carta Blanca or Santa Teresa Blanco work well; for more character try Smith & Cross at 1.5 oz. Slap the mint garnish against your palm before placing — it opens up the aroma beautifully. Don't over-muddle or it turns bitter."
+  }
+  ,{
+    id:"c54", name:"Rosemary Gin Fizz", glass:"Highball", method:"Shake", liked:false, house:true,
+    garnish:"Fresh rosemary sprig",
+    source:"Vadi Bar Original",
+    mood:["bright","refreshing","garden"],
+    ingredients:[
+      {name:"Gin", amount:"2 oz", kind:"Gin"},
+      {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
+      {name:"Simple Syrup", amount:"3/4 oz", kind:"Simple Syrup"},
+      {name:"Fresh Rosemary", amount:"1 sprig", kind:"Herb"},
+      {name:"Egg White", amount:"1", kind:"Egg White"},
+      {name:"Soda Water", amount:"1 oz", kind:"Soda Water"},
+    ],
+    steps:["Add rosemary sprig and simple syrup to shaker and muddle gently.","Add gin, lemon juice and egg white. Dry shake hard for 15 seconds.","Add ice and shake again for 15 seconds.","Double-strain into a highball glass over ice.","Top with soda water — pour slowly down the side to preserve the foam.","Garnish with a fresh rosemary sprig standing upright in the foam."],
+    notes:"A Vadi Bar garden original. Tanqueray No. Ten and Nordés both excel here — Nordés especially has a coastal herbal quality that pairs brilliantly with rosemary. Don't muddle the rosemary too hard — gentle bruising extracts the aromatic oils without the harsh piney bitterness. The egg white foam holds the rosemary aroma at nose level with every sip."
+  }
+  ,{
+    id:"c55", name:"Lemon Verbena Daiquiri", glass:"Coupe", method:"Shake", liked:false, house:true,
+    garnish:"Fresh lemon verbena leaf",
+    source:"Vadi Bar Original",
+    mood:["bright","sour","garden"],
+    ingredients:[
+      {name:"White Rum", amount:"2 oz", kind:"White Rum"},
+      {name:"Fresh Lime Juice", amount:"3/4 oz", kind:"Lime Juice"},
+      {name:"Simple Syrup", amount:"1/2 oz", kind:"Simple Syrup"},
+      {name:"Fresh Lemon Verbena", amount:"6 leaves", kind:"Herb"},
+    ],
+    steps:["Add lemon verbena leaves and simple syrup to shaker and muddle gently.","Add rum and lime juice.","Fill with ice and shake hard for 15 seconds.","Double-strain into a chilled coupe to remove all leaf fragments.","Garnish with a single fresh lemon verbena leaf floating on top."],
+    notes:"Lemon verbena (לואיזה) is one of the most intensely aromatic herbs in the garden — more citrus than lemon itself, almost perfumed. Double-straining is essential for a clean presentation. Smith & Cross adds funky depth; Bacardi Blanca keeps it delicate and herb-forward. Adjust simple syrup carefully — the verbena adds its own floral sweetness. A genuinely extraordinary drink that no bar menu has."
+  }
+  ,{
+    id:"c56", name:"Sage Smash", glass:"Rocks", method:"Shake", liked:false, house:true,
+    garnish:"Fresh sage leaf, lemon slice",
+    source:"Vadi Bar Original",
+    mood:["bright","spirit-forward","garden"],
+    ingredients:[
+      {name:"Bourbon", amount:"2 oz", kind:"Bourbon"},
+      {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
+      {name:"Simple Syrup", amount:"3/4 oz", kind:"Simple Syrup"},
+      {name:"Fresh Sage", amount:"4 leaves", kind:"Herb"},
+    ],
+    steps:["Add sage leaves and simple syrup to shaker and muddle firmly.","Add bourbon and lemon juice.","Fill with ice and shake hard for 12 seconds.","Double-strain into a rocks glass over a large ice cube.","Garnish with a fresh sage leaf and a lemon slice."],
+    notes:"Sage and bourbon is an underrated pairing — the herb's earthy, slightly peppery quality amplifies the oak and vanilla in the whiskey. Woodford Reserve Double Oaked is exceptional here. Four Roses Single Barrel for a spicier build. Use 4 leaves maximum — sage is powerful and can easily dominate. A beautiful autumn-leaning cocktail that feels completely original."
+  }
 ];
 
 
