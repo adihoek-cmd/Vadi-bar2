@@ -165,6 +165,7 @@ const DEFAULT_INVENTORY = [
   { id:"i104", cat:"Pantry", kind:"Ginger Beer", label:"Ginger Beer", on:true },
   // Tonic Water
   { id:"i151", cat:"Pantry", kind:"Tonic Water", label:"Tonic Water", on:true },
+  { id:"i172", cat:"Pantry", kind:"Soda Water", label:"Soda Water", on:true },
   // Grenadine
   { id:"i106", cat:"Pantry", kind:"Grenadine", label:"Grenadine", on:false },
   // Salt
