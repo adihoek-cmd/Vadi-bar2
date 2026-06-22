@@ -2634,6 +2634,9 @@ function getOnKinds() {
   var onItems = state.inventory.filter(function(i){ return i.on; });
   var kinds = new Set(onItems.map(function(i){ return i.kind; }));
 
+  // Herb is always available — comes from the garden
+  kinds.add('Herb');
+
   // Also add inferred kinds from brand name matching
   // so Jameson stored as "Blended Scotch" still satisfies "Irish Whiskey" recipes
   onItems.forEach(function(item) {
@@ -5004,7 +5007,9 @@ function addBoughtToBar() {
   let added = 0;
   bought.forEach(ci => {
     // Only add if not already in inventory by kind+name
-    const alreadyIn = state.inventory.some(inv => inv.label.toLowerCase() === ci.name.toLowerCase());
+    const alreadyIn = state.inventory.some(inv =>
+      (ci.kind && inv.kind === ci.kind) || inv.label.toLowerCase() === ci.name.toLowerCase()
+    );
     if (!alreadyIn) {
       state.inventory.push({ id: 'i' + Date.now() + added, cat: guessCat(ci.kind), kind: ci.kind, label: ci.name, on: true });
       added++;
@@ -5239,9 +5244,9 @@ function markHaveIt(encoded, btn) {
   var item;
   try { item = JSON.parse(decodeURIComponent(encoded)); } catch(e) { return; }
 
-  // Check not already in inventory
+  // Check not already in inventory — require kind to be non-empty for kind match
   var already = state.inventory.some(function(i) {
-    return i.kind === item.kind || i.label.toLowerCase() === item.name.toLowerCase();
+    return (item.kind && i.kind === item.kind) || i.label.toLowerCase() === item.name.toLowerCase();
   });
   if (already) { toast(item.name + ' is already in your bar'); return; }
 
