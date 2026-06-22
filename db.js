@@ -117,6 +117,8 @@ const DEFAULT_INVENTORY = [
   { id:"i114", cat:"Modifier", kind:"Coffee Liqueur", label:"Kahlúa", on:true, info:{ abv:"20%", origin:"Veracruz, Mexico", description:"Kahlúa is a Mexican coffee liqueur made from rum, Arabica coffee and sugar. Rich, sweet and unmistakably coffee-forward — the base of the Espresso Martini, White Russian and Mudslide." } },
   // Cherry Liqueur
   { id:"i113", cat:"Modifier", kind:"Cherry Liqueur", label:"Cherry Liqueur", on:true },
+  // Maraschino Liqueur
+  { id:"i171", cat:"Modifier", kind:"Maraschino Liqueur", label:"Luxardo Maraschino", on:false, info:{ abv:"32%", origin:"Torreglia, Italy", description:"Luxardo Maraschino is the benchmark maraschino liqueur — dry, nutty and faintly bitter with a clean cherry pit character. Not sweet like cherry liqueur; essential for Last Word, Aviation, Hemingway Daiquiri and Martinez. Not yet in stock." } },
   // Cassis
   { id:"i115", cat:"Modifier", kind:"Cassis", label:"Crème de Cassis de Dijon", on:true, info:{ abv:"20%", origin:"Alsace, France", description:"G.E. Massenez Crème de Cassis de Dijon — a classic blackcurrant liqueur from the Villé Valley in Alsace, made since 1870. Rich, deep and intensely fruity with real cassis character. The heart of a Kir, Kir Royale and El Diablo." } },
   // Limoncello
@@ -768,6 +770,86 @@ const DEFAULT_COCKTAILS = [
       "Garnish with a lemon slice and blackberries or blackcurrant on top."
     ],
     notes:"Tanqueray No. Ten is the pick here — its citrus botanicals amplify the lemon-cassis pairing beautifully. Nordés also works for a softer, Atlantic character. The cassis float is essential — don't stir it in. Crushed ice is non-negotiable for the classic presentation. Dial the simple syrup up or down depending on how tart your lemon is."
+  }
+  ,{
+    id:"c47", name:"Toronto", glass:"Coupe", method:"Stir", liked:false, house:false,
+    garnish:"Orange twist",
+    source:"Classic",
+    mood:["spirit-forward","bitter","complex"],
+    ingredients:[
+      {name:"Rye Whiskey", amount:"2 oz", kind:"Rye Whiskey"},
+      {name:"Fernet-Branca", amount:"1/4 oz", kind:"Amaro"},
+      {name:"Simple Syrup", amount:"1/4 oz", kind:"Simple Syrup"},
+      {name:"Angostura Bitters", amount:"2 dashes", kind:"Angostura Bitters"},
+    ],
+    steps:["Combine all ingredients in a mixing glass over ice.","Stir for 30-40 rotations until well-chilled.","Strain into a chilled coupe.","Express an orange twist over the glass and discard or place on the rim."],
+    notes:"Woodford Reserve Rye is ideal — its spice backbone stands up to the Fernet without being overwhelmed. Don't be tempted to increase the Fernet; 1/4 oz is the sweet spot where it adds bitter herbal complexity rather than dominating. A genuinely underrated speakeasy classic."
+  }
+  ,{
+    id:"c48", name:"Rusty Nail", glass:"Rocks", method:"Stir", liked:false, house:false,
+    garnish:"Lemon twist",
+    source:"Classic",
+    mood:["spirit-forward","sweet","smoky"],
+    ingredients:[
+      {name:"Blended Scotch", amount:"1 1/2 oz", kind:"Blended Scotch"},
+      {name:"Drambuie", amount:"3/4 oz", kind:"Herbal Liqueur"},
+    ],
+    steps:["Add both ingredients to a rocks glass over a large ice cube.","Stir gently in the glass for 10-15 seconds.","Express a lemon twist over the drink and place on the rim."],
+    notes:"Compass Box Spice Tree is the natural pick here — its warm spice and vanilla notes harmonise beautifully with Drambuie's honey-herb character. Adjust the ratio to taste: more Scotch for drier, more Drambuie for sweeter. Deceptively simple and deeply satisfying — a proper after-dinner dram."
+  }
+  ,{
+    id:"c49", name:"Bobby Burns", glass:"Coupe", method:"Stir", liked:false, house:false,
+    garnish:"Lemon twist",
+    source:"Classic",
+    mood:["spirit-forward","herbal","elegant"],
+    ingredients:[
+      {name:"Blended Scotch", amount:"1 1/2 oz", kind:"Blended Scotch"},
+      {name:"Sweet Vermouth", amount:"3/4 oz", kind:"Sweet Vermouth"},
+      {name:"Benedictine", amount:"1/4 oz", kind:"Herbal Liqueur"},
+      {name:"Angostura Bitters", amount:"2 dashes", kind:"Angostura Bitters"},
+    ],
+    steps:["Combine all ingredients in a mixing glass over ice.","Stir for 35-40 rotations until well-chilled.","Strain into a chilled coupe.","Express a lemon twist over the glass and place on the rim."],
+    notes:"Think of it as a Scotch Manhattan elevated by Benedictine's herbal complexity. Compass Box Spice Tree works beautifully; Carpano Antica Formula is the vermouth of choice for its vanilla-rich depth. The Benedictine should whisper, not shout — keep it at 1/4 oz."
+  }
+  ,{
+    id:"c50", name:"Caipirinha", glass:"Rocks", method:"Muddle", liked:false, house:false,
+    garnish:"Lime wheel",
+    source:"Classic",
+    mood:["refreshing","sour","tropical"],
+    ingredients:[
+      {name:"Cachaca", amount:"2 oz", kind:"Cachaca"},
+      {name:"Fresh Lime", amount:"1/2 lime", kind:"Lime Juice"},
+      {name:"Simple Syrup", amount:"3/4 oz", kind:"Simple Syrup"},
+    ],
+    steps:["Cut half a lime into 4 wedges and place in a rocks glass.","Add simple syrup and muddle firmly to release the juice and oils.","Fill the glass with crushed ice.","Pour cachaca over the ice and stir briefly to combine.","Top with a little more crushed ice and garnish with a lime wheel."],
+    notes:"El Cachaca's grassy, funky character is exactly what a Caipirinha should taste like — don't substitute vodka. Muddle the lime firmly but don't shred it; you want juice and oils, not bitter pith. Use raw or demerara simple syrup if available — adds a molasses note that suits cachaca perfectly."
+  }
+  ,{
+    id:"c51", name:"B&B", glass:"Snifter", method:"Build", liked:true, house:true,
+    garnish:"None",
+    source:"Classic",
+    mood:["spirit-forward","herbal","digestif"],
+    ingredients:[
+      {name:"Cognac", amount:"1 oz", kind:"Cognac"},
+      {name:"Benedictine", amount:"1 oz", kind:"Herbal Liqueur"},
+    ],
+    steps:["Pour Benedictine into a snifter or rocks glass.","Float the cognac gently on top by pouring over the back of a spoon.","Serve without ice — or over one large cube if preferred.","No garnish needed."],
+    notes:"The quintessential Vadi Bar digestif. Torres 10 works beautifully with its dried-fruit warmth; Courvoisier VS for a cleaner, lighter build. The float is traditional but can be stirred — the layers make for a nice presentation. Equal parts is classic; nudge cognac to 1.5 oz if you want the brandy to lead more."
+  }
+  ,{
+    id:"c52", name:"Vadi Buckthorn Sour", glass:"Coupe", method:"Shake", liked:false, house:true,
+    garnish:"Dehydrated lemon wheel or sea buckthorn berries",
+    source:"Vadi Bar Original",
+    mood:["sour","fruity","refreshing"],
+    ingredients:[
+      {name:"Vadi Buckthorn Liqueur", amount:"1 1/2 oz", kind:"Homemade Liqueur"},
+      {name:"Vodka", amount:"3/4 oz", kind:"Vodka"},
+      {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
+      {name:"Simple Syrup", amount:"1/2 oz", kind:"Simple Syrup"},
+      {name:"Egg White", amount:"1", kind:"Egg White"},
+    ],
+    steps:["Combine all ingredients in a shaker without ice (dry shake) for 15 seconds to emulsify the egg white.","Add ice and shake hard for another 15 seconds.","Double-strain into a chilled coupe.","Let the foam settle and garnish with a dehydrated lemon wheel or a few sea buckthorn berries."],
+    notes:"A Vadi Bar original built around the house-made buckthorn liqueur. Sea buckthorn is intensely tart and citrus-forward — balance is key. Taste the liqueur batch by batch and adjust simple syrup accordingly. Belvedere or Ketel One for the vodka base — neutral enough to let the buckthorn lead. This is the bar's signature sour."
   }
 ];
 
