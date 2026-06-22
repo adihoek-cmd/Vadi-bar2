@@ -2290,7 +2290,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=36"></script>
+<script src="db.js?v=37"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2384,8 +2384,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 35; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.35'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 36; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.36'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
