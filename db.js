@@ -155,6 +155,9 @@ const DEFAULT_INVENTORY = [
   { id:"i130", cat:"Pantry", kind:"Angostura Bitters", label:"Angostura", on:true, info:{ abv:"44.7%", origin:"Trinidad & Tobago", description:"Angostura aromatic bitters is the world's classic cocktail bitter — a concentrated gentian-and-spice tincture used by the dash in the Old Fashioned, Manhattan and countless others. High proof but used in tiny amounts." } },
   // Orange Bitters
   { id:"i131", cat:"Pantry", kind:"Orange Bitters", label:"Orange Bitters", on:true },
+  { id:"i173", cat:"Pantry", kind:"Peychaud's Bitters", label:"Peychaud's Bitters", on:false, info:{ abv:"35%", origin:"New Orleans, USA", description:"Peychaud's is a bright, anise-and-cherry aromatic bitter — lighter and more floral than Angostura. Essential to the Sazerac and a key component of the Vieux Carré. Not yet in stock." } },
+  { id:"i174", cat:"Pantry", kind:"Chocolate Bitters", label:"Bittermens Xocolatl Mole", on:false, info:{ abv:"53%", origin:"New Orleans, USA", description:"Bittermens Xocolatl Mole — the original Mexican-chocolate bitter (cacao, cinnamon and spice). Designed for aged tequila but excellent with aged rum, bourbon and rye, and a few drops transform an Old Fashioned, Manhattan or Negroni. Ordered — arriving ~mid July 2026." } },
+  { id:"i175", cat:"Pantry", kind:"Chocolate Bitters", label:"The Bitter Truth Spiced Chocolate", on:false, info:{ abv:"44%", origin:"Germany", description:"The Bitter Truth Spiced Chocolate bitters — darker and earthier than Xocolatl Mole, with strong gentian and wormwood backbone. A favorite for balancing high-proof whiskey in a Manhattan. Not yet in stock." } },
   // Lemon Juice
   { id:"i132", cat:"Pantry", kind:"Lemon Juice", label:"Fresh", on:true },
   // Lime Juice
