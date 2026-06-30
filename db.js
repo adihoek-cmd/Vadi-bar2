@@ -71,6 +71,8 @@ const DEFAULT_INVENTORY = [
   // Cognac
   { id:"i60", cat:"Spirit", kind:"Cognac", label:"Courvoisier VS", on:true, info:{ abv:"40%", origin:"Cognac, France", description:"Courvoisier VS is a young cognac with bright fruit, vanilla and a touch of oak. A solid mixing brandy for Sidecars and Sazeracs." } },
   { id:"i61", cat:"Spirit", kind:"Cognac", label:"Torres 10", on:true, info:{ abv:"38%", origin:"Penedès, Spain", description:"Torres 10 is Spain's best-known brandy — a 10-year solera-aged blend in American oak (since 1928), rich and rounded with vanilla, cinnamon and oak spice." } },
+  { id:"i176", cat:"Spirit", kind:"Cognac", label:"Kakhetian XO", on:false, info:{ abv:"40%", origin:"Kakheti, Georgia", description:"Kakhetian XO is a 7-year Georgian grape brandy from Kakheti, oak-aged. Oak-forward and characterful — dried fruit, bitter chocolate and roasted nut with real backbone. The bitter-cocoa edge counterbalances Bénédictine's sweetness, making it an excellent, well-structured B&B base. Not yet in stock — arriving." } },
+  { id:"i177", cat:"Spirit", kind:"Cognac", label:"Vecherni Tbilisi VSOP", on:false, info:{ abv:"40%", origin:"Kvareli, Georgia", description:"Vecherni Tbilisi VSOP is a 5-year Georgian grape brandy from the Kvareli winery, oak-aged. Vanilla, caramel, dried fruit, roasted nuts and sweet spice on the nose; round and warm with oak, bitter chocolate and dried apricot, and a long balanced finish. Smooth and approachable — the closest swap for Torres 10 in a B&B, though sweeter, so skew the ratio toward brandy. Not yet in stock — arriving." } },
   // Rakia
   { id:"i70", cat:"Spirit", kind:"Rakia", label:"Rakia Kvatka", on:true },
   { id:"i71", cat:"Spirit", kind:"Rakia", label:"Rakia Medvesica", on:true },
