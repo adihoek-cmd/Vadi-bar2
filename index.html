@@ -838,6 +838,23 @@
   }
 
   /* ── MOOD PAGE ── */
+  /* ── Flavor chips / pending arrivals / pour cost (v1.42) ── */
+  .card-moods { display: flex; gap: 5px; flex-wrap: wrap; margin: 6px 0 8px; }
+  .mood-chip { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); border: 1px solid var(--border); border-radius: 20px; padding: 2px 8px; }
+  .modal-moods { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  select.filter-chip { appearance: none; -webkit-appearance: none; background: transparent; }
+  .inv-pending { border: 1px solid var(--border2); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; }
+  .inv-pending-title { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .inv-pending-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .inv-pending-row:last-child { border-bottom: none; }
+  .inv-pending-name { font-size: 14px; }
+  .inv-pending-kind { font-size: 11px; color: var(--text3); }
+  .btn-arrived { background: transparent; border: 1px solid var(--green); color: var(--green); border-radius: 8px; padding: 5px 12px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .btn-arrived:active { transform: scale(0.96); }
+  .pour-cost-line { display: flex; align-items: baseline; gap: 8px; margin: 12px 0 4px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; }
+  .pour-cost-val { color: var(--gold); font-size: 15px; font-weight: 600; }
+  .pour-cost-note { font-size: 11px; color: var(--text3); }
+
   .mood-page { max-width: 600px; margin: 0 auto; padding: 40px 0; }
 
   .mood-page-title {
@@ -1947,6 +1964,21 @@
       <button class="filter-chip" onclick="setFilter('tried', this)">✓ Tried</button>
       <button class="filter-chip" onclick="setFilter('stir', this)">Stir</button>
       <button class="filter-chip" onclick="setFilter('shake', this)">Shake</button>
+      <select class="filter-chip" id="flavor-filter" onchange="renderCocktails()" title="Filter by flavor">
+        <option value="">Flavor ▾</option>
+        <option value="bitter">Bitter</option>
+        <option value="smoky">Smoky</option>
+        <option value="sweet">Sweet</option>
+        <option value="sour">Sour</option>
+        <option value="bright">Bright</option>
+        <option value="citrus">Citrus</option>
+        <option value="fruity">Fruity</option>
+        <option value="herbal">Herbal</option>
+        <option value="garden">Garden</option>
+        <option value="refreshing">Refreshing</option>
+        <option value="strong">Strong</option>
+        <option value="classic">Classic</option>
+      </select>
       <div class="filter-spacer"></div>
       <div class="search-box">
         <span class="search-icon">⌕</span>
@@ -2048,6 +2080,9 @@
       </div>
       <button class="btn btn-gold" onclick="document.getElementById('inv-add-section').scrollIntoView({behavior:'smooth'})">+ Add Bottle</button>
     </div>
+
+    <!-- Pending arrivals / out of stock -->
+    <div class="inv-pending" id="inv-pending" style="display:none"></div>
 
     <!-- Tree inventory -->
     <div class="inv-tree" id="inv-tree"></div>
@@ -2205,6 +2240,13 @@
 
       <div class="form-row">
         <div class="form-field">
+          <label>Source URL <span style="opacity:0.5;text-transform:none;">(optional — makes the source a tappable link)</span></label>
+          <input type="url" id="r-url" placeholder="https://…">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
           <div class="toggle-row">
             <label>❤ Mark as Liked</label>
             <div class="toggle" id="r-liked-toggle" onclick="this.classList.toggle('on')"></div>
@@ -2290,7 +2332,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=41"></script>
+<script src="db.js?v=42"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2384,8 +2426,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 41; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.41'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 42; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.42'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -2446,6 +2488,17 @@ var APP_VERSION = '1.41'; // shown in the page footer; bump on every deploy
   savedInv.forEach(function(it) {
     if (!it.info && defInfoById[it.id]) {
       it.info = JSON.parse(JSON.stringify(defInfoById[it.id]));
+      dirty = true;
+    }
+  });
+  // Backfill default price data (v1.42) — user-entered prices are never overwritten
+  var defPriceById = {};
+  DEFAULT_INVENTORY.forEach(function(di){ if (di.priceNIS) defPriceById[di.id] = di; });
+  savedInv.forEach(function(it) {
+    var dp = defPriceById[it.id];
+    if (dp && !it._priceUserSet && !it.priceNIS) {
+      it.priceNIS = dp.priceNIS;
+      if (dp.sizeMl && !it.sizeMl) it.sizeMl = dp.sizeMl;
       dirty = true;
     }
   });
@@ -2668,6 +2721,62 @@ function missingIngredients(cocktail) {
   return cocktail.ingredients.filter(ing => ing.kind && !onKinds.has(ing.kind)).map(i => i.name);
 }
 
+// ── POUR COST (v1.42) ────────────────────────────────────────────────────────
+// Parses recipe amounts to ml. Returns null when uncostable (top-ups, solids).
+function parseAmountToMl(amount) {
+  if (!amount) return null;
+  var a = String(amount).toLowerCase().trim();
+  if (/top|fill|to taste|as needed/.test(a)) return null;
+  var num = null, m;
+  m = a.match(/^(\d+)\s+(\d+)\/(\d+)/);                          // "1 1/2 oz"
+  if (m) num = parseInt(m[1]) + parseInt(m[2]) / parseInt(m[3]);
+  if (num === null) { m = a.match(/^(\d+)\/(\d+)/); if (m) num = parseInt(m[1]) / parseInt(m[2]); }  // "3/4 oz"
+  if (num === null) { m = a.match(/^(\d+(?:\.\d+)?)/); if (m) num = parseFloat(m[1]); }              // "1.5 oz", "10ml"
+  if (num === null) return null;
+  if (a.indexOf('ml') !== -1) return num;
+  if (a.indexOf('cl') !== -1) return num * 10;
+  if (a.indexOf('oz') !== -1) return num * 30;
+  if (a.indexOf('dash') !== -1) return num * 0.9;
+  if (a.indexOf('barspoon') !== -1 || a.indexOf('bar spoon') !== -1) return num * 5;
+  if (a.indexOf('tbsp') !== -1) return num * 15;
+  if (a.indexOf('tsp') !== -1 || a.indexOf('teaspoon') !== -1) return num * 5;
+  if (a.indexOf('drop') !== -1) return num * 0.05;
+  if (a.indexOf('splash') !== -1) return num * 5;
+  return null; // "1 egg white", "2 slices" — not liquid pours
+}
+
+// Cheapest ₪/ml among in-stock bottles whose kind satisfies this ingredient
+function pricePerMlForKind(kind) {
+  var best = null;
+  state.inventory.forEach(function(it) {
+    if (!it.on || !it.priceNIS || !it.sizeMl) return;
+    var k = it.kind;
+    var satisfies = (k === kind)
+      || (k === 'Rum' && ['White Rum','Dark Rum','Aged Rum','Spiced Rum'].indexOf(kind) !== -1)
+      || (k === 'Whiskey' && ['Bourbon','Rye Whiskey'].indexOf(kind) !== -1)
+      || (k === 'Tequila' && ['Tequila Blanco','Tequila Reposado'].indexOf(kind) !== -1);
+    if (!satisfies) return;
+    var ppm = it.priceNIS / it.sizeMl;
+    if (best === null || ppm < best) best = ppm;
+  });
+  return best;
+}
+
+function cocktailPourCost(c) {
+  var total = 0, costed = 0, countable = 0;
+  (c.ingredients || []).forEach(function(ing) {
+    if (!ing.kind || ing.kind === 'Herb') return; // garden herbs & kindless items: free
+    var ml = parseAmountToMl(ing.amount);
+    if (ml === null) return;
+    countable++;
+    var ppm = pricePerMlForKind(ing.kind);
+    if (ppm === null) return;
+    total += ml * ppm;
+    costed++;
+  });
+  return { total: total, costed: costed, countable: countable };
+}
+
 // ── NAVIGATION ───────────────────────────────────────────────────────────────
 
 function showPage(id) {
@@ -2712,6 +2821,10 @@ function renderCocktails() {
   if (currentFilter === 'stir') list = list.filter(c => c.method === 'Stir');
   if (currentFilter === 'shake') list = list.filter(c => c.method === 'Shake');
 
+  const flavorSel = document.getElementById('flavor-filter');
+  const flavor = flavorSel ? flavorSel.value : '';
+  if (flavor) list = list.filter(c => (c.mood || []).includes(flavor));
+
   if (!list.length) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
       <div class="empty-state-icon">🍹</div>
@@ -2736,6 +2849,7 @@ function renderCocktails() {
       </div>
       <div class="card-name">${c.name}</div>
       <div class="card-method"><span class="${cm ? 'can-make-dot' : 'cant-make-dot'}"></span>${c.method} · ${c.glass}</div>
+      ${(c.mood && c.mood.length) ? `<div class="card-moods">${c.mood.slice(0,3).map(m => `<span class="mood-chip">${m}</span>`).join('')}</div>` : ''}
       <div class="card-ingredients">
         ${c.ingredients.slice(0,4).map(i => `<div class="card-ingredient-item">
           <span class="card-ingredient-name">${i.name}</span>
@@ -2772,6 +2886,7 @@ function openModal(id) {
       <span class="modal-glass-label">${c.glass} · ${cm ? '<span style="color:var(--green)">✓ Can Make</span>' : '<span style="color:var(--red)">✗ Missing Ingredients</span>'}</span>
       ${c.source ? (c.url ? `<a href="${c.url}" target="_blank" rel="noopener" class="modal-glass-label" style="margin-left:auto;opacity:0.7;text-decoration:none;border-bottom:1px solid rgba(201,168,76,0.4);">${c.source} ↗</a>` : `<span class="modal-glass-label" style="margin-left:auto;opacity:0.6">${c.source}</span>`) : ''}
     </div>
+    ${(c.mood && c.mood.length) ? `<div class="modal-moods">${c.mood.map(m => `<span class="mood-chip">${m}</span>`).join('')}</div>` : ''}
     <button class="modal-close" onclick="closeModal()">×</button>
   `;
 
@@ -2794,6 +2909,11 @@ function openModal(id) {
         </li>`;
       }).join('')}
     </ul>
+    ${(function(){
+      var pc = cocktailPourCost(c);
+      if (!pc.costed) return '';
+      return `<div class="pour-cost-line"><span class="pour-cost-val">≈ ₪${pc.total.toFixed(1)}</span><span class="pour-cost-note">pour cost${pc.costed < pc.countable ? ` · ${pc.costed}/${pc.countable} ingredients priced` : ''}</span></div>`;
+    })()}
     <div class="modal-section-title">Method</div>
     <ol class="modal-steps">
       ${c.steps.map(s => `<li class="modal-step">${s}</li>`).join('')}
@@ -2927,6 +3047,7 @@ function deleteRecipe(id) {
 function renderInventory() {
   const tree = document.getElementById('inv-tree');
   if (!tree) return;
+  renderPendingArrivals();
 
   const CAT_META = {
     'Spirit':   { icon: '🥃', label: 'Spirits' },
@@ -3020,6 +3141,33 @@ function deleteInvItem(id) {
 function toggleInv(id) {
   const item = state.inventory.find(i => i.id === id);
   if (item) { item.on = !item.on; save(); renderInventory(); renderCocktails(); }
+}
+
+// ── PENDING ARRIVALS / OUT OF STOCK (v1.42) ─────────────────────────────────
+function renderPendingArrivals() {
+  var box = document.getElementById('inv-pending');
+  if (!box) return;
+  var off = state.inventory.filter(function(i){ return !i.on; });
+  if (!off.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  var h = '<div class="inv-pending-title"><span>📦 Awaiting Arrival · Out of Stock</span><span style="color:var(--text3);letter-spacing:0;">' + off.length + '</span></div>';
+  off.forEach(function(item) {
+    h += '<div class="inv-pending-row"><div><div class="inv-pending-name">' + item.label + '</div>'
+       + '<div class="inv-pending-kind">' + item.cat + ' · ' + item.kind + '</div></div>'
+       + '<button class="btn-arrived" onclick="markArrived(\'' + item.id + '\')">✓ Arrived</button></div>';
+  });
+  box.innerHTML = h;
+  box.style.display = 'block';
+}
+
+function markArrived(id) {
+  var item = state.inventory.find(function(i){ return i.id === id; });
+  if (!item) return;
+  item.on = true;
+  save();
+  syncToCloud();
+  renderInventory();
+  renderCocktails();
+  toast(item.label + ' is on the bar 🥃');
 }
 
 function addInventoryItem() {
@@ -3203,6 +3351,7 @@ function pickMood(mood, cardEl) {
       </div>
       <div class="card-name">${c.name}</div>
       <div class="card-method"><span class="${cm ? 'can-make-dot' : 'cant-make-dot'}"></span>${c.method} · ${c.glass}</div>
+      ${(c.mood && c.mood.length) ? `<div class="card-moods">${c.mood.slice(0,3).map(m => `<span class="mood-chip">${m}</span>`).join('')}</div>` : ''}
       <div class="card-ingredients">
         ${c.ingredients.slice(0,3).map(i => `<div class="card-ingredient-item">
           <span class="card-ingredient-name">${i.name}</span>
@@ -3286,7 +3435,7 @@ function saveRecipe() {
     garnish: document.getElementById('r-garnish').value.trim(),
     source: document.getElementById('r-source').value.trim(),
     notes: document.getElementById('r-notes').value.trim(),
-    url: pendingSourceUrl || '',
+    url: ((document.getElementById('r-url') || {}).value || '').trim() || pendingSourceUrl || '',
     mood: (function() {
       const searchText = (name + ' ' + ingredients.map(i => i.name).join(' ')).toLowerCase();
       return Object.keys(MOOD_KEYWORDS).filter(m => (MOOD_KEYWORDS[m] || []).some(k => searchText.includes(k)));
@@ -3325,7 +3474,7 @@ function clearRecipeForm() {
   if (banner) banner.style.display = 'none';
   var saveBtn = document.getElementById('r-save-btn');
   if (saveBtn) saveBtn.textContent = 'Save Recipe';
-  ['r-name','r-garnish','r-source','r-notes'].forEach(id => document.getElementById(id).value = '');
+  ['r-name','r-garnish','r-source','r-notes','r-url'].forEach(id => { var el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('r-liked-toggle').classList.remove('on');
   document.getElementById('r-house-toggle').classList.remove('on');
   document.getElementById('ing-list').innerHTML = '';
@@ -3848,6 +3997,7 @@ function editExistingCocktail(id) {
   document.getElementById('r-source').value = ck.source || '';
   document.getElementById('r-notes').value = ck.notes || '';
   pendingSourceUrl = ck.url || '';
+  if (document.getElementById('r-url')) document.getElementById('r-url').value = ck.url || '';
 
   var likeT = document.getElementById('r-liked-toggle');
   var houseT = document.getElementById('r-house-toggle');
@@ -3896,6 +4046,7 @@ function editRecipeBeforeAdd(encoded) {
   document.getElementById('r-source').value = r.source || '';
   document.getElementById('r-notes').value = r.notes || '';
   pendingSourceUrl = r.url || '';
+  if (document.getElementById('r-url')) document.getElementById('r-url').value = r.url || '';
 
   // Ingredients
   var ingList = document.getElementById('ing-list');
@@ -4483,7 +4634,7 @@ const KIND_TO_COCKTAILDB = {
 
 function renderBottleInfoSection(item) {
   var info = item.info || {};
-  var hasInfo = info.abv || info.origin || info.description;
+  var hasInfo = info.abv || info.origin || info.description || item.priceNIS;
   var h = '<div class="bottle-section" id="bottle-info-section">';
   h += '<div class="bottle-section-title" style="display:flex;justify-content:space-between;align-items:center;">'
      + '<span>About this bottle</span>'
@@ -4494,10 +4645,11 @@ function renderBottleInfoSection(item) {
 
   h += '<div id="bottle-info-content">';
   if (hasInfo) {
-    if (info.abv || info.origin) {
+    if (info.abv || info.origin || item.priceNIS) {
       h += '<div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px;">';
       if (info.abv)    h += '<div><div class="bottle-info-label">ABV</div><div class="bottle-info-value">' + info.abv + '</div></div>';
       if (info.origin) h += '<div><div class="bottle-info-label">Origin</div><div class="bottle-info-value">' + info.origin + '</div></div>';
+      if (item.priceNIS) h += '<div><div class="bottle-info-label">Price</div><div class="bottle-info-value">₪' + item.priceNIS + (item.sizeMl ? ' · ' + item.sizeMl + 'ml · ₪' + (item.priceNIS / item.sizeMl).toFixed(2) + '/ml' : '') + '</div></div>';
       h += '</div>';
     }
     if (info.description) h += '<div class="bottle-info-desc">' + info.description + '</div>';
@@ -4522,6 +4674,12 @@ function editBottleInfo(itemId) {
     + '<input id="bi-origin" type="text" placeholder="e.g. Galicia, Spain" value="' + (info.origin || '').replace(/"/g,'&quot;') + '">'
     + '<label class="bottle-info-label">Description / tasting notes</label>'
     + '<textarea id="bi-desc" rows="4" placeholder="Botanicals, flavor, character…">' + (info.description || '') + '</textarea>'
+    + '<div style="display:flex;gap:10px;margin-top:6px;">'
+    + '<div style="flex:1;"><label class="bottle-info-label">Price (₪)</label>'
+    + '<input id="bi-price" type="number" inputmode="decimal" placeholder="e.g. 180" value="' + (item.priceNIS || '') + '"></div>'
+    + '<div style="flex:1;"><label class="bottle-info-label">Bottle size (ml)</label>'
+    + '<input id="bi-size" type="number" inputmode="numeric" placeholder="e.g. 700" value="' + (item.sizeMl || '') + '"></div>'
+    + '</div>'
     + '<div style="display:flex;gap:8px;margin-top:10px;">'
     + '<button class="btn btn-gold" style="flex:1;" onclick="saveBottleInfo(\'' + itemId + '\')">Save</button>'
     + '<button class="btn btn-outline" style="flex:1;" onclick="openBottleModal(\'' + itemId + '\')">Cancel</button>'
@@ -4536,6 +4694,13 @@ function saveBottleInfo(itemId) {
     origin: document.getElementById('bi-origin').value.trim(),
     description: document.getElementById('bi-desc').value.trim()
   };
+  var priceEl = document.getElementById('bi-price'), sizeEl = document.getElementById('bi-size');
+  var p = priceEl ? parseFloat(priceEl.value) : NaN;
+  var s = sizeEl ? parseFloat(sizeEl.value) : NaN;
+  item.priceNIS = (!isNaN(p) && p > 0) ? p : null;
+  item.sizeMl   = (!isNaN(s) && s > 0) ? s : null;
+  if (item.priceNIS || item.sizeMl) item._priceUserSet = true;  // protect from default-price backfill
+  item.priceTs = Date.now();
   item.infoTs = Date.now();
   item._infoUserSet = true;  // protect manual entries from default-info overwrites
   save();
@@ -5463,6 +5628,16 @@ function syncFromCloud() {
           var lInfo = local && local.info, lTs = (local && local.infoTs) || 0;
           if (cTs >= lTs && cInfo) { result.info = cInfo; result.infoTs = cTs; }
           else if (lInfo) { result.info = lInfo; result.infoTs = lTs; }
+          // Carry price fields (v1.42) — whichever side has the newer priceTs
+          var cPTs = (cloud && cloud.priceTs) || 0;
+          var lPTs = (local && local.priceTs) || 0;
+          var pSrc = (cPTs >= lPTs) ? (cloud || local) : local;
+          if (pSrc && (pSrc.priceNIS || pSrc.sizeMl)) {
+            result.priceNIS = pSrc.priceNIS || null;
+            result.sizeMl   = pSrc.sizeMl || null;
+            result.priceTs  = Math.max(cPTs, lPTs);
+            if (pSrc._priceUserSet) result._priceUserSet = true;
+          }
           return result;
         });
         cloudInventory.filter(function(i){ return !defaultInvIds.has(i.id) && !delSet.has(i.id); }).forEach(function(i){ mergedInv.push(i); });
