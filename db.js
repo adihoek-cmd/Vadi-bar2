@@ -442,7 +442,7 @@ const DEFAULT_COCKTAILS = [
   // ── FROM ROBB REPORT: Whiskey Sour Variations ─────────────────────────────
   {
     id:"c22", name:"Eggless Whiskey Sour", glass:"Rocks", method:"Shake", liked:false, house:false,
-    garnish:"Orange slice, cherry", source:"Robb Report", mood:["classic","easy"],
+    garnish:"Orange slice, cherry", source:"Robb Report", url:"https://robbreport.com/food-drink/spirits/lists/best-whiskey-cocktails-home-bartender-1237284649/", mood:["classic","easy"],
     ingredients:[
       {name:"Irish Whiskey", amount:"2 oz", kind:"Irish Whiskey"},
       {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
@@ -453,7 +453,7 @@ const DEFAULT_COCKTAILS = [
   },
   {
     id:"c23", name:"Juicy Whiskey Sour", glass:"Rocks", method:"Shake", liked:false, house:false,
-    garnish:"Lemon peel, Angostura dashes", source:"Robb Report", mood:["strong","bright"],
+    garnish:"Lemon peel, Angostura dashes", source:"Robb Report", url:"https://robbreport.com/food-drink/spirits/lists/best-whiskey-cocktails-home-bartender-1237284649/", mood:["strong","bright"],
     ingredients:[
       {name:"Rye Whiskey", amount:"2 oz", kind:"Rye Whiskey"},
       {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
@@ -467,7 +467,7 @@ const DEFAULT_COCKTAILS = [
   },
   {
     id:"c24", name:"Whiskey Smash", glass:"Rocks", method:"Shake", liked:false, house:false,
-    garnish:"Mint crown", source:"Robb Report", mood:["bright","refreshing"],
+    garnish:"Mint crown", source:"Robb Report", url:"https://robbreport.com/food-drink/spirits/lists/best-whiskey-cocktails-home-bartender-1237284649/", mood:["bright","refreshing"],
     ingredients:[
       {name:"Bourbon", amount:"2 oz", kind:"Bourbon"},
       {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
@@ -480,7 +480,7 @@ const DEFAULT_COCKTAILS = [
   },
   {
     id:"c25", name:"Napoleon", glass:"Coupe", method:"Shake", liked:false, house:false,
-    garnish:"None", source:"Robb Report", mood:["bright","fruity"],
+    garnish:"None", source:"Robb Report", url:"https://robbreport.com/food-drink/spirits/lists/best-whiskey-cocktails-home-bartender-1237284649/", mood:["bright","fruity"],
     ingredients:[
       {name:"High-Proof Bourbon", amount:"1 1/2 oz", kind:"Bourbon"},
       {name:"Blanc Vermouth", amount:"1/2 oz", kind:"Sweet Vermouth"},
@@ -495,7 +495,7 @@ const DEFAULT_COCKTAILS = [
   },
   {
     id:"c26", name:"Morgenthaler Sour", glass:"Rocks", method:"Shake", liked:false, house:false,
-    garnish:"Lemon peel, cherry", source:"Robb Report", mood:["sweet","strong"],
+    garnish:"Lemon peel, cherry", source:"Robb Report", url:"https://robbreport.com/food-drink/spirits/lists/best-whiskey-cocktails-home-bartender-1237284649/", mood:["sweet","strong"],
     ingredients:[
       {name:"Amaretto", amount:"1 1/2 oz", kind:"Amaretto"},
       {name:"Cask-Strength Bourbon", amount:"3/4 oz", kind:"Bourbon"},
@@ -508,7 +508,7 @@ const DEFAULT_COCKTAILS = [
   },
   {
     id:"c27", name:"Wild Eyed Rose", glass:"Coupe", method:"Shake", liked:false, house:false,
-    garnish:"Lime wheel", source:"Robb Report", mood:["bright","classic"],
+    garnish:"Lime wheel", source:"Robb Report", url:"https://robbreport.com/food-drink/spirits/lists/best-whiskey-cocktails-home-bartender-1237284649/", mood:["bright","classic"],
     ingredients:[
       {name:"Irish Whiskey", amount:"2 oz", kind:"Irish Whiskey"},
       {name:"Fresh Lime Juice", amount:"3/4 oz", kind:"Lime Juice"},
@@ -519,7 +519,7 @@ const DEFAULT_COCKTAILS = [
   },
   {
     id:"c28", name:"Blood and Sand", glass:"Coupe", method:"Shake", liked:false, house:false,
-    garnish:"Orange peel", source:"Robb Report", mood:["classic","strong"],
+    garnish:"Orange peel", source:"Robb Report", url:"https://robbreport.com/food-drink/spirits/lists/best-whiskey-cocktails-home-bartender-1237284649/", mood:["classic","strong"],
     ingredients:[
       {name:"Scotch", amount:"1 oz", kind:"Blended Scotch"},
       {name:"Sweet Vermouth", amount:"3/4 oz", kind:"Sweet Vermouth"},
@@ -532,7 +532,7 @@ const DEFAULT_COCKTAILS = [
   },
   {
     id:"c29", name:"Cameron's Kick", glass:"Coupe", method:"Shake", liked:false, house:false,
-    garnish:"Lemon peel", source:"Robb Report", mood:["bright","classic"],
+    garnish:"Lemon peel", source:"Robb Report", url:"https://robbreport.com/food-drink/spirits/lists/best-whiskey-cocktails-home-bartender-1237284649/", mood:["bright","classic"],
     ingredients:[
       {name:"Irish Whiskey", amount:"2 oz", kind:"Irish Whiskey"},
       {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
@@ -544,7 +544,7 @@ const DEFAULT_COCKTAILS = [
   },
   {
     id:"c30", name:"New York Sour", glass:"Rocks", method:"Shake", liked:false, house:false,
-    garnish:"Red wine float", source:"Robb Report", mood:["bright","classic"],
+    garnish:"Red wine float", source:"Robb Report", url:"https://robbreport.com/food-drink/spirits/lists/best-whiskey-cocktails-home-bartender-1237284649/", mood:["bright","classic"],
     ingredients:[
       {name:"Rye Whiskey", amount:"2 oz", kind:"Rye Whiskey"},
       {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
@@ -556,7 +556,7 @@ const DEFAULT_COCKTAILS = [
   },
   {
     id:"c31", name:"Gold Rush", glass:"Rocks", method:"Shake", liked:false, house:false,
-    garnish:"None", source:"Robb Report", mood:["classic","sweet"],
+    garnish:"None", source:"Robb Report", url:"https://robbreport.com/food-drink/spirits/gold-rush-recipe-bourbon-whiskey-sour-cocktail-honey-1234590351/", mood:["classic","sweet"],
     ingredients:[
       {name:"Bourbon", amount:"2 oz", kind:"Bourbon"},
       {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
@@ -568,7 +568,7 @@ const DEFAULT_COCKTAILS = [
   },
   {
     id:"c32", name:"Brown Derby", glass:"Rocks", method:"Shake", liked:false, house:false,
-    garnish:"Grapefruit peel", source:"Robb Report", mood:["bright","classic"],
+    garnish:"Grapefruit peel", source:"Robb Report", url:"https://robbreport.com/food-drink/spirits/best-brown-derby-recipe-bourbon-grapefruit-cocktail-1235651510/", mood:["bright","classic"],
     ingredients:[
       {name:"Bourbon", amount:"2 oz", kind:"Bourbon"},
       {name:"Fresh Grapefruit Juice", amount:"1 oz", kind:"Grapefruit Juice"},
@@ -581,7 +581,7 @@ const DEFAULT_COCKTAILS = [
   },
   {
     id:"c33", name:"Paper Plane", glass:"Coupe", method:"Shake", liked:false, house:false,
-    garnish:"None", source:"Robb Report", mood:["bright","classic"],
+    garnish:"None", source:"Robb Report", url:"https://robbreport.com/food-drink/spirits/lists/best-whiskey-cocktails-home-bartender-1237284649/", mood:["bright","classic"],
     ingredients:[
       {name:"Bourbon", amount:"3/4 oz", kind:"Bourbon"},
       {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
@@ -593,7 +593,7 @@ const DEFAULT_COCKTAILS = [
   },
   {
     id:"c34", name:"Ponton Smash", glass:"Rocks", method:"Shake", liked:false, house:false,
-    garnish:"Mint sprig, pineapple slice", source:"Robb Report", mood:["refreshing","tropical"],
+    garnish:"Mint sprig, pineapple slice", source:"Robb Report", url:"https://robbreport.com/food-drink/spirits/lists/best-whiskey-cocktails-home-bartender-1237284649/", mood:["refreshing","tropical"],
     ingredients:[
       {name:"Bourbon", amount:"1 7/8 oz", kind:"Bourbon"},
       {name:"Absinthe", amount:"1/8 oz", kind:"Absinthe"},
@@ -607,7 +607,7 @@ const DEFAULT_COCKTAILS = [
   },
   {
     id:"c35", name:"Lion's Tail", glass:"Coupe", method:"Shake", liked:false, house:false,
-    garnish:"Lime peel or lime wheel", source:"Robb Report", mood:["spiced","classic"],
+    garnish:"Lime peel or lime wheel", source:"Robb Report", url:"https://robbreport.com/food-drink/spirits/lists/best-whiskey-cocktails-home-bartender-1237284649/", mood:["spiced","classic"],
     ingredients:[
       {name:"Bourbon", amount:"2 oz", kind:"Bourbon"},
       {name:"Fresh Lime Juice", amount:"3/4 oz", kind:"Lime Juice"},
@@ -619,7 +619,7 @@ const DEFAULT_COCKTAILS = [
   },
   {
     id:"c36", name:"Cardboard Plane", glass:"Rocks", method:"Shake", liked:false, house:false,
-    garnish:"Grapefruit peel", source:"Robb Report", mood:["refreshing","bright"],
+    garnish:"Grapefruit peel", source:"Robb Report", url:"https://robbreport.com/food-drink/spirits/lists/best-whiskey-cocktails-home-bartender-1237284649/", mood:["refreshing","bright"],
     ingredients:[
       {name:"Bourbon", amount:"1 oz", kind:"Bourbon"},
       {name:"Cointreau", amount:"3/4 oz", kind:"Triple Sec"},
@@ -702,7 +702,7 @@ const DEFAULT_COCKTAILS = [
   },
   {
     id:"c37", name:"Irish Breakfast", glass:"Coupe", method:"Shake", liked:false, house:false,
-    garnish:"Orange peel", source:"Robb Report", mood:["bright","sweet"],
+    garnish:"Orange peel", source:"Robb Report", url:"https://robbreport.com/food-drink/spirits/lists/best-whiskey-cocktails-home-bartender-1237284649/", mood:["bright","sweet"],
     ingredients:[
       {name:"Irish Whiskey", amount:"1 1/2 oz", kind:"Irish Whiskey"},
       {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
