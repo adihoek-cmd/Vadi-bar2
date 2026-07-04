@@ -2081,9 +2081,6 @@
       <button class="btn btn-gold" onclick="document.getElementById('inv-add-section').scrollIntoView({behavior:'smooth'})">+ Add Bottle</button>
     </div>
 
-    <!-- Pending arrivals / out of stock -->
-    <div class="inv-pending" id="inv-pending" style="display:none"></div>
-
     <!-- Tree inventory -->
     <div class="inv-tree" id="inv-tree"></div>
 
@@ -2172,6 +2169,9 @@
     </div>
 
     <div id="cart-list"></div>
+
+    <!-- Pending arrivals / out of stock -->
+    <div class="inv-pending" id="inv-pending" style="display:none"></div>
   </div>
 
   <!-- ── ADD RECIPE PAGE ── -->
@@ -2332,7 +2332,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=42"></script>
+<script src="db.js?v=43"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2426,8 +2426,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 42; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.42'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 43; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.43'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -2491,14 +2491,15 @@ var APP_VERSION = '1.42'; // shown in the page footer; bump on every deploy
       dirty = true;
     }
   });
-  // Backfill default price data (v1.42) — user-entered prices are never overwritten
+  // Sync default price data (v1.43) — db.js is authoritative for prices
+  // unless the user explicitly set one in-app (_priceUserSet)
   var defPriceById = {};
   DEFAULT_INVENTORY.forEach(function(di){ if (di.priceNIS) defPriceById[di.id] = di; });
   savedInv.forEach(function(it) {
     var dp = defPriceById[it.id];
-    if (dp && !it._priceUserSet && !it.priceNIS) {
+    if (dp && !it._priceUserSet && (it.priceNIS !== dp.priceNIS || it.sizeMl !== dp.sizeMl)) {
       it.priceNIS = dp.priceNIS;
-      if (dp.sizeMl && !it.sizeMl) it.sizeMl = dp.sizeMl;
+      it.sizeMl = dp.sizeMl || it.sizeMl;
       dirty = true;
     }
   });
@@ -2551,6 +2552,20 @@ let state = {
   });
   if (added) localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
 })();
+
+// Backfill source URLs (v1.43): saved recipes keep all user content, but if a
+// default recipe now ships a source link and the saved copy has none, adopt it.
+function backfillRecipeUrls() {
+  var urlById = {};
+  DEFAULT_COCKTAILS.forEach(function(dc){ if (dc.url) urlById[dc.id] = dc.url; });
+  var changed = false;
+  state.cocktails.forEach(function(c) {
+    if (!c.url && urlById[c.id]) { c.url = urlById[c.id]; changed = true; }
+  });
+  if (changed) localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
+  return changed;
+}
+backfillRecipeUrls();
 
 // GUARANTEE: ensure every DEFAULT_INVENTORY item is present in state
 // (unless the user explicitly deleted it — tracked in state.deleted)
@@ -3047,7 +3062,6 @@ function deleteRecipe(id) {
 function renderInventory() {
   const tree = document.getElementById('inv-tree');
   if (!tree) return;
-  renderPendingArrivals();
 
   const CAT_META = {
     'Spirit':   { icon: '🥃', label: 'Spirits' },
@@ -3165,6 +3179,7 @@ function markArrived(id) {
   item.on = true;
   save();
   syncToCloud();
+  renderCart();
   renderInventory();
   renderCocktails();
   toast(item.label + ' is on the bar 🥃');
@@ -5210,6 +5225,7 @@ function renderCart() {
   const el = document.getElementById('cart-list');
   if (!el) return;
 
+  renderPendingArrivals();
   updateCartBadge();
 
   const total = state.cart.length;
@@ -5608,6 +5624,7 @@ function syncFromCloud() {
           }
         });
         state.cocktails = merged;
+        backfillRecipeUrls();
 
         // Union deleted tombstones from cloud + local
         var cloudDeleted = data.fields.deleted || [];
@@ -5628,11 +5645,11 @@ function syncFromCloud() {
           var lInfo = local && local.info, lTs = (local && local.infoTs) || 0;
           if (cTs >= lTs && cInfo) { result.info = cInfo; result.infoTs = cTs; }
           else if (lInfo) { result.info = lInfo; result.infoTs = lTs; }
-          // Carry price fields (v1.42) — whichever side has the newer priceTs
+          // Carry user-set prices only (v1.43); otherwise db.js defaults remain
           var cPTs = (cloud && cloud.priceTs) || 0;
           var lPTs = (local && local.priceTs) || 0;
           var pSrc = (cPTs >= lPTs) ? (cloud || local) : local;
-          if (pSrc && (pSrc.priceNIS || pSrc.sizeMl)) {
+          if (pSrc && pSrc._priceUserSet && (pSrc.priceNIS || pSrc.sizeMl)) {
             result.priceNIS = pSrc.priceNIS || null;
             result.sizeMl   = pSrc.sizeMl || null;
             result.priceTs  = Math.max(cPTs, lPTs);
