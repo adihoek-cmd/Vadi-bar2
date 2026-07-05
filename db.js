@@ -201,7 +201,7 @@ const DEFAULT_INVENTORY = [
 const DEFAULT_COCKTAILS = [
   {
     id:"c1", name:"Negroni", glass:"Rocks", method:"Stir", liked:false, house:false,
-    garnish:"Orange peel", source:"Classic", mood:["bitter","classic"],
+    garnish:"Orange peel", source:"Classic", mood:["bitter","strong","classic"],
     ingredients:[
       {name:"Gin", amount:"1 oz", kind:"Gin"},
       {name:"Sweet Vermouth", amount:"1 oz", kind:"Sweet Vermouth"},
@@ -235,7 +235,7 @@ const DEFAULT_COCKTAILS = [
   },
   {
     id:"c4", name:"Mezcal Negroni", glass:"Rocks", method:"Stir", liked:false, house:false,
-    garnish:"Orange peel", source:"PDT Cocktail Book", mood:["bitter","smoky"],
+    garnish:"Orange peel", source:"PDT Cocktail Book", mood:["bitter","strong","smoky"],
     ingredients:[
       {name:"Mezcal", amount:"1 oz", kind:"Mezcal"},
       {name:"Sweet Vermouth", amount:"1 oz", kind:"Sweet Vermouth"},
@@ -715,7 +715,7 @@ const DEFAULT_COCKTAILS = [
   }  ,{
     id:"c43", name:"White Negroni", glass:"Rocks", method:"Stir", liked:false, house:true,
     garnish:"Lemon twist", source:"Classic",
-    mood:["spirit-forward","bitter","elegant"],
+    mood:["strong","bitter","elegant"],
     ingredients:[
       {name:"Gin", amount:"1 1/2 oz", kind:"Gin"},
       {name:"Luxardo Bitter Bianco", amount:"3/4 oz", kind:"Bitter Bianco"},
@@ -727,7 +727,7 @@ const DEFAULT_COCKTAILS = [
   ,{
     id:"c44", name:"Blanco Diablo", glass:"Rocks", method:"Stir", liked:true, house:true,
     garnish:"Orange peel", source:"Vadi Bar",
-    mood:["spirit-forward","bitter","smoky"],
+    mood:["strong","bitter","smoky"],
     ingredients:[
       {name:"Mezcal Joven", amount:"1 1/2 oz", kind:"Mezcal"},
       {name:"Luxardo Bitter Bianco", amount:"3/4 oz", kind:"Bitter Bianco"},
@@ -781,7 +781,7 @@ const DEFAULT_COCKTAILS = [
     id:"c47", name:"Toronto", glass:"Coupe", method:"Stir", liked:false, house:false,
     garnish:"Orange twist",
     source:"Classic",
-    mood:["spirit-forward","bitter","complex"],
+    mood:["strong","bitter","complex"],
     ingredients:[
       {name:"Rye Whiskey", amount:"2 oz", kind:"Rye Whiskey"},
       {name:"Fernet-Branca", amount:"1/4 oz", kind:"Amaro"},
@@ -795,7 +795,7 @@ const DEFAULT_COCKTAILS = [
     id:"c48", name:"Rusty Nail", glass:"Rocks", method:"Stir", liked:false, house:false,
     garnish:"Lemon twist",
     source:"Classic",
-    mood:["spirit-forward","sweet","smoky"],
+    mood:["strong","sweet","smoky"],
     ingredients:[
       {name:"Blended Scotch", amount:"1 1/2 oz", kind:"Blended Scotch"},
       {name:"Drambuie", amount:"3/4 oz", kind:"Herbal Liqueur"},
@@ -807,7 +807,7 @@ const DEFAULT_COCKTAILS = [
     id:"c49", name:"Bobby Burns", glass:"Coupe", method:"Stir", liked:false, house:false,
     garnish:"Lemon twist",
     source:"Classic",
-    mood:["spirit-forward","herbal","elegant"],
+    mood:["strong","herbal","elegant"],
     ingredients:[
       {name:"Blended Scotch", amount:"1 1/2 oz", kind:"Blended Scotch"},
       {name:"Sweet Vermouth", amount:"3/4 oz", kind:"Sweet Vermouth"},
@@ -834,7 +834,7 @@ const DEFAULT_COCKTAILS = [
     id:"c51", name:"B&B", glass:"Snifter", method:"Build", liked:true, house:true,
     garnish:"None",
     source:"Classic",
-    mood:["spirit-forward","herbal","digestif"],
+    mood:["strong","herbal","digestif"],
     ingredients:[
       {name:"Cognac", amount:"1 oz", kind:"Cognac"},
       {name:"Benedictine", amount:"1 oz", kind:"Herbal Liqueur"},
@@ -906,7 +906,7 @@ const DEFAULT_COCKTAILS = [
     id:"c56", name:"Sage Smash", glass:"Rocks", method:"Shake", liked:false, house:true,
     garnish:"Fresh sage leaf, lemon slice",
     source:"Vadi Bar Original",
-    mood:["bright","spirit-forward","garden"],
+    mood:["bright","strong","garden"],
     ingredients:[
       {name:"Bourbon", amount:"2 oz", kind:"Bourbon"},
       {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
