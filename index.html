@@ -842,7 +842,16 @@
   .card-moods { display: flex; gap: 5px; flex-wrap: wrap; margin: 6px 0 8px; }
   .mood-chip { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); border: 1px solid var(--border); border-radius: 20px; padding: 2px 8px; }
   .modal-moods { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-  select.filter-chip { appearance: none; -webkit-appearance: none; background: transparent; }
+  .flavor-row { display: none; gap: 6px; flex-wrap: wrap; align-items: center; margin: -16px 0 24px; }
+  .flavor-chip {
+    padding: 4px 12px; border-radius: 20px; font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; cursor: pointer; border: 1px solid var(--border);
+    background: transparent; color: var(--text3); transition: all 0.2s; font-family: 'Jost', sans-serif;
+  }
+  .flavor-chip.selected { background: var(--gold3); border-color: var(--gold); color: var(--cream); }
+  .flavor-chip.disabled { opacity: 0.25; cursor: default; pointer-events: none; }
+  .flavor-chip .fc-n { opacity: 0.55; font-size: 9px; margin-left: 3px; }
+  .flavor-chip.fc-clear { border-color: var(--border2); color: var(--cream2); }
   .inv-pending { border: 1px solid var(--border2); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; }
   .inv-pending-title { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
   .inv-pending-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
@@ -1964,21 +1973,7 @@
       <button class="filter-chip" onclick="setFilter('tried', this)">✓ Tried</button>
       <button class="filter-chip" onclick="setFilter('stir', this)">Stir</button>
       <button class="filter-chip" onclick="setFilter('shake', this)">Shake</button>
-      <select class="filter-chip" id="flavor-filter" onchange="renderCocktails()" title="Filter by flavor">
-        <option value="">Flavor ▾</option>
-        <option value="bitter">Bitter</option>
-        <option value="smoky">Smoky</option>
-        <option value="sweet">Sweet</option>
-        <option value="sour">Sour</option>
-        <option value="bright">Bright</option>
-        <option value="citrus">Citrus</option>
-        <option value="fruity">Fruity</option>
-        <option value="herbal">Herbal</option>
-        <option value="garden">Garden</option>
-        <option value="refreshing">Refreshing</option>
-        <option value="strong">Strong</option>
-        <option value="classic">Classic</option>
-      </select>
+      <button class="filter-chip" id="flavor-toggle" onclick="toggleFlavorRow()">Flavors ▾</button>
       <div class="filter-spacer"></div>
       <div class="search-box">
         <span class="search-icon">⌕</span>
@@ -1986,6 +1981,7 @@
       </div>
       <button class="btn btn-outline" style="white-space:nowrap;" onclick="showPage('add')">+ Add</button>
     </div>
+    <div class="flavor-row" id="flavor-row" style="display:none"></div>
     <div class="cocktail-grid" id="cocktail-grid"></div>
   </div>
 
@@ -2332,7 +2328,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=43"></script>
+<script src="db.js?v=44"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2426,8 +2422,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 43; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.43'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 44; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.44'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -2836,9 +2832,15 @@ function renderCocktails() {
   if (currentFilter === 'stir') list = list.filter(c => c.method === 'Stir');
   if (currentFilter === 'shake') list = list.filter(c => c.method === 'Shake');
 
-  const flavorSel = document.getElementById('flavor-filter');
-  const flavor = flavorSel ? flavorSel.value : '';
-  if (flavor) list = list.filter(c => (c.mood || []).includes(flavor));
+  const preFlavorList = list;
+  if (flavorSel.size) {
+    list = list.filter(c => {
+      const cm = c.mood || [];
+      for (const m of flavorSel) if (!cm.includes(m)) return false;
+      return true;
+    });
+  }
+  renderFlavorRow(preFlavorList);
 
   if (!list.length) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
@@ -3029,6 +3031,61 @@ function closeModal(e) {
   if (!e || e.target === document.getElementById('modal-overlay')) {
     document.getElementById('modal-overlay').classList.remove('open');
   }
+}
+
+// ── MULTI-SELECT FLAVOR FILTER (v1.44) ──────────────────────────────────────
+let flavorSel = new Set();
+let flavorRowOpen = false;
+
+function toggleFlavorRow() {
+  flavorRowOpen = !flavorRowOpen;
+  renderCocktails();
+}
+
+function toggleFlavor(m) {
+  if (flavorSel.has(m)) flavorSel.delete(m); else flavorSel.add(m);
+  renderCocktails();
+}
+
+function clearFlavors() {
+  flavorSel.clear();
+  renderCocktails();
+}
+
+// preFlavor = cocktails passing the primary filter + search, before flavor filtering.
+// A flavor stays tappable only if adding it to the current selection still
+// matches at least one of those cocktails; otherwise it greys out.
+function renderFlavorRow(preFlavor) {
+  const row = document.getElementById('flavor-row');
+  const tog = document.getElementById('flavor-toggle');
+  if (!row) return;
+  if (tog) {
+    tog.textContent = flavorSel.size ? 'Flavors · ' + flavorSel.size : 'Flavors ▾';
+    tog.classList.toggle('active', flavorSel.size > 0);
+  }
+  const show = flavorRowOpen || flavorSel.size > 0;
+  row.style.display = show ? 'flex' : 'none';
+  if (!show) { row.innerHTML = ''; return; }
+
+  const counts = {};
+  state.cocktails.forEach(c => (c.mood || []).forEach(m => counts[m] = (counts[m] || 0) + 1));
+  const moods = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
+
+  let h = '';
+  if (flavorSel.size) h += `<button class="flavor-chip fc-clear" onclick="clearFlavors()">× clear</button>`;
+  moods.forEach(m => {
+    const sel = flavorSel.has(m);
+    let n = 0;
+    preFlavor.forEach(c => {
+      const cm = c.mood || [];
+      if (!cm.includes(m)) return;
+      for (const s of flavorSel) if (!cm.includes(s)) return;
+      n++;
+    });
+    const disabled = !sel && n === 0;
+    h += `<button class="flavor-chip${sel ? ' selected' : ''}${disabled ? ' disabled' : ''}" onclick="toggleFlavor('${m}')">${m}${!sel && !disabled ? `<span class="fc-n">${n}</span>` : ''}</button>`;
+  });
+  row.innerHTML = h;
 }
 
 function toggleLiked(id) {
