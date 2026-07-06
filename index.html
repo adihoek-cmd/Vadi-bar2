@@ -863,6 +863,8 @@
   .pour-cost-line { display: flex; align-items: baseline; gap: 8px; margin: 12px 0 4px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; }
   .pour-cost-val { color: var(--gold); font-size: 15px; font-weight: 600; }
   .pour-cost-note { font-size: 11px; color: var(--text3); }
+  .card-abv { font-size: 10px; letter-spacing: 0.06em; color: var(--text3); margin-top: 3px; }
+  .modal-abv { font-size: 11px; letter-spacing: 0.05em; color: var(--text3); margin-top: 7px; }
 
   .mood-page { max-width: 600px; margin: 0 auto; padding: 40px 0; }
 
@@ -2328,7 +2330,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=46"></script>
+<script src="db.js?v=47"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2422,8 +2424,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 46; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.46'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 47; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.47'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -2773,6 +2775,58 @@ function pricePerMlForKind(kind) {
   return best;
 }
 
+// ── ALCOHOL CONTENT (v1.47) ──────────────────────────────────────────────────
+// Fallback ABVs by kind, used when no bottle of that kind carries info.abv
+const KIND_ABV_FALLBACK = {
+  'Gin':40,'Vodka':40,'Irish Whiskey':40,'Blended Scotch':40,'Highland Scotch':43,
+  'Israeli Whisky':46,'Peated Scotch':46,'Bourbon':45,'Rye Whiskey':45,'English Whisky':43,
+  'Rum':40,'White Rum':38,'Tequila':40,'Mezcal':42,'Cachaca':40,'Cognac':40,'Rakia':40,'Schnapps':40,
+  'Anise Spirit':40,'Sweet Vermouth':16,'Dry Vermouth':17,'Blanc Vermouth':16,
+  'Campari':25,'Aperol':11,'Bitter Bianco':30,'Amaro':28,'Amaro Nonino':35,'Amaro Meletti':32,
+  'Triple Sec':38,'Whiskey Liqueur':40,'Herbal Liqueur':40,'Chartreuse':55,
+  'Cream Liqueur':17,'Coffee Liqueur':20,'Cherry Liqueur':24,'Maraschino Liqueur':32,
+  'Cassis':20,'Limoncello':26,'Honey Liqueur':33,'Rhubarb Liqueur':24,'Homemade Liqueur':25,
+  'Herbal Tonic':35,'Allspice Dram':22,'Amaretto':28,'Absinthe':60,
+  'Angostura Bitters':44,"Peychaud's Bitters":35,'Chocolate Bitters':45,'Orange Bitters':40,
+};
+
+function abvForKind(kind) {
+  // Prefer the actual bottle on the bar (its info.abv), then any bottle, then fallback table
+  let best = null;
+  state.inventory.forEach(it => {
+    if (it.kind !== kind || !it.info || !it.info.abv) return;
+    const v = parseFloat(it.info.abv);
+    if (isNaN(v)) return;
+    if (best === null || (it.on && !best.on)) best = { on: it.on, v: v };
+  });
+  if (best) return best.v;
+  if (kind in KIND_ABV_FALLBACK) return KIND_ABV_FALLBACK[kind];
+  return 0; // juices, syrups, egg white, sodas, herbs and anything unknown
+}
+
+// Estimated final ABV (after ice dilution) and standard drinks (10g pure alcohol each)
+function cocktailStrength(c) {
+  let liquidMl = 0, pureMl = 0, any = false;
+  (c.ingredients || []).forEach(ing => {
+    let ml = parseAmountToMl(ing.amount);
+    const abv = ing.kind ? abvForKind(ing.kind) : 0;
+    if (ml === null) {
+      const a = String(ing.amount || '').toLowerCase();
+      if (/top|fill/.test(a)) { ml = 90; } // topped mixers: ~90ml estimate
+      else return; // egg white, muddled garnish etc.
+    }
+    liquidMl += ml;
+    if (abv > 0) { pureMl += ml * abv / 100; any = true; }
+  });
+  if (!any || liquidMl <= 0) return null;
+  const DILUTION = { 'Shake': 0.25, 'Stir': 0.20, 'Build': 0.10 };
+  const dil = DILUTION[c.method] !== undefined ? DILUTION[c.method] : 0.15;
+  const finalMl = liquidMl * (1 + dil);
+  const abvPct = Math.round(pureMl / finalMl * 100);
+  const drinks = pureMl * 0.789 / 10; // grams of ethanol; 10 g = 1 standard drink (IL/WHO)
+  return { abv: abvPct, drinks: Math.round(drinks * 10) / 10 };
+}
+
 function cocktailPourCost(c) {
   var total = 0, costed = 0, countable = 0;
   (c.ingredients || []).forEach(function(ing) {
@@ -2866,6 +2920,7 @@ function renderCocktails() {
       </div>
       <div class="card-name">${c.name}</div>
       <div class="card-method"><span class="${cm ? 'can-make-dot' : 'cant-make-dot'}"></span>${c.method} · ${c.glass}</div>
+      ${(function(){ const st = cocktailStrength(c); return st ? `<div class="card-abv">${st.abv}% ABV · ${st.drinks} std drink${st.drinks === 1 ? '' : 's'}</div>` : ''; })()}
       ${(c.mood && c.mood.length) ? `<div class="card-moods">${c.mood.slice(0,3).map(m => `<span class="mood-chip">${m}</span>`).join('')}</div>` : ''}
       <div class="card-ingredients">
         ${c.ingredients.slice(0,4).map(i => `<div class="card-ingredient-item">
@@ -2903,6 +2958,7 @@ function openModal(id) {
       <span class="modal-glass-label">${c.glass} · ${cm ? '<span style="color:var(--green)">✓ Can Make</span>' : '<span style="color:var(--red)">✗ Missing Ingredients</span>'}</span>
       ${c.source ? (c.url ? `<a href="${c.url}" target="_blank" rel="noopener" class="modal-glass-label" style="margin-left:auto;opacity:0.7;text-decoration:none;border-bottom:1px solid rgba(201,168,76,0.4);">${c.source} ↗</a>` : `<span class="modal-glass-label" style="margin-left:auto;opacity:0.6">${c.source}</span>`) : ''}
     </div>
+    ${(function(){ const st = cocktailStrength(c); return st ? `<div class="modal-abv">~${st.abv}% ABV after dilution · ${st.drinks} standard drink${st.drinks === 1 ? '' : 's'} (10g alcohol each)</div>` : ''; })()}
     ${(c.mood && c.mood.length) ? `<div class="modal-moods">${c.mood.map(m => `<span class="mood-chip">${m}</span>`).join('')}</div>` : ''}
     <button class="modal-close" onclick="closeModal()">×</button>
   `;
@@ -3430,6 +3486,7 @@ function pickMood(mood, cardEl) {
       </div>
       <div class="card-name">${c.name}</div>
       <div class="card-method"><span class="${cm ? 'can-make-dot' : 'cant-make-dot'}"></span>${c.method} · ${c.glass}</div>
+      ${(function(){ const st = cocktailStrength(c); return st ? `<div class="card-abv">${st.abv}% ABV · ${st.drinks} std drink${st.drinks === 1 ? '' : 's'}</div>` : ''; })()}
       ${(c.mood && c.mood.length) ? `<div class="card-moods">${c.mood.slice(0,3).map(m => `<span class="mood-chip">${m}</span>`).join('')}</div>` : ''}
       <div class="card-ingredients">
         ${c.ingredients.slice(0,3).map(i => `<div class="card-ingredient-item">
