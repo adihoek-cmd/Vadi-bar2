@@ -2328,7 +2328,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=45"></script>
+<script src="db.js?v=46"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2422,8 +2422,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 45; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.45'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 46; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.46'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -3130,6 +3130,12 @@ function renderInventory() {
   const cats = ['Spirit','Modifier','Syrup','Pantry'];
   let html = '';
 
+  // Canonical kind order derived from db.js (curated: related styles adjacent —
+  // Sweet → Dry → Blanc vermouth, Campari/Aperol/Bitter Bianco together,
+  // bitters together, the whisky family in sequence, etc.)
+  const kindRank = {};
+  DEFAULT_INVENTORY.forEach(d => { if (!(d.kind in kindRank)) kindRank[d.kind] = Object.keys(kindRank).length; });
+
   cats.forEach(cat => {
     const items = state.inventory.filter(i => i.cat === cat);
     if (!items.length) return;
@@ -3142,7 +3148,8 @@ function renderInventory() {
       kindMap[item.kind].push(item);
     });
 
-    const kinds = Object.keys(kindMap);
+    const kinds = Object.keys(kindMap).sort((a, b) =>
+      (kindRank[a] !== undefined ? kindRank[a] : 999) - (kindRank[b] !== undefined ? kindRank[b] : 999));
     const totalOn = items.filter(i => i.on).length;
 
     html += `<div class="tree-category open" id="tree-cat-${cat}">
