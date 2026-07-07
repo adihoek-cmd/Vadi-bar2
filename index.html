@@ -2331,7 +2331,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=49"></script>
+<script src="db.js?v=50"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2425,8 +2425,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 49; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.49'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 50; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.50'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -4421,10 +4421,11 @@ function editRecipeBeforeAdd(encoded) {
 function oneClickAddRecipe(encoded, btnEl) {
   var r = JSON.parse(decodeURIComponent(encoded));
 
-  // Check duplicate
-  if (state.cocktails.some(function(c){ return c.name.toLowerCase() === r.name.toLowerCase(); })) {
-    toast(r.name + ' is already in your collection');
-    return;
+  // Duplicate name → offer to replace the saved copy with this fresh import
+  var existing = state.cocktails.find(function(c){ return c.name.toLowerCase() === r.name.toLowerCase(); });
+  if (existing) {
+    var ok = confirm('"' + r.name + '" is already in your collection.\n\nReplace it with this import? Your Liked / House / Tried flags will be kept.');
+    if (!ok) { toast(r.name + ' kept unchanged'); return; }
   }
 
   // Parse ingredients — objects {name,measure} from TheCocktailDB, strings from Liquor.com
@@ -4440,6 +4441,31 @@ function oneClickAddRecipe(encoded, btnEl) {
   });
 
   var steps = r.steps && r.steps.length ? r.steps : ['Prepare ingredients.', 'Combine and ' + (r.method || 'shake').toLowerCase() + '.', 'Strain and serve.'];
+
+  if (existing) {
+    // Refresh content in place; identity and personal flags stay untouched
+    existing.glass = r.glass || existing.glass || 'Rocks';
+    existing.method = r.method || existing.method || 'Shake';
+    existing.garnish = r.garnish || '';
+    existing.source = r.source || existing.source || '';
+    existing.notes = r.notes || '';
+    existing.mood = (r.mood && r.mood.length) ? r.mood : (existing.mood || []);
+    existing.url = r.url || existing.url || '';
+    existing.ingredients = parsedIngs;
+    existing.steps = steps;
+    existing.edited = true;   // protects the replacement from default-content rebuilds
+    existing.flagTs = Date.now();
+    save();
+    syncToCloud();
+    renderCocktails();
+    if (btnEl) {
+      btnEl.textContent = '✓ Replaced!';
+      btnEl.classList.add('saved');
+      btnEl.disabled = true;
+    }
+    toast(r.name + ' updated from ' + (r.source || 'import') + ' 🍹');
+    return;
+  }
 
   var newCocktail = {
     id: 'c' + Date.now(),
