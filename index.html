@@ -2331,7 +2331,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=50"></script>
+<script src="db.js?v=51"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2425,8 +2425,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 50; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.50'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 51; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.51'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -2565,6 +2565,36 @@ function backfillRecipeUrls() {
   return changed;
 }
 backfillRecipeUrls();
+
+// One-time repair (v1.51): the v1.48 Difford's import bug could save allergen
+// text ("Sulphur Dioxide/Sulphites") as a single junk ingredient. Rebuild the
+// known-affected recipe in place; strip the junk line from anything else.
+(function repairBrokenDiffordsImports() {
+  var changed = false;
+  state.cocktails.forEach(function(c) {
+    var hasJunk = (c.ingredients || []).some(function(i){ return /sulphur dioxide|sulphites/i.test((i && i.name) || ''); });
+    if (!hasJunk) return;
+    if (/^brooklyn/i.test(c.name || '')) {
+      c.ingredients = [
+        { name: 'Rye Whiskey', amount: '1 1/2 oz', kind: 'Rye Whiskey' },
+        { name: 'Dry Vermouth', amount: '1/2 oz', kind: 'Dry Vermouth' },
+        { name: 'Sweet Vermouth', amount: '1/2 oz', kind: 'Sweet Vermouth' },
+        { name: 'Amer Picon', amount: '1/3 oz', kind: 'Amaro' },
+        { name: 'Maraschino Liqueur', amount: '1/3 oz', kind: 'Maraschino Liqueur' },
+        { name: 'Chilled water', amount: '1/3 oz', kind: '' }
+      ];
+      c.glass = 'Coupe';
+      c.method = 'Stir';
+      if (!c.garnish) c.garnish = 'Maraschino cherry';
+    } else {
+      c.ingredients = (c.ingredients || []).filter(function(i){ return !/sulphur dioxide|sulphites/i.test((i && i.name) || ''); });
+    }
+    c.edited = true;
+    c.flagTs = Date.now();
+    changed = true;
+  });
+  if (changed) localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
+})();
 
 // GUARANTEE: ensure every DEFAULT_INVENTORY item is present in state
 // (unless the user explicitly deleted it — tracked in state.deleted)
@@ -3665,8 +3695,8 @@ async function recipeSearch() {
       if (searchSource === 'all' || searchSource === 'liquor') {
         liquorResults = searchLiquorCom(q);
       }
-      if (searchSource === 'all' || searchSource === 'diffords') {
-        try { diffordsResults = await searchDiffords(q); } catch(e) { /* other sources still shown */ }
+      if (searchSource === 'diffords') {
+        try { diffordsResults = await searchDiffords(q); } catch(e) { /* shown as empty */ }
       }
     }
   } catch(e) { /* handled per-source */ }
@@ -3675,11 +3705,52 @@ async function recipeSearch() {
   btn.disabled = false;
 
   var all = cdbResults.concat(liquorResults, diffordsResults);
-  if (!all.length) {
+  if (!all.length && searchSource !== 'all') {
     res.innerHTML = '<div class="recipe-search-empty">No results found for "' + q + '".<br>Try a different spelling, search the other source, or paste a recipe link (e.g. from liquor.com) to import it directly.</div>';
     return;
   }
 
+  // In All Sources mode, Difford's (slow — no API, proxied) loads in the
+  // background and its cards are appended when ready, so the fast sources
+  // are never held hostage by slow proxies.
+  if (searchSource === 'all') {
+    var myToken = ++diffordsSearchToken;
+    if (all.length) {
+      renderRecipeResults(all, res);
+      var pendDiv = document.createElement('div');
+      pendDiv.id = 'diffords-pending';
+      pendDiv.className = 'recipe-search-loading';
+      pendDiv.style.cssText = 'padding:10px 0;font-size:11px;';
+      pendDiv.innerHTML = '<span class="spin-anim">⟳</span> Also checking Difford\'s Guide…';
+      res.appendChild(pendDiv);
+    } else {
+      res.innerHTML = '<div class="recipe-search-loading"><span class="spin-anim">⟳</span> Checking Difford\'s Guide…</div>';
+    }
+    searchDiffords(q).then(function(dres) {
+      if (myToken !== diffordsSearchToken) return; // superseded by a newer search
+      var pend = document.getElementById('diffords-pending');
+      if (pend) pend.remove();
+      var combined = all.concat(dres || []);
+      if (!combined.length) {
+        res.innerHTML = '<div class="recipe-search-empty">No results found for "' + q + '".<br>Try a different spelling, another source tab, or paste a recipe link to import it directly.</div>';
+        return;
+      }
+      if (dres && dres.length) renderRecipeResults(combined, res);
+    }).catch(function() {
+      if (myToken !== diffordsSearchToken) return;
+      var pend = document.getElementById('diffords-pending');
+      if (pend) pend.remove();
+      if (!all.length) res.innerHTML = '<div class="recipe-search-empty">No results found for "' + q + '".</div>';
+    });
+    return;
+  }
+
+  renderRecipeResults(all, res);
+}
+
+var diffordsSearchToken = 0;
+
+function renderRecipeResults(all, res) {
   var html = '<div class="recipe-results-grid">';
   all.forEach(function(r) {
     var encoded = encodeURIComponent(JSON.stringify(r));
@@ -3749,6 +3820,7 @@ async function importRecipeFromUrl(url) {
   var attempts = [
     { label: 'allorigins',     kind: 'alljson',  make: function(u){ return 'https://api.allorigins.win/get?url=' + encodeURIComponent(u); } },
     { label: 'allorigins-raw', kind: 'html',     make: function(u){ return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); } },
+    { label: 'corsproxy-io',   kind: 'html',     make: function(u){ return 'https://corsproxy.io/?url=' + encodeURIComponent(u); } },
     { label: 'codetabs',       kind: 'html',     make: function(u){ return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); } },
     { label: 'cors-workers',   kind: 'html',     make: function(u){ return 'https://test.cors.workers.dev/?' + u; } },
     { label: 'jina-reader',    kind: 'markdown', make: function(u){ return 'https://r.jina.ai/' + u; } }
@@ -3761,18 +3833,33 @@ async function importRecipeFromUrl(url) {
   // Difford's pages parse best from the Jina reader output — try it first
   if (host === 'diffordsguide.com') attempts.unshift(attempts.pop());
 
+  // All proxies are fetched IN PARALLEL (8s timeout each) and consumed in
+  // priority order as they land — worst case ~8s instead of a minute of
+  // sequential timeouts when a site (e.g. Difford's behind Cloudflare)
+  // stonewalls the public proxies.
+  var fetches = attempts.map(function(a) {
+    return (async function() {
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 8000) : null;
+      try {
+        var resp = await fetch(a.make(url), ctrl ? { signal: ctrl.signal } : {});
+        if (timer) clearTimeout(timer);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return await resp.text();
+      } catch(e) {
+        if (timer) clearTimeout(timer);
+        throw new Error((e && e.name === 'AbortError') ? 'timeout' : (e.message || 'network error'));
+      }
+    })();
+  });
+
   for (var i = 0; i < attempts.length; i++) {
     var a = attempts[i];
     var text = null;
     try {
-      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-      var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 10000) : null;
-      var resp = await fetch(a.make(url), ctrl ? { signal: ctrl.signal } : {});
-      if (timer) clearTimeout(timer);
-      if (!resp.ok) { errs.push(a.label + ': HTTP ' + resp.status); continue; }
-      text = await resp.text();
+      text = await fetches[i];
     } catch(e) {
-      errs.push(a.label + ': ' + ((e && e.name === 'AbortError') ? 'timeout' : 'network error'));
+      errs.push(a.label + ': ' + e.message);
       continue;
     }
     if (!text || text.length < 200) { errs.push(a.label + ': empty response'); continue; }
@@ -4140,18 +4227,27 @@ async function fetchDiffords(url) {
   var tries = [
     { kind: 'markdown', make: function(u){ return 'https://r.jina.ai/' + u; } },
     { kind: 'html', make: function(u){ return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); } },
+    { kind: 'html', make: function(u){ return 'https://corsproxy.io/?url=' + encodeURIComponent(u); } },
     { kind: 'html', make: function(u){ return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); } }
   ];
+  // Race all proxies in parallel; take the first usable response in priority order
+  var fetches = tries.map(function(t) {
+    return (async function() {
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 8000) : null;
+      try {
+        var resp = await fetch(t.make(url), ctrl ? { signal: ctrl.signal } : {});
+        if (timer) clearTimeout(timer);
+        if (!resp.ok) throw new Error('http');
+        return await resp.text();
+      } catch(e) { if (timer) clearTimeout(timer); throw e; }
+    })();
+  });
   for (var i = 0; i < tries.length; i++) {
     try {
-      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-      var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 12000) : null;
-      var resp = await fetch(tries[i].make(url), ctrl ? { signal: ctrl.signal } : {});
-      if (timer) clearTimeout(timer);
-      if (!resp.ok) continue;
-      var text = await resp.text();
+      var text = await fetches[i];
       if (text && text.length > 300) return { kind: tries[i].kind, text: text };
-    } catch(e) { /* next proxy */ }
+    } catch(e) { /* next */ }
   }
   return null;
 }
@@ -4273,6 +4369,19 @@ function parseDiffordsMarkdown(md, url) {
     if (!iname) return;
     ings.push((diffordsNormalizeAmount(amt) + ' ' + iname).trim());
   });
+
+  // Fallback: some renderings flatten the table into plain amount-first lines
+  // ("1 1⁄2 fl oz Straight rye whiskey …") — scan for those.
+  if (!ings.length) {
+    lines.forEach(function(l) {
+      var t = l.trim().replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');
+      var lm = t.match(/^([\d½¼¾⅓⅔⅙][\d\s½¼¾⅓⅔⅙\u2044\/.]{0,8})\s*(fl\s*oz|oz|ml|cl|dash(?:es)?|barspoon|bar spoon|spoon|tsp|tbsp|drop|pinch)\b\s+(.{2,70})$/i);
+      if (!lm) return;
+      var iname2 = lm[3].replace(/\s*omit if.*$/i, '').replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+      if (!iname2 || ings.length >= 12) return;
+      ings.push((diffordsNormalizeAmount(lm[1] + ' ' + lm[2]) + ' ' + iname2).trim());
+    });
+  }
   if (!ings.length) return null;
 
   var steps = [];
