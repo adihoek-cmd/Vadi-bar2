@@ -2331,7 +2331,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=52"></script>
+<script src="db.js?v=53"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2425,8 +2425,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 52; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.52'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 53; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.53'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -3571,14 +3571,59 @@ function initStepRows() {
   if (!list.children.length) { list.innerHTML = ''; addStepRow(); addStepRow(); }
 }
 
+// Native autocomplete for the recipe form: ingredient names come from the
+// bar's own vocabulary (every kind + every bottle label), kinds from kinds.
+// Using <datalist> keeps it zero-UI: type a few letters, tap the suggestion.
+function refreshIngredientDatalists() {
+  var names = {}, kinds = {};
+  state.inventory.forEach(function(it) {
+    if (it.kind) { names[it.kind] = 1; kinds[it.kind] = 1; }
+    if (it.label && it.label !== it.kind) names[it.label] = 1;
+  });
+  function fill(id, obj) {
+    var dl = document.getElementById(id);
+    if (!dl) { dl = document.createElement('datalist'); dl.id = id; document.body.appendChild(dl); }
+    dl.innerHTML = Object.keys(obj).sort(function(a,b){ return a.localeCompare(b); })
+      .map(function(v){ return '<option value="' + v.replace(/"/g, '&quot;') + '">'; }).join('');
+  }
+  fill('bar-ingredients-list', names);
+  fill('bar-kinds-list', kinds);
+}
+
+// Resolve a typed ingredient name to a kind that actually exists on the bar.
+// Exact label/kind match first, then the guessing + canonicalization pipeline.
+// Returns '' when nothing trustworthy matches (kindless is safer than wrong).
+function resolveKindForName(name) {
+  var v = String(name || '').trim().toLowerCase();
+  if (!v) return '';
+  var hit = state.inventory.find(function(it) {
+    return it.label.toLowerCase() === v || it.kind.toLowerCase() === v;
+  });
+  if (hit) return hit.kind;
+  var guessed = canonicalKind(guessKindFromName(name));
+  var known = state.inventory.some(function(it){ return it.kind === guessed; });
+  return known ? guessed : '';
+}
+
 function addIngRow() {
   const list = document.getElementById('ing-list');
   const row = document.createElement('div');
   row.className = 'ing-row';
-  row.innerHTML = `<input type="text" class="ing-name" placeholder="Ingredient name">
+  row.innerHTML = `<input type="text" class="ing-name" placeholder="Ingredient name" list="bar-ingredients-list" autocomplete="off" autocapitalize="off">
     <input type="text" class="ing-amt" placeholder="Amount">
-    <input type="text" class="ing-kind" placeholder="Kind (e.g. Gin)">
+    <input type="text" class="ing-kind" placeholder="Kind (e.g. Gin)" list="bar-kinds-list" autocomplete="off" autocapitalize="off">
     <button class="ing-del" onclick="this.parentElement.remove()">×</button>`;
+  refreshIngredientDatalists();
+  // Auto-fill the kind whenever the name resolves to a known bottle or kind.
+  // A kind the user typed by hand is never overwritten; auto-filled ones are.
+  var nameEl = row.querySelector('.ing-name');
+  var kindEl = row.querySelector('.ing-kind');
+  nameEl.addEventListener('change', function() {
+    if (kindEl.value && !kindEl.dataset.auto) return;
+    var k = resolveKindForName(nameEl.value);
+    if (k) { kindEl.value = k; kindEl.dataset.auto = '1'; }
+  });
+  kindEl.addEventListener('input', function(){ delete kindEl.dataset.auto; });
   list.appendChild(row);
 }
 
@@ -3603,7 +3648,11 @@ function saveRecipe() {
 
   const ingredients = [...document.querySelectorAll('.ing-row')].map(row => {
     const inputs = row.querySelectorAll('input');
-    return { name: inputs[0].value.trim(), amount: inputs[1].value.trim(), kind: inputs[2].value.trim() };
+    const nm = inputs[0].value.trim();
+    // Blank kind → resolve from the bar's vocabulary; wrong-guess-proof
+    // (returns '' rather than inventing a kind the bar doesn't stock)
+    const kd = inputs[2].value.trim() || resolveKindForName(nm);
+    return { name: nm, amount: inputs[1].value.trim(), kind: kd };
   }).filter(i => i.name);
 
   const steps = [...document.querySelectorAll('.step-row')].map(row => row.querySelector('input').value.trim()).filter(Boolean);
