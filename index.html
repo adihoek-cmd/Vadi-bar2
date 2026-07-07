@@ -2331,7 +2331,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=51"></script>
+<script src="db.js?v=52"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2425,8 +2425,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 51; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.51'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 52; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.52'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -2592,6 +2592,22 @@ backfillRecipeUrls();
     c.edited = true;
     c.flagTs = Date.now();
     changed = true;
+  });
+  if (changed) localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
+})();
+
+// Kind normalization (v1.52): imported recipes could carry kinds like
+// "Green Chartreuse" that don't match the inventory vocabulary ("Chartreuse"),
+// wrongly flagging owned bottles as missing. Snap every saved ingredient kind
+// to its canonical form. Idempotent; runs on each load for future imports too.
+(function normalizeSavedKinds() {
+  var changed = false;
+  state.cocktails.forEach(function(c) {
+    (c.ingredients || []).forEach(function(ing) {
+      if (!ing || !ing.kind) return;
+      var ck = canonicalKind(ing.kind);
+      if (ck !== ing.kind) { ing.kind = ck; changed = true; }
+    });
   });
   if (changed) localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
 })();
@@ -4604,7 +4620,50 @@ function oneClickAddRecipe(encoded, btnEl) {
   toast(r.name + ' added to your collection 🍹');
 }
 
+// Aliases from common recipe wording → the bar's actual kind vocabulary.
+// A mapping is only applied if the target kind really exists in inventory.
+var KIND_ALIASES = [
+  [/chartreuse/i, 'Chartreuse'],
+  [/maraschino/i, 'Maraschino Liqueur'],
+  [/picon/i, 'Amaro'],
+  [/campari/i, 'Campari'],
+  [/aperol/i, 'Aperol'],
+  [/bitter bianco|luxardo bitter/i, 'Bitter Bianco'],
+  [/angostura/i, 'Angostura Bitters'],
+  [/peychaud/i, "Peychaud's Bitters"],
+  [/orange bitters/i, 'Orange Bitters'],
+  [/chocolate bitters|mole bitters|xocolatl/i, 'Chocolate Bitters'],
+  [/drambuie/i, 'Whiskey Liqueur'],
+  [/kahlua|coffee liqueur/i, 'Coffee Liqueur'],
+  [/baileys|irish cream/i, 'Cream Liqueur'],
+  [/cassis/i, 'Cassis'],
+  [/limoncello/i, 'Limoncello'],
+  [/lillet|blanc vermouth|bianco vermouth/i, 'Blanc Vermouth'],
+  [/benedictine/i, 'Herbal Liqueur'],
+  [/cointreau|curacao|triple sec|grand marnier/i, 'Triple Sec'],
+  [/absinthe|pastis|pernod|ouzo|arak/i, 'Anise Spirit']
+];
+
+// Snap a guessed kind to the inventory's canonical kind: exact match wins,
+// then case-insensitive, then the alias table. Unknown kinds pass through.
+function canonicalKind(kind) {
+  if (!kind) return kind;
+  var kinds = {};
+  state.inventory.forEach(function(it){ kinds[it.kind] = true; kinds[it.kind.toLowerCase()] = it.kind; });
+  if (kinds[kind] === true) return kind;
+  var ci = kinds[kind.toLowerCase()];
+  if (typeof ci === 'string') return ci;
+  for (var i = 0; i < KIND_ALIASES.length; i++) {
+    if (KIND_ALIASES[i][0].test(kind) && kinds[KIND_ALIASES[i][1]] === true) return KIND_ALIASES[i][1];
+  }
+  return kind;
+}
+
 function guessKindFromName(name) {
+  return canonicalKind(guessKindFromNameRaw(name));
+}
+
+function guessKindFromNameRaw(name) {
   var n = name.toLowerCase().trim();
 
   // Specific named products — these are EXACT brands that should only match
