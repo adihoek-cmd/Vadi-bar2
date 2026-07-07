@@ -2190,6 +2190,7 @@
         <button class="recipe-search-source-tab active" id="src-tab-all" onclick="setSearchSource('all', this)">All Sources</button>
         <button class="recipe-search-source-tab" id="src-tab-cdb" onclick="setSearchSource('cdb', this)">TheCocktailDB</button>
         <button class="recipe-search-source-tab" id="src-tab-liquor" onclick="setSearchSource('liquor', this)">Liquor.com</button>
+        <button class="recipe-search-source-tab" id="src-tab-diffords" onclick="setSearchSource('diffords', this)">Difford's</button>
       </div>
       <div id="recipe-search-results"></div>
 
@@ -2330,7 +2331,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=47"></script>
+<script src="db.js?v=48"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2424,8 +2425,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 47; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.47'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 48; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.48'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -3639,10 +3640,11 @@ async function recipeSearch() {
   var res = document.getElementById('recipe-search-results');
   btn.textContent = '…';
   btn.disabled = true;
-  res.innerHTML = '<div class="recipe-search-loading"><span class="spin-anim">⟳</span> Searching ' + (searchSource === 'cdb' ? 'TheCocktailDB' : searchSource === 'liquor' ? 'Liquor.com' : 'all sources') + '…</div>';
+  res.innerHTML = '<div class="recipe-search-loading"><span class="spin-anim">⟳</span> Searching ' + ({cdb:'TheCocktailDB', liquor:'Liquor.com', diffords:"Difford's Guide"}[searchSource] || 'all sources') + '…</div>';
 
   var cdbResults = [];
   var liquorResults = [];
+  var diffordsResults = [];
 
   try {
     if (/^https?:\/\//i.test(q)) {
@@ -3663,13 +3665,16 @@ async function recipeSearch() {
       if (searchSource === 'all' || searchSource === 'liquor') {
         liquorResults = searchLiquorCom(q);
       }
+      if (searchSource === 'all' || searchSource === 'diffords') {
+        try { diffordsResults = await searchDiffords(q); } catch(e) { /* other sources still shown */ }
+      }
     }
   } catch(e) { /* handled per-source */ }
 
   btn.textContent = 'Search';
   btn.disabled = false;
 
-  var all = cdbResults.concat(liquorResults);
+  var all = cdbResults.concat(liquorResults, diffordsResults);
   if (!all.length) {
     res.innerHTML = '<div class="recipe-search-empty">No results found for "' + q + '".<br>Try a different spelling, search the other source, or paste a recipe link (e.g. from liquor.com) to import it directly.</div>';
     return;
@@ -3753,6 +3758,9 @@ async function importRecipeFromUrl(url) {
   var host = '';
   try { host = new URL(url).hostname.replace(/^www\./, ''); } catch(e) {}
 
+  // Difford's pages parse best from the Jina reader output — try it first
+  if (host === 'diffordsguide.com') attempts.unshift(attempts.pop());
+
   for (var i = 0; i < attempts.length; i++) {
     var a = attempts[i];
     var text = null;
@@ -3775,7 +3783,7 @@ async function importRecipeFromUrl(url) {
     }
 
     if (a.kind === 'markdown') {
-      var mdResult = parseMarkdownRecipe(text, url, host);
+      var mdResult = (host === 'diffordsguide.com' ? parseDiffordsMarkdown(text, url) : null) || parseMarkdownRecipe(text, url, host);
       if (mdResult) return [mdResult];
       errs.push(a.label + ': could not parse recipe from page text');
       continue;
@@ -4106,6 +4114,128 @@ function normalizeGlass(str) {
   if (str.includes('mug') || str.includes('mule')) return 'Mug';
   if (str.includes('nick') || str.includes('nora')) return 'Nick & Nora';
   return 'Rocks';
+}
+
+// ── DIFFORD'S GUIDE ──────────────────────────────────────────────────────────
+// No public API and no CORS headers, so pages come through the proxy chain.
+// The Jina reader output is the most parseable (ingredients arrive as a
+// markdown pipe table), so it is always tried first.
+
+function diffordsNormalizeAmount(a) {
+  return String(a)
+    .replace(/\u2044/g, '/')
+    .replace(/½/g, '1/2').replace(/¼/g, '1/4').replace(/¾/g, '3/4')
+    .replace(/⅓/g, '1/3').replace(/⅔/g, '2/3').replace(/⅙/g, '1/6')
+    .replace(/\bfl\s*oz\b/i, 'oz')
+    .replace(/\s+/g, ' ').trim();
+}
+
+async function fetchDiffords(url) {
+  var tries = [
+    { kind: 'markdown', make: function(u){ return 'https://r.jina.ai/' + u; } },
+    { kind: 'html', make: function(u){ return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); } },
+    { kind: 'html', make: function(u){ return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); } }
+  ];
+  for (var i = 0; i < tries.length; i++) {
+    try {
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 12000) : null;
+      var resp = await fetch(tries[i].make(url), ctrl ? { signal: ctrl.signal } : {});
+      if (timer) clearTimeout(timer);
+      if (!resp.ok) continue;
+      var text = await resp.text();
+      if (text && text.length > 300) return { kind: tries[i].kind, text: text };
+    } catch(e) { /* next proxy */ }
+  }
+  return null;
+}
+
+async function searchDiffords(q) {
+  var page = await fetchDiffords('https://www.diffordsguide.com/search?q=' + encodeURIComponent(q));
+  if (!page) return [];
+  // Unique recipe links — the same regex covers markdown links and raw hrefs
+  var re = /https:\/\/www\.diffordsguide\.com\/cocktails\/recipe\/(\d+)\/([a-z0-9-]+)/g;
+  var seen = {}, found = [], m;
+  while ((m = re.exec(page.text)) !== null && found.length < 12) {
+    if (seen[m[1]]) continue;
+    seen[m[1]] = true;
+    found.push('https://www.diffordsguide.com/cocktails/recipe/' + m[1] + '/' + m[2]);
+  }
+  if (!found.length) return [];
+  var results = await Promise.all(found.slice(0, 4).map(async function(u) {
+    try {
+      var p = await fetchDiffords(u);
+      if (!p) return null;
+      if (p.kind === 'markdown') return parseDiffordsMarkdown(p.text, u);
+      var ld = extractJsonLdRecipes(p.text);
+      if (ld.length) { var r = jsonLdToResult(ld[0], u, "Difford's Guide"); r.source = "Difford's Guide"; return r; }
+      return null;
+    } catch(e) { return null; }
+  }));
+  return results.filter(Boolean);
+}
+
+function parseDiffordsMarkdown(md, url) {
+  var lines = md.split('\n');
+
+  var name = '';
+  for (var i = 0; i < Math.min(lines.length, 20); i++) {
+    var tm = lines[i].match(/^title:\s*(.+)$/i);
+    if (tm) { name = tm[1].replace(/\s*Cocktail Recipe.*$/i, '').trim(); break; }
+  }
+  if (!name) { var hm = md.match(/^#\s+(.+)$/m); if (hm) name = hm[1].trim(); }
+
+  var glass = 'Coupe';
+  var gm = md.match(/Serve in an?\s*\[?([A-Za-z' -]+?)\s*glass/i);
+  if (gm) glass = normalizeGlass(gm[1].trim());
+
+  // Ingredients arrive as pipe-table rows: | 1 1⁄2 fl oz | [Rye whiskey](link) |
+  var ings = [];
+  lines.forEach(function(l) {
+    var pm = l.trim().match(/^\|\s*([^|]+?)\s*\|\s*(.+?)\s*\|+$/);
+    if (!pm) return;
+    var amt = pm[1], rest = pm[2];
+    if (/^[-: ]+$/.test(amt)) return;                                  // separator row
+    if (!/[\d½¼¾⅓⅔\u2044]/.test(amt)) return;                        // header row
+    var iname = rest.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')      // strip link markup
+                    .replace(/\s*omit if.*$/i, '')
+                    .replace(/\([^)]*\)/g, '')
+                    .replace(/\s+/g, ' ').trim();
+    if (!iname) return;
+    ings.push((diffordsNormalizeAmount(amt) + ' ' + iname).trim());
+  });
+  if (!ings.length) return null;
+
+  var steps = [];
+  lines.forEach(function(l) {
+    var nm = l.trim().match(/^\d+\.\s+(.+)$/);
+    if (nm) {
+      var st = nm[1].replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/\s+/g, ' ').trim();
+      if (st) steps.push(st);
+    }
+  });
+
+  var garnish = '';
+  var grm = md.match(/Garnish with ([^.\n]+)/i);
+  if (grm) garnish = grm[1].trim();
+
+  var notes = '';
+  var rm = md.match(/##\s*Review:\s*\n+([^#]+)/i);
+  if (rm) notes = rm[1].replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/\s+/g, ' ').trim().slice(0, 200);
+
+  return {
+    name: name || nameFromUrlSlug(url) || "Difford's Recipe",
+    source: "Difford's Guide",
+    glass: glass,
+    method: guessMethod('', steps.join(' ')),
+    garnish: garnish,
+    notes: notes,
+    ingredients: ings,
+    steps: steps,
+    mood: [],
+    url: url,
+    isLink: false
+  };
 }
 
 function guessMethod(category, instructions) {
