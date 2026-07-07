@@ -2331,7 +2331,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=48"></script>
+<script src="db.js?v=49"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2425,8 +2425,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 48; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.48'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 49; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.49'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -3790,6 +3790,12 @@ async function importRecipeFromUrl(url) {
     }
 
     // HTML path — look for schema.org JSON-LD Recipe nodes
+    if (host === 'diffordsguide.com') {
+      var dresult = parseDiffordsHtml(text, url);
+      if (dresult) return [dresult];
+      errs.push(a.label + ': no ingredients table found');
+      continue; // never fall through to raw JSON-LD — Difford's has junk recipeIngredient
+    }
     var recipes = extractJsonLdRecipes(text);
     if (recipes.length) return recipes.slice(0, 3).map(function(r){ return jsonLdToResult(r, url, host); });
     errs.push(a.label + ': no recipe data in page');
@@ -4152,6 +4158,9 @@ async function fetchDiffords(url) {
 
 async function searchDiffords(q) {
   var page = await fetchDiffords('https://www.diffordsguide.com/search?q=' + encodeURIComponent(q));
+  if (!page || !/cocktails\/recipe\//.test(page.text)) {
+    page = await fetchDiffords('https://www.diffordsguide.com/cocktails/search?q=' + encodeURIComponent(q));
+  }
   if (!page) return [];
   // Unique recipe links — the same regex covers markdown links and raw hrefs
   var re = /https:\/\/www\.diffordsguide\.com\/cocktails\/recipe\/(\d+)\/([a-z0-9-]+)/g;
@@ -4167,12 +4176,72 @@ async function searchDiffords(q) {
       var p = await fetchDiffords(u);
       if (!p) return null;
       if (p.kind === 'markdown') return parseDiffordsMarkdown(p.text, u);
-      var ld = extractJsonLdRecipes(p.text);
-      if (ld.length) { var r = jsonLdToResult(ld[0], u, "Difford's Guide"); r.source = "Difford's Guide"; return r; }
-      return null;
+      return parseDiffordsHtml(p.text, u);
     } catch(e) { return null; }
   }));
   return results.filter(Boolean);
+}
+
+function diffordsStripHtml(s) {
+  return String(s).replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&#39;|&apos;/gi, "'")
+    .replace(/&quot;/gi, '"').replace(/&frasl;/gi, '/')
+    .replace(/\s+/g, ' ').trim();
+}
+
+// Difford's ships JSON-LD with good name/steps but junk recipeIngredient
+// (allergen text, no measures) — so ingredients come from the HTML table.
+function parseDiffordsHtml(html, url) {
+  var ings = [];
+  var trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi, tr;
+  while ((tr = trRe.exec(html)) !== null) {
+    var cells = tr[1].match(/<t[dh][^>]*>[\s\S]*?<\/t[dh]>/gi);
+    if (!cells || cells.length < 2) continue;
+    var amt = diffordsStripHtml(cells[0]);
+    if (!amt || amt.length > 20) continue;
+    if (!/[\d½¼¾⅓⅔⅙\u2044]/.test(amt)) continue;
+    var hasUnit = /fl\s*oz|\boz\b|\bml\b|\bcl\b|dash|spoon|tsp|tbsp|drop|pinch|cube|wedge|slice|grind|scoop|whole|fresh/i.test(amt);
+    var pureCount = /^[\d½¼¾⅓⅔⅙\u2044\/\s.]+$/.test(amt);
+    if (!hasUnit && !pureCount) continue;
+    var nm = diffordsStripHtml(cells[1]).replace(/\s*omit if.*$/i, '').replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+    if (!nm || nm.length > 80 || /^\d+$/.test(nm)) continue;
+    ings.push((diffordsNormalizeAmount(amt) + ' ' + nm).trim());
+  }
+  if (!ings.length) return null;
+
+  var text = diffordsStripHtml(html);
+  var name = '';
+  var h1 = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+  if (h1) name = diffordsStripHtml(h1[1]).replace(/\s*Cocktail Recipe.*$/i, '').trim();
+  var glass = 'Coupe';
+  var gm = text.match(/Serve in an?\s+([A-Za-z' -]+?)\s+glass/i);
+  if (gm) glass = normalizeGlass(gm[1].trim());
+  var garnish = '';
+  var grm = text.match(/Garnish with ([^.]{2,80})/i);
+  if (grm) garnish = grm[1].trim();
+
+  var steps = [], notes = '';
+  var ld = extractJsonLdRecipes(html);
+  if (ld.length) {
+    var base = jsonLdToResult(ld[0], url, "Difford's Guide");
+    steps = base.steps || [];
+    notes = base.notes || '';
+    if (!name) name = base.name || '';
+  }
+
+  return {
+    name: name || nameFromUrlSlug(url) || "Difford's Recipe",
+    source: "Difford's Guide",
+    glass: glass,
+    method: guessMethod('', steps.join(' ')),
+    garnish: garnish,
+    notes: notes,
+    ingredients: ings,
+    steps: steps,
+    mood: [],
+    url: url,
+    isLink: false
+  };
 }
 
 function parseDiffordsMarkdown(md, url) {
