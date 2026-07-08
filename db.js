@@ -934,6 +934,23 @@ const DEFAULT_COCKTAILS = [
     steps:["Pre-chill a coupe glass.","Prepare garnish: lime zest twist and skewered maraschino cherries.","Shake all ingredients hard with ice.","Fine strain into the chilled coupe.","Express the lime zest twist over the drink and discard.","Garnish with the skewered maraschino cherries."],
     notes:"Difford's spec — gin-forward at 1oz vs. the other three ingredients at 2/3oz each, plus a splash of water to open it up (skip the water if shaking with wet ice). A different balance than the equal-parts Last Word already in the collection: less tart, more gin presence, historically closer to how the Detroit Athletic Club served it before Prohibition."
   }
+  ,{
+    id:"c58", name:"Près du Quai", glass:"Rocks", method:"Stir", liked:false, house:false,
+    garnish:"Lemon zest twist",
+    source:"Difford's Guide",
+    url:"https://www.diffordsguide.com/cocktails/recipe/20871/pres-du-quai",
+    mood:["strong","bitter","nightcap"],
+    ingredients:[
+      {name:"Rum", amount:"3/4 oz", kind:"Rum"},
+      {name:"Bourbon", amount:"3/4 oz", kind:"Bourbon"},
+      {name:"Sweet Vermouth", amount:"3/4 oz", kind:"Sweet Vermouth"},
+      {name:"Benedictine", amount:"1/3 oz", kind:"Herbal Liqueur"},
+      {name:"Peychaud's Bitters", amount:"2 dashes", kind:"Peychaud's Bitters"},
+      {name:"Angostura Bitters", amount:"1 dash", kind:"Angostura Bitters"},
+    ],
+    steps:["Pre-chill an old-fashioned glass and prepare a lemon zest twist.","Stir all ingredients with ice.","Strain into the ice-filled glass.","Express the lemon zest twist over the drink and use as garnish."],
+    notes:"A Vieux Carré riff swapping cognac for aged, funky Jamaican rum (Smith & Cross) — softer and warmer than the rye-and-cognac original. Use Smith & Cross for the rum and Martini Rosso for the vermouth. Needs Peychaud's Bitters to arrive before it's fully makeable — Angostura alone works as a stopgap in the meantime."
+  }
 ];
 
 
