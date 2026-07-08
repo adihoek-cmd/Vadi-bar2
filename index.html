@@ -2331,7 +2331,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=54"></script>
+<script src="db.js?v=55"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2425,8 +2425,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 54; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.54'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 55; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.55'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -2569,7 +2569,7 @@ backfillRecipeUrls();
 // One-time repair (v1.51): the v1.48 Difford's import bug could save allergen
 // text ("Sulphur Dioxide/Sulphites") as a single junk ingredient. Rebuild the
 // known-affected recipe in place; strip the junk line from anything else.
-(function repairBrokenDiffordsImports() {
+function repairBrokenDiffordsImports() {
  try {
   var changed = false;
   state.cocktails.forEach(function(c) {
@@ -2595,26 +2595,41 @@ backfillRecipeUrls();
     changed = true;
   });
   if (changed) localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
- } catch(e) { console.error('repair migration skipped:', e); }
-})();
+  return changed;
+ } catch(e) { console.error('repair migration skipped:', e); return false; }
+}
 
 // Kind normalization (v1.52): imported recipes could carry kinds like
 // "Green Chartreuse" that don't match the inventory vocabulary ("Chartreuse"),
 // wrongly flagging owned bottles as missing. Snap every saved ingredient kind
 // to its canonical form. Idempotent; runs on each load for future imports too.
-(function normalizeSavedKinds() {
+function normalizeSavedKinds() {
  try {
   var changed = false;
   state.cocktails.forEach(function(c) {
+    var cChanged = false;
     (c.ingredients || []).forEach(function(ing) {
       if (!ing || !ing.kind) return;
       var ck = canonicalKind(ing.kind);
-      if (ck !== ing.kind) { ing.kind = ck; changed = true; }
+      if (ck !== ing.kind) { ing.kind = ck; cChanged = true; }
     });
+    if (cChanged) {
+      // Stamp the fix so the cloud merge (newest flagTs wins) keeps it
+      c.flagTs = Date.now();
+      changed = true;
+    }
   });
   if (changed) localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
- } catch(e) { console.error('kind normalization skipped:', e); }
-})();
+  return changed;
+ } catch(e) { console.error('kind normalization skipped:', e); return false; }
+}
+
+function runDataMigrations() {
+  var a = repairBrokenDiffordsImports();
+  var b = normalizeSavedKinds();
+  return a || b;
+}
+runDataMigrations();
 
 // GUARANTEE: ensure every DEFAULT_INVENTORY item is present in state
 // (unless the user explicitly deleted it — tracked in state.deleted)
@@ -6193,6 +6208,14 @@ function syncFromCloud() {
         });
         state.cocktails = merged;
         backfillRecipeUrls();
+        // Cloud copies may still carry pre-migration data (old kinds, junk
+        // ingredients) — heal the merged state and push the fix upstream so
+        // this stops recurring on every sync.
+        try {
+          if (runDataMigrations() && typeof syncToCloud === 'function') {
+            setTimeout(function(){ try { syncToCloud(); } catch(e) {} }, 500);
+          }
+        } catch(e) { console.error('post-merge migration skipped:', e); }
 
         // Union deleted tombstones from cloud + local
         var cloudDeleted = data.fields.deleted || [];
