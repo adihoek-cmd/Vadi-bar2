@@ -918,6 +918,22 @@ const DEFAULT_COCKTAILS = [
     steps:["Add sage leaves and simple syrup to shaker and muddle firmly.","Add bourbon and lemon juice.","Fill with ice and shake hard for 12 seconds.","Double-strain into a rocks glass over a large ice cube.","Garnish with a fresh sage leaf and a lemon slice."],
     notes:"Sage and bourbon is an underrated pairing — the herb's earthy, slightly peppery quality amplifies the oak and vanilla in the whiskey. Woodford Reserve Double Oaked is exceptional here. Four Roses Single Barrel for a spicier build. Use 4 leaves maximum — sage is powerful and can easily dominate. A beautiful autumn-leaning cocktail that feels completely original."
   }
+  ,{
+    id:"c57", name:"Last Word (Difford's)", glass:"Coupe", method:"Shake", liked:false, house:false,
+    garnish:"Lime zest twist, skewered maraschino cherries",
+    source:"Difford's Guide",
+    url:"https://www.diffordsguide.com/cocktails/recipe/1133/last-word",
+    mood:["bright","herbal","strong","classic"],
+    ingredients:[
+      {name:"Gin", amount:"1 oz", kind:"Gin"},
+      {name:"Green Chartreuse", amount:"2/3 oz", kind:"Chartreuse"},
+      {name:"Maraschino Liqueur", amount:"2/3 oz", kind:"Maraschino Liqueur"},
+      {name:"Lime Juice", amount:"2/3 oz", kind:"Lime Juice"},
+      {name:"Chilled Water", amount:"1/4 oz", kind:""},
+    ],
+    steps:["Pre-chill a coupe glass.","Prepare garnish: lime zest twist and skewered maraschino cherries.","Shake all ingredients hard with ice.","Fine strain into the chilled coupe.","Express the lime zest twist over the drink and discard.","Garnish with the skewered maraschino cherries."],
+    notes:"Difford's spec — gin-forward at 1oz vs. the other three ingredients at 2/3oz each, plus a splash of water to open it up (skip the water if shaking with wet ice). A different balance than the equal-parts Last Word already in the collection: less tart, more gin presence, historically closer to how the Detroit Athletic Club served it before Prohibition."
+  }
 ];
 
 
