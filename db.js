@@ -122,7 +122,7 @@ const DEFAULT_INVENTORY = [
   // Cherry Liqueur
   { id:"i113", cat:"Modifier", kind:"Cherry Liqueur", label:"Cherry Liqueur", on:true },
   // Maraschino Liqueur
-  { id:"i171", cat:"Modifier", kind:"Maraschino Liqueur", label:"Luxardo Maraschino", priceNIS:129.9, sizeMl:700, on:false, info:{ abv:"32%", origin:"Torreglia, Italy", description:"Luxardo Maraschino is the benchmark maraschino liqueur — dry, nutty and faintly bitter with a clean cherry pit character. Not sweet like cherry liqueur; essential for Last Word, Aviation, Hemingway Daiquiri and Martinez. Not yet in stock." } },
+  { id:"i171", cat:"Modifier", kind:"Maraschino Liqueur", label:"Luxardo Maraschino", priceNIS:129.9, sizeMl:700, on:true, info:{ abv:"32%", origin:"Torreglia, Italy", description:"Luxardo Maraschino is the benchmark maraschino liqueur — dry, nutty and faintly bitter with a clean cherry pit character. Not sweet like cherry liqueur; essential for Last Word, Aviation, Hemingway Daiquiri and Martinez." } },
   // Cassis
   { id:"i115", cat:"Modifier", kind:"Cassis", label:"Crème de Cassis de Dijon", priceNIS:89, sizeMl:700, on:true, info:{ abv:"20%", origin:"Alsace, France", description:"G.E. Massenez Crème de Cassis de Dijon — a classic blackcurrant liqueur from the Villé Valley in Alsace, made since 1870. Rich, deep and intensely fruity with real cassis character. The heart of a Kir, Kir Royale and El Diablo." } },
   // Limoncello
