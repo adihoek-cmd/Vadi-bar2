@@ -177,27 +177,6 @@ const DEFAULT_INVENTORY = [
   { id:"i106", cat:"Pantry", kind:"Grenadine", label:"Grenadine", on:false },
   // Salt
   { id:"i152", cat:"Pantry", kind:"Salt", label:"Salt", on:true },
-  {
-    id:"c43", name:"The Hermit", glass:"Highball", method:"Build", liked:false, house:false,
-    garnish:"Lime wheel, candied ginger",
-    ingredients:[
-      {name:"Mezcal Joven", amount:"1.5 oz", kind:"Mezcal"},
-      {name:"Green Chartreuse", amount:"0.5 oz", kind:"Chartreuse"},
-      {name:"Fresh Lime Juice", amount:"0.75 oz", kind:"Lime Juice"},
-      {name:"Simple Syrup", amount:"0.25 oz", kind:"Simple Syrup"},
-      {name:"Ginger Beer", amount:"3 oz", kind:"Ginger Beer"},
-    ],
-    steps:[
-      "Fill a highball glass with ice.",
-      "Add mezcal, Chartreuse, lime juice and simple syrup.",
-      "Stir briefly to combine.",
-      "Top with cold ginger beer — do not over-stir.",
-      "Garnish with a lime wheel and a piece of candied ginger."
-    ],
-    mood:["smoky","herbal","refreshing","adventurous"],
-    source:"Vadi Bar Original",
-    notes:"Use Se Busca Joven for its cleaner smoke profile — it lets the Chartreuse lead. Keep Chartreuse at 0.5 oz max; it\'s 110 proof and very assertive. The lime is essential: without it the herbal and smoky notes form a flat wall. Espina Dorada adds more complexity if you want a bolder version."
-  },
 ];
 
 const DEFAULT_COCKTAILS = [
