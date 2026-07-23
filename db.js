@@ -930,6 +930,50 @@ const DEFAULT_COCKTAILS = [
     steps:["Pre-chill an old-fashioned glass and prepare a lemon zest twist.","Stir all ingredients with ice.","Strain into the ice-filled glass.","Express the lemon zest twist over the drink and use as garnish."],
     notes:"A Vieux Carré riff swapping cognac for aged, funky Jamaican rum (Smith & Cross) — softer and warmer than the rye-and-cognac original. Use Smith & Cross for the rum and Martini Rosso for the vermouth. Needs Peychaud's Bitters to arrive before it's fully makeable — Angostura alone works as a stopgap in the meantime."
   }
+  ,{
+    id:"c59", name:"Revolver", glass:"Rocks", method:"Stir", liked:false, house:false,
+    garnish:"Flamed orange peel",
+    source:"Robb Report",
+    url:"https://robbreport.com/food-drink/dining/best-cocktails-of-all-time-1236255571/",
+    mood:["strong","dark","nightcap"],
+    ingredients:[
+      {name:"Bourbon", amount:"2 oz", kind:"Bourbon"},
+      {name:"Coffee Liqueur", amount:"0.5 oz", kind:"Coffee Liqueur"},
+      {name:"Orange Bitters", amount:"2 dashes", kind:"Orange Bitters"},
+    ],
+    steps:["Add all ingredients to a rocks glass over a large piece of ice.","Stir.","Garnish with a flamed orange peel (or a regular orange peel)."],
+    notes:"Jon Santer's 2004 San Francisco original — a dark, boozy Old Fashioned variation with a jolt of coffee. Simple three-ingredient build, big flavor."
+  }
+  ,{
+    id:"c60", name:"Monte Carlo", glass:"Rocks", method:"Stir", liked:false, house:false,
+    garnish:"Lemon peel",
+    source:"Robb Report",
+    url:"https://robbreport.com/food-drink/dining/best-cocktails-of-all-time-1236255571/",
+    mood:["strong","spiced","nightcap"],
+    ingredients:[
+      {name:"Rye Whiskey", amount:"2.25 oz", kind:"Rye Whiskey"},
+      {name:"Benedictine", amount:"0.5 oz", kind:"Herbal Liqueur"},
+      {name:"Angostura Bitters", amount:"2 dashes", kind:"Angostura Bitters"},
+    ],
+    steps:["Stir on ice in a rocks glass — the bigger the ice, the better.","Garnish with a lemon peel.","Sip slowly."],
+    notes:"About as simple as they come, but Bénédictine's honey-cinnamon-vanilla-cardamom spice carries the whole drink. Rye-forward and warming — a natural fit alongside the Vieux Carré for the Benedictine bottle."
+  }
+  ,{
+    id:"c61", name:"Midnight Stinger", glass:"Rocks", method:"Shake", liked:false, house:false,
+    garnish:"Mint sprig",
+    source:"Robb Report",
+    url:"https://robbreport.com/food-drink/dining/best-cocktails-of-all-time-1236255571/",
+    mood:["bitter","bright","digestif"],
+    ingredients:[
+      {name:"Bourbon", amount:"1 oz", kind:"Bourbon"},
+      {name:"Fernet-Branca", amount:"1 oz", kind:"Amaro"},
+      {name:"Lemon Juice", amount:"0.75 oz", kind:"Lemon Juice"},
+      {name:"Simple Syrup", amount:"0.75 oz", kind:"Simple Syrup"},
+    ],
+    steps:["Shake four to six seconds on a handful of crushed ice.","Pour ice and cocktail into a rocks glass.","Pack with more crushed ice.","Garnish with a mint sprig."],
+    notes:"Sam Ross's (Milk & Honey) riff on the classic Cognac-and-creme-de-menthe Stinger — turns it into a sour with bourbon and Fernet-Branca standing in for the mint liqueur. A great gateway drink for Fernet skeptics."
+  }
 ];
+
 
 
