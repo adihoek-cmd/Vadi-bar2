@@ -987,6 +987,19 @@ const DEFAULT_COCKTAILS = [
     steps:["Combine all in a mixing glass over ice.","Stir 35-40 rotations until well chilled.","Strain into a rocks glass over one large cube.","Express an orange peel over the drink and garnish."],
     notes:"Simó's 2013 one-for-one swap of gin for overproof Jamaican rum. Smith & Cross is the intended bottle and you have it — its funky banana-and-allspice esters are the whole point, so don't substitute a soft aged rum. Carpano Antica is the classic vermouth pairing; its cocoa and bitter-orange weight is one of the few that won't get flattened by 57% rum. Xocolatl Mole: 1 dash pushes the rum's grilled-banana note toward chocolate."
   }
+  ,{
+    id:"c63", name:"Old Fashioned", glass:"Rocks", method:"Stir", liked:false, house:false,
+    garnish:"Orange peel",
+    source:"Classic",
+    mood:["strong","classic","nightcap"],
+    ingredients:[
+      {name:"Bourbon", amount:"2 oz", kind:"Bourbon"},
+      {name:"Simple Syrup", amount:"1 tsp", kind:"Simple Syrup"},
+      {name:"Angostura Bitters", amount:"2 dashes", kind:"Angostura Bitters"},
+    ],
+    steps:["Add syrup and bitters to a mixing glass.","Add whiskey and ice.","Stir 30-40 rotations until well chilled and properly diluted.","Strain into a rocks glass over one large cube.","Express a wide orange peel over the surface, rub the rim, and drop it in."],
+    notes:"The original cocktail — spirit, sugar, bitters, water, and nothing else. Rye instead of bourbon gives a drier, spicier version; 1792 Ridgewood Reserve at 46.85% has the proof to survive proper dilution. Dilution is the whole skill here — stir longer than feels right. Xocolatl Mole: 1 dash alongside the Angostura. This is the drink these bitters were built for; the cocoa reads as barrel char."
+  }
 ];
 
 
