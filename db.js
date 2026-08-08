@@ -1000,6 +1000,19 @@ const DEFAULT_COCKTAILS = [
     steps:["Add syrup and bitters to a mixing glass.","Add whiskey and ice.","Stir 30-40 rotations until well chilled and properly diluted.","Strain into a rocks glass over one large cube.","Express a wide orange peel over the surface, rub the rim, and drop it in."],
     notes:"The original cocktail — spirit, sugar, bitters, water, and nothing else. Rye instead of bourbon gives a drier, spicier version; 1792 Ridgewood Reserve at 46.85% has the proof to survive proper dilution. Dilution is the whole skill here — stir longer than feels right. Xocolatl Mole: 1 dash alongside the Angostura. This is the drink these bitters were built for; the cocoa reads as barrel char."
   }
+  ,{
+    id:"c64", name:"Boulevardier", glass:"Rocks", method:"Stir", liked:false, house:false,
+    garnish:"Orange peel",
+    source:"Erskine Gwynne, Paris 1927",
+    mood:["bitter","strong","classic","nightcap"],
+    ingredients:[
+      {name:"Bourbon", amount:"1 1/2 oz", kind:"Bourbon"},
+      {name:"Campari", amount:"1 oz", kind:"Campari"},
+      {name:"Sweet Vermouth", amount:"1 oz", kind:"Sweet Vermouth"},
+    ],
+    steps:["Combine all in a mixing glass over ice.","Stir 35-40 rotations until well chilled.","Strain into a rocks glass over one large cube.","Express an orange peel over the drink and garnish."],
+    notes:"The whiskey Negroni. Built 1.5/1/1 rather than equal parts — bourbon needs the extra weight or Campari bulldozes it. Rye makes a drier, spicier version and is the better base if you want any bitters to read; Woodford Rye works well. Carpano Antica is rich enough to match bourbon's sweetness, Dolin Rouge keeps it lighter. Xocolatl Mole: 1 dash only — bourbon's vanilla gives the cocoa something to bond with, but Campari and Carpano already carry cocoa notes, so two dashes turns muddy."
+  }
 ];
 
 
