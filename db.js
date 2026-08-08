@@ -160,7 +160,7 @@ const DEFAULT_INVENTORY = [
   // Orange Bitters
   { id:"i131", cat:"Pantry", kind:"Orange Bitters", label:"Orange Bitters", on:true },
   { id:"i173", cat:"Pantry", kind:"Peychaud's Bitters", label:"Peychaud's Bitters", priceNIS:69.9, sizeMl:148, on:false, info:{ abv:"35%", origin:"New Orleans, USA", description:"Peychaud's is a bright, anise-and-cherry aromatic bitter — lighter and more floral than Angostura. Essential to the Sazerac and a key component of the Vieux Carré. Not yet in stock." } },
-  { id:"i174", cat:"Pantry", kind:"Chocolate Bitters", label:"Bittermens Xocolatl Mole", on:false, info:{ abv:"53%", origin:"New Orleans, USA", description:"Bittermens Xocolatl Mole — the original Mexican-chocolate bitter (cacao, cinnamon and spice). Designed for aged tequila but excellent with aged rum, bourbon and rye, and a few drops transform an Old Fashioned, Manhattan or Negroni. Ordered — arriving ~mid July 2026." } },
+  { id:"i174", cat:"Pantry", kind:"Chocolate Bitters", label:"Bittermens Xocolatl Mole", on:true, info:{ abv:"53%", origin:"New Orleans, USA", description:"Bittermens Xocolatl Mole — the original Mexican-chocolate bitter (cacao, cinnamon, chile and warm spice). Designed for aged tequila but excellent with aged rum, bourbon and rye. One or two dashes add cocoa depth and dry spice to any stirred, spirit-forward build — Negroni, Manhattan, Old Fashioned, Vieux Carré." } },
   { id:"i175", cat:"Pantry", kind:"Chocolate Bitters", label:"The Bitter Truth Spiced Chocolate", on:false, info:{ abv:"44%", origin:"Germany", description:"The Bitter Truth Spiced Chocolate bitters — darker and earthier than Xocolatl Mole, with strong gentian and wormwood backbone. A favorite for balancing high-proof whiskey in a Manhattan. Not yet in stock." } },
   // Lemon Juice
   { id:"i132", cat:"Pantry", kind:"Lemon Juice", label:"Fresh", on:true },
@@ -189,7 +189,7 @@ const DEFAULT_COCKTAILS = [
       {name:"Campari", amount:"1 oz", kind:"Campari"},
     ],
     steps:["Combine all in mixing glass over ice.","Stir 35-40 rotations until well chilled.","Strain into rocks glass over large ice.","Express orange peel over drink and garnish."],
-    notes:"Use Carpano Antica for richness. Tanqueray Ten makes it especially floral."
+    notes:"Use Carpano Antica for richness. Tanqueray Ten makes it especially floral. Xocolatl Mole: 1 dash rounds Campari's bitterness with cocoa and dries out the vermouth — subtle but transformative."
   },
   {
     id:"c2", name:"Manhattan", glass:"Coupe", method:"Stir", liked:false, house:false,
@@ -200,7 +200,7 @@ const DEFAULT_COCKTAILS = [
       {name:"Angostura Bitters", amount:"2 dashes", kind:"Angostura Bitters"},
     ],
     steps:["Combine all in mixing glass over ice.","Stir 35-40 rotations.","Strain into chilled coupe.","Garnish with cherry."],
-    notes:"Carpano Antica Formula makes this sing. Classic rye Manhattan."
+    notes:"Carpano Antica Formula makes this sing. Classic rye Manhattan. Xocolatl Mole: swap one of the Angostura dashes for it — the cacao and cinnamon lock into Carpano's own chocolate-orange notes."
   },
   {
     id:"c3", name:"Whiskey Sour", glass:"Coupe", method:"Shake", liked:false, house:false,
@@ -212,7 +212,7 @@ const DEFAULT_COCKTAILS = [
       {name:"Egg White", amount:"1", kind:"Egg White"},
     ],
     steps:["Dry shake all without ice for 15 seconds.","Add ice, shake hard for 12 seconds.","Double strain into chilled coupe.","Garnish with lemon wheel and cherry."],
-    notes:"Dry shake first for the foam. Jameson works beautifully here too."
+    notes:"Dry shake first for the foam. Jameson works beautifully here too. Xocolatl Mole: 1 dash on top of the foam — aromatic cocoa on the nose before each sip."
   },
   {
     id:"c4", name:"Mezcal Negroni", glass:"Rocks", method:"Stir", liked:false, house:false,
@@ -223,7 +223,7 @@ const DEFAULT_COCKTAILS = [
       {name:"Campari", amount:"1 oz", kind:"Campari"},
     ],
     steps:["Combine all in mixing glass over ice.","Stir well, ~40 rotations.","Strain into rocks glass over large ice.","Garnish with orange peel."],
-    notes:"Cenote Ahumado works great here for extra smoke. Julius Vermut for a sweeter spin."
+    notes:"Cenote Ahumado works great here for extra smoke. Julius Vermut for a sweeter spin. Xocolatl Mole: 2 dashes. The canonical pairing — agave smoke and mole bitters were made for each other."
   },
   {
     id:"c5", name:"Smoky Margarita", glass:"Rocks", method:"Shake", liked:false, house:false,
@@ -235,7 +235,7 @@ const DEFAULT_COCKTAILS = [
       {name:"Simple Syrup", amount:"1/2 oz", kind:"Simple Syrup"},
     ],
     steps:["Rim half the glass with salt.","Combine all in shaker with ice.","Shake well for 12 seconds.","Strain over fresh ice.","Garnish with lime wheel."],
-    notes:"Split base of mezcal and Cenote Ahumado tequila for layered smoke."
+    notes:"Split base of mezcal and Cenote Ahumado tequila for layered smoke. Xocolatl Mole: 2 dashes turn this into a mole-spiced margarita — chocolate and chile behind the lime."
   },
   {
     id:"c6", name:"Gimlet", glass:"Coupe", method:"Shake", liked:false, house:false,
@@ -293,7 +293,7 @@ const DEFAULT_COCKTAILS = [
       {name:"Angostura Bitters", amount:"1 dash", kind:"Angostura Bitters"},
     ],
     steps:["Combine all in mixing glass over ice.","Stir until well chilled.","Strain into rocks glass over ice.","Garnish with lemon peel."],
-    notes:"New Orleans classic. Your Benedictine is essential here. Courvoisier VS works perfectly."
+    notes:"New Orleans classic. Your Benedictine is essential here. Courvoisier VS works perfectly. Xocolatl Mole: 1 dash alongside the Angostura — fittingly, the bitters are a New Orleans creation too."
   },
   {
     id:"c11", name:"Penicillin", glass:"Rocks", method:"Shake", liked:false, house:false,
@@ -770,7 +770,7 @@ const DEFAULT_COCKTAILS = [
       {name:"Angostura Bitters", amount:"2 dashes", kind:"Angostura Bitters"},
     ],
     steps:["Combine all ingredients in a mixing glass over ice.","Stir for 30-40 rotations until well-chilled.","Strain into a chilled coupe.","Express an orange twist over the glass and discard or place on the rim."],
-    notes:"Woodford Reserve Rye is ideal — its spice backbone stands up to the Fernet without being overwhelmed. Don't be tempted to increase the Fernet; 1/4 oz is the sweet spot where it adds bitter herbal complexity rather than dominating. A genuinely underrated speakeasy classic."
+    notes:"Woodford Reserve Rye is ideal — its spice backbone stands up to the Fernet without being overwhelmed. Don't be tempted to increase the Fernet; 1/4 oz is the sweet spot where it adds bitter herbal complexity rather than dominating. A genuinely underrated speakeasy classic. Xocolatl Mole: 1 dash bridges the rye spice and Fernet's menthol with a cocoa mid-palate."
   }
   ,{
     id:"c48", name:"Rusty Nail", glass:"Rocks", method:"Stir", liked:false, house:false,
@@ -942,7 +942,7 @@ const DEFAULT_COCKTAILS = [
       {name:"Orange Bitters", amount:"2 dashes", kind:"Orange Bitters"},
     ],
     steps:["Add all ingredients to a rocks glass over a large piece of ice.","Stir.","Garnish with a flamed orange peel (or a regular orange peel)."],
-    notes:"Jon Santer's 2004 San Francisco original — a dark, boozy Old Fashioned variation with a jolt of coffee. Simple three-ingredient build, big flavor."
+    notes:"Jon Santer's 2004 San Francisco original — a dark, boozy Old Fashioned variation with a jolt of coffee. Simple three-ingredient build, big flavor. Xocolatl Mole: 1 dash with (or instead of) the orange bitters — coffee and chocolate is the obvious win here."
   }
   ,{
     id:"c60", name:"Monte Carlo", glass:"Rocks", method:"Stir", liked:false, house:false,
@@ -956,7 +956,7 @@ const DEFAULT_COCKTAILS = [
       {name:"Angostura Bitters", amount:"2 dashes", kind:"Angostura Bitters"},
     ],
     steps:["Stir on ice in a rocks glass — the bigger the ice, the better.","Garnish with a lemon peel.","Sip slowly."],
-    notes:"About as simple as they come, but Bénédictine's honey-cinnamon-vanilla-cardamom spice carries the whole drink. Rye-forward and warming — a natural fit alongside the Vieux Carré for the Benedictine bottle."
+    notes:"About as simple as they come, but Bénédictine's honey-cinnamon-vanilla-cardamom spice carries the whole drink. Rye-forward and warming — a natural fit alongside the Vieux Carré for the Benedictine bottle. Xocolatl Mole: 1 dash deepens the Bénédictine's cinnamon into something closer to mole."
   }
   ,{
     id:"c61", name:"Midnight Stinger", glass:"Rocks", method:"Shake", liked:false, house:false,
@@ -972,6 +972,20 @@ const DEFAULT_COCKTAILS = [
     ],
     steps:["Shake four to six seconds on a handful of crushed ice.","Pour ice and cocktail into a rocks glass.","Pack with more crushed ice.","Garnish with a mint sprig."],
     notes:"Sam Ross's (Milk & Honey) riff on the classic Cognac-and-creme-de-menthe Stinger — turns it into a sour with bourbon and Fernet-Branca standing in for the mint liqueur. A great gateway drink for Fernet skeptics."
+  }
+  ,{
+    id:"c62", name:"Kingston Negroni", glass:"Rocks", method:"Stir", liked:false, house:false,
+    garnish:"Orange peel",
+    source:"Joaquín Simó, Pouring Ribbons NYC",
+    url:"https://www.liquor.com/kingston-negroni-cocktail-recipe-5222685",
+    mood:["bitter","strong","classic","tropical"],
+    ingredients:[
+      {name:"Jamaican Rum", amount:"1 oz", kind:"Rum"},
+      {name:"Sweet Vermouth", amount:"1 oz", kind:"Sweet Vermouth"},
+      {name:"Campari", amount:"1 oz", kind:"Campari"},
+    ],
+    steps:["Combine all in a mixing glass over ice.","Stir 35-40 rotations until well chilled.","Strain into a rocks glass over one large cube.","Express an orange peel over the drink and garnish."],
+    notes:"Simó's 2013 one-for-one swap of gin for overproof Jamaican rum. Smith & Cross is the intended bottle and you have it — its funky banana-and-allspice esters are the whole point, so don't substitute a soft aged rum. Carpano Antica is the classic vermouth pairing; its cocoa and bitter-orange weight is one of the few that won't get flattened by 57% rum. Xocolatl Mole: 1 dash pushes the rum's grilled-banana note toward chocolate."
   }
 ];
 
