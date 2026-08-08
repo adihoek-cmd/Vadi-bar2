@@ -159,7 +159,7 @@ const DEFAULT_INVENTORY = [
   { id:"i130", cat:"Pantry", kind:"Angostura Bitters", label:"Angostura", priceNIS:59, sizeMl:200, on:true, info:{ abv:"44.7%", origin:"Trinidad & Tobago", description:"Angostura aromatic bitters is the world's classic cocktail bitter — a concentrated gentian-and-spice tincture used by the dash in the Old Fashioned, Manhattan and countless others. High proof but used in tiny amounts." } },
   // Orange Bitters
   { id:"i131", cat:"Pantry", kind:"Orange Bitters", label:"Orange Bitters", on:true },
-  { id:"i173", cat:"Pantry", kind:"Peychaud's Bitters", label:"Peychaud's Bitters", priceNIS:69.9, sizeMl:148, on:false, info:{ abv:"35%", origin:"New Orleans, USA", description:"Peychaud's is a bright, anise-and-cherry aromatic bitter — lighter and more floral than Angostura. Essential to the Sazerac and a key component of the Vieux Carré. Not yet in stock." } },
+  { id:"i173", cat:"Pantry", kind:"Peychaud's Bitters", label:"Peychaud's Bitters", priceNIS:69.9, sizeMl:148, on:true, info:{ abv:"35%", origin:"New Orleans, USA", description:"Peychaud's is a bright, anise-and-cherry aromatic bitter — lighter and more floral than Angostura. Essential to the Sazerac and a key component of the Vieux Carré. Where Angostura adds weight and spice, Peychaud's lifts and brightens — it opens a register nothing else in the cabinet covers." } },
   { id:"i174", cat:"Pantry", kind:"Chocolate Bitters", label:"Bittermens Xocolatl Mole", on:true, info:{ abv:"53%", origin:"New Orleans, USA", description:"Bittermens Xocolatl Mole — the original Mexican-chocolate bitter (cacao, cinnamon, chile and warm spice). Designed for aged tequila but excellent with aged rum, bourbon and rye. One or two dashes add cocoa depth and dry spice to any stirred, spirit-forward build — Negroni, Manhattan, Old Fashioned, Vieux Carré." } },
   { id:"i175", cat:"Pantry", kind:"Chocolate Bitters", label:"The Bitter Truth Spiced Chocolate", on:false, info:{ abv:"44%", origin:"Germany", description:"The Bitter Truth Spiced Chocolate bitters — darker and earthier than Xocolatl Mole, with strong gentian and wormwood backbone. A favorite for balancing high-proof whiskey in a Manhattan. Not yet in stock." } },
   // Lemon Juice
@@ -189,7 +189,7 @@ const DEFAULT_COCKTAILS = [
       {name:"Campari", amount:"1 oz", kind:"Campari"},
     ],
     steps:["Combine all in mixing glass over ice.","Stir 35-40 rotations until well chilled.","Strain into rocks glass over large ice.","Express orange peel over drink and garnish."],
-    notes:"Use Carpano Antica for richness. Tanqueray Ten makes it especially floral. Xocolatl Mole: 1 dash rounds Campari's bitterness with cocoa and dries out the vermouth — subtle but transformative."
+    notes:"House build is Tanqueray Ten with Dolin Rouge — the lighter vermouth keeps the gin floral rather than burying it. Carpano Antica is saved for the Kingston Negroni, where 57% rum needs the extra weight. Xocolatl Mole: 1 dash rounds Campari's bitterness with cocoa and dries out the vermouth — subtle but transformative."
   },
   {
     id:"c2", name:"Manhattan", glass:"Coupe", method:"Stir", liked:false, house:false,
@@ -291,9 +291,10 @@ const DEFAULT_COCKTAILS = [
       {name:"Sweet Vermouth", amount:"3/4 oz", kind:"Sweet Vermouth"},
       {name:"Benedictine", amount:"1 tsp", kind:"Herbal Liqueur"},
       {name:"Angostura Bitters", amount:"1 dash", kind:"Angostura Bitters"},
+      {name:"Peychaud's Bitters", amount:"1 dash", kind:"Peychaud's Bitters"},
     ],
     steps:["Combine all in mixing glass over ice.","Stir until well chilled.","Strain into rocks glass over ice.","Garnish with lemon peel."],
-    notes:"New Orleans classic. Your Benedictine is essential here. Courvoisier VS works perfectly. Xocolatl Mole: 1 dash alongside the Angostura — fittingly, the bitters are a New Orleans creation too."
+    notes:"New Orleans classic. Your Benedictine is essential here. Courvoisier VS works perfectly. The canonical build takes both bitters — Peychaud's anise-cherry lift against Angostura's spice — and the drink is noticeably flatter with only one. Xocolatl Mole: 1 dash as a third bitter, fittingly also a New Orleans creation."
   },
   {
     id:"c11", name:"Penicillin", glass:"Rocks", method:"Shake", liked:false, house:false,
@@ -928,7 +929,7 @@ const DEFAULT_COCKTAILS = [
       {name:"Angostura Bitters", amount:"1 dash", kind:"Angostura Bitters"},
     ],
     steps:["Pre-chill an old-fashioned glass and prepare a lemon zest twist.","Stir all ingredients with ice.","Strain into the ice-filled glass.","Express the lemon zest twist over the drink and use as garnish."],
-    notes:"A Vieux Carré riff swapping cognac for aged, funky Jamaican rum (Smith & Cross) — softer and warmer than the rye-and-cognac original. Use Smith & Cross for the rum and Martini Rosso for the vermouth. Needs Peychaud's Bitters to arrive before it's fully makeable — Angostura alone works as a stopgap in the meantime."
+    notes:"A Vieux Carré riff swapping cognac for aged, funky Jamaican rum (Smith & Cross) — softer and warmer than the rye-and-cognac original. Use Smith & Cross for the rum and Martini Rosso for the vermouth. Fully makeable now that Peychaud's has landed — it carries the drink's aromatic top end."
   }
   ,{
     id:"c59", name:"Revolver", glass:"Rocks", method:"Stir", liked:false, house:false,
@@ -1011,7 +1012,7 @@ const DEFAULT_COCKTAILS = [
       {name:"Sweet Vermouth", amount:"1 oz", kind:"Sweet Vermouth"},
     ],
     steps:["Combine all in a mixing glass over ice.","Stir 35-40 rotations until well chilled.","Strain into a rocks glass over one large cube.","Express an orange peel over the drink and garnish."],
-    notes:"The whiskey Negroni. Built 1.5/1/1 rather than equal parts — bourbon needs the extra weight or Campari bulldozes it. Rye makes a drier, spicier version and is the better base if you want any bitters to read; Woodford Rye works well. Carpano Antica is rich enough to match bourbon's sweetness, Dolin Rouge keeps it lighter. Xocolatl Mole: 1 dash only — bourbon's vanilla gives the cocoa something to bond with, but Campari and Carpano already carry cocoa notes, so two dashes turns muddy."
+    notes:"The whiskey Negroni. Built 1.5/1/1 rather than equal parts — bourbon needs the extra weight or Campari bulldozes it. Rye makes a drier, spicier version and is the better base if you want any bitters to read; Woodford Rye works well. Carpano Antica is rich enough to match bourbon's sweetness, Dolin Rouge keeps it lighter. Xocolatl Mole: 1 dash only — bourbon's vanilla gives the cocoa something to bond with, but Campari and Carpano already carry cocoa notes, so two dashes turns muddy. Peychaud's: 1-2 dashes is the safer and arguably better call here — anise and cherry add something genuinely absent from the build rather than stacking onto Campari's existing cocoa register."
   }
 ];
 
