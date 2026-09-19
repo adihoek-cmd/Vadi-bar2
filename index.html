@@ -2331,7 +2331,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=65"></script>
+<script src="db.js?v=66"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2425,8 +2425,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 65; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.65'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 66; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.66'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -6100,6 +6100,8 @@ var PROJECT_ID = "vadi-bar-app";
 var barCode    = localStorage.getItem('vadi_bar_code') || 'VADI4545';
 var syncTimeout = null;
 var SYNC_CONFIGURED = true;
+var _pushPending = false; // v1.66
+var _localRev = 0;        // v1.66: bumped on every local save
 
 if (!localStorage.getItem('vadi_bar_code')) localStorage.setItem('vadi_bar_code', barCode);
 
@@ -6143,6 +6145,8 @@ function fromFS(val) {
 
 function syncFromCloud() {
   if (!SYNC_CONFIGURED) return;
+  if (_pushPending) return; // v1.66: local changes not pushed yet — don't overwrite them
+  var revAtStart = _localRev;
   if (typeof _lastSync !== 'undefined') _lastSync = Date.now();
   updateSyncBtn('syncing');
   var watchdog = setTimeout(function(){ updateSyncBtn('error'); }, 12000);
@@ -6150,8 +6154,23 @@ function syncFromCloud() {
     .then(function(r){ return r.json(); })
     .then(function(doc) {
       clearTimeout(watchdog);
+      if (revAtStart !== _localRev) { updateSyncBtn('idle'); return; } // v1.66: user changed something mid-pull
       if (doc.fields) {
-        var data = fromFS({mapValue: doc});
+        // v1.66: fromFS returns the flat document; wrap it so the data.fields.* reads below work
+        var data = { fields: fromFS({mapValue: doc}) || {} };
+        // v1.66: cloud pull never succeeded before this version, so the cloud copy may be
+        // stale. On this device's FIRST successful merge, local on/off, cart and storage win;
+        // a backup of the pre-merge local state is kept in localStorage.
+        var localWinsOnce = !localStorage.getItem('vadi_sync_fix_166');
+        if (localWinsOnce) {
+          try {
+            localStorage.setItem('vadi_backup_pre166', JSON.stringify({
+              ts: Date.now(), cocktails: state.cocktails, inventory: state.inventory,
+              cart: state.cart, storage: state.storage,
+              deleted: state.deleted, deletedCocktails: state.deletedCocktails
+            }));
+          } catch (e) { console.warn('pre-1.66 backup skipped:', e); }
+        }
         var cloudCocktails  = (data.fields.cocktails  || []).filter(function(c){ return c && c.id; });
         var cloudInventory  = (data.fields.inventory  || []).filter(function(i){ return i && i.id; });
         var defaultCkIds    = new Set(DEFAULT_COCKTAILS.map(function(dc){ return dc.id; }));
@@ -6241,7 +6260,8 @@ function syncFromCloud() {
           var cloud = cloudInvById[di.id];
           var local = localInvById[di.id];
           var result = JSON.parse(JSON.stringify(di));
-          if (cloud) result.on = cloud.on;
+          if (cloud && typeof cloud.on === 'boolean') result.on = cloud.on;
+          if (local && typeof local.on === 'boolean' && (localWinsOnce || !cloud)) result.on = local.on;
           // Carry bottle info — keep whichever side has the newer infoTs
           var cInfo = cloud && cloud.info, cTs = (cloud && cloud.infoTs) || 0;
           var lInfo = local && local.info, lTs = (local && local.infoTs) || 0;
@@ -6259,11 +6279,21 @@ function syncFromCloud() {
           }
           return result;
         });
-        cloudInventory.filter(function(i){ return !defaultInvIds.has(i.id) && !delSet.has(i.id); }).forEach(function(i){ mergedInv.push(i); });
+        var seenCustomInv = {};
+        cloudInventory.filter(function(i){ return !defaultInvIds.has(i.id) && !delSet.has(i.id); }).forEach(function(i){
+          var l = localInvById[i.id];
+          mergedInv.push((localWinsOnce && l) ? l : i);
+          seenCustomInv[i.id] = true;
+        });
+        // v1.66: keep local-only custom bottles that haven't reached the cloud yet
+        state.inventory.forEach(function(l){
+          if (l && l.id && !defaultInvIds.has(l.id) && !delSet.has(l.id) && !seenCustomInv[l.id]) mergedInv.push(l);
+        });
         state.inventory = mergedInv;
 
-        if (data.fields.cart) state.cart = data.fields.cart;
-        if (data.fields.storage) state.storage = data.fields.storage;
+        if (data.fields.cart && !localWinsOnce) state.cart = data.fields.cart;
+        if (data.fields.storage && !localWinsOnce) state.storage = data.fields.storage;
+        localStorage.setItem('vadi_sync_fix_166', '1');
         localStorage.setItem('vadi_storage', JSON.stringify(state.storage));
         localStorage.setItem('vadi_deleted', JSON.stringify(state.deleted));
         localStorage.setItem('vadi_deleted_cocktails', JSON.stringify(state.deletedCocktails));
@@ -6285,9 +6315,10 @@ function syncFromCloud() {
 function syncToCloud() {
   if (!SYNC_CONFIGURED) return;
   clearTimeout(syncTimeout);
+  _pushPending = true;
   syncTimeout = setTimeout(function() {
     updateSyncBtn('syncing');
-    var watchdog = setTimeout(function(){ updateSyncBtn('error'); }, 12000);
+    var watchdog = setTimeout(function(){ _pushPending = false; updateSyncBtn('error'); }, 12000);
     var body = JSON.stringify({ fields: toFS({
       cocktails:  state.cocktails,
       inventory:  state.inventory,
@@ -6298,9 +6329,9 @@ function syncToCloud() {
       updatedAt:  new Date().toISOString()
     }).mapValue.fields });
     fetch(firestoreUrl(), { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: body })
-      .then(function(r){ clearTimeout(watchdog); return r.json(); })
+      .then(function(r){ clearTimeout(watchdog); _pushPending = false; return r.json(); })
       .then(function(){ updateSyncBtn('synced'); })
-      .catch(function(e){ clearTimeout(watchdog); console.warn('syncToCloud failed:', e); updateSyncBtn('error'); });
+      .catch(function(e){ clearTimeout(watchdog); _pushPending = false; console.warn('syncToCloud failed:', e); updateSyncBtn('error'); });
   }, 1200);
 }
 
@@ -6339,7 +6370,7 @@ function setCloudStatus(msg, cls) {
 
 // Override save to also sync
 var _origSave = save;
-save = function() { _origSave(); syncToCloud(); };
+save = function() { _localRev++; _origSave(); syncToCloud(); };
 
 // Init on load
 window.addEventListener('load', function() { syncFromCloud(); });
