@@ -454,7 +454,7 @@ const DEFAULT_COCKTAILS = [
       {name:"Bourbon", amount:"2 oz", kind:"Bourbon"},
       {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
       {name:"Simple Syrup", amount:"3/4 oz", kind:"Simple Syrup"},
-      {name:"Mint Leaves", amount:"6-8", kind:"Mint"},
+      {name:"Mint Leaves", amount:"6-8", kind:"Herb"},
       {name:"Lemon Peel", amount:"1 strip (2 inch)", kind:"Lemon Juice"},
     ],
     steps:["Add all ingredients including mint and lemon peel to a shaker tin.","Add ice and shake hard for 6-10 seconds.","Strain over fresh ice into a rocks glass.","Garnish with a mint crown."],
@@ -543,7 +543,7 @@ const DEFAULT_COCKTAILS = [
       {name:"Bourbon", amount:"2 oz", kind:"Bourbon"},
       {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
       {name:"Honey Syrup", amount:"3/4 oz", kind:"Honey Ginger Syrup"},
-      {name:"Grapefruit Peel", amount:"1 strip (1x2 inch)", kind:"Grapefruit Juice"},
+      {name:"Grapefruit Peel", amount:"1 strip (1x2 inch)"},
     ],
     steps:["Add all ingredients including grapefruit peel to a shaker with ice.","Shake hard for 8-10 seconds.","Strain into a rocks glass over fresh ice."],
     notes:"The 'regal shake' - adding a grapefruit peel to the shaker - transforms this from good to genuinely complex. Don't skip it."
@@ -556,7 +556,7 @@ const DEFAULT_COCKTAILS = [
       {name:"Fresh Grapefruit Juice", amount:"1 oz", kind:"Grapefruit Juice"},
       {name:"Fresh Lemon Juice", amount:"1/4 oz", kind:"Lemon Juice"},
       {name:"Honey Syrup", amount:"1/2 oz", kind:"Honey Ginger Syrup"},
-      {name:"Grapefruit Peel", amount:"1 strip", kind:"Grapefruit Juice"},
+      {name:"Grapefruit Peel", amount:"1 strip"},
     ],
     steps:["Add all ingredients including grapefruit peel to a shaker with ice.","Shake hard for 8-10 seconds.","Strain over fresh ice in a rocks glass or up in a coupe.","Garnish with a grapefruit peel."],
     notes:"The lemon juice is what takes this from pedestrian to outstanding. Don't omit it."
@@ -582,7 +582,7 @@ const DEFAULT_COCKTAILS = [
       {name:"Fresh Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
       {name:"Pineapple Juice", amount:"1 oz", kind:"Pineapple Juice"},
       {name:"Simple Syrup", amount:"1/2 oz", kind:"Simple Syrup"},
-      {name:"Mint Leaves", amount:"6-8", kind:"Mint"},
+      {name:"Mint Leaves", amount:"6-8", kind:"Herb"},
     ],
     steps:["Add all ingredients to a shaker with ice - no need to muddle the mint.","Shake hard for 6-8 seconds.","Fine strain into a rocks glass over fresh ice.","Garnish with a mint sprig and pineapple slice."],
     notes:"A bourbon drink that convincingly cosplays as a tiki drink. The absinthe is the magic element."
