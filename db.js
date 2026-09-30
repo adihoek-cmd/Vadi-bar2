@@ -1016,7 +1016,47 @@ const DEFAULT_COCKTAILS = [
     steps:["Combine all in a mixing glass over ice.","Stir 35-40 rotations until well chilled.","Strain into a rocks glass over one large cube.","Express an orange peel over the drink and garnish."],
     notes:"The whiskey Negroni. Built 1.5/1/1 rather than equal parts — bourbon needs the extra weight or Campari bulldozes it. Rye makes a drier, spicier version and is the better base if you want any bitters to read; Woodford Rye works well. Carpano Antica is rich enough to match bourbon's sweetness, Dolin Rouge keeps it lighter. Xocolatl Mole: 1 dash only — bourbon's vanilla gives the cocoa something to bond with, but Campari and Carpano already carry cocoa notes, so two dashes turns muddy. Peychaud's: 1-2 dashes is the safer and arguably better call here — anise and cherry add something genuinely absent from the build rather than stacking onto Campari's existing cocoa register."
   }
+  ,{
+    id:"c65", name:"Mai Chau Old Fashioned", glass:"Rocks", method:"Stir", liked:false, house:true,
+    garnish:"Orange peel + star anise pod",
+    source:"Vadi Bar original",
+    mood:["strong","spiced","nightcap"],
+    ingredients:[
+      {name:"Rye Whiskey", amount:"2 oz", kind:"Rye Whiskey"},
+      {name:"Jungle Brews Cinnamon & Anise", amount:"1/2 oz", kind:"Spice Liqueur"},
+      {name:"Angostura Bitters", amount:"1 dash", kind:"Angostura Bitters"},
+      {name:"Xocolatl Mole Bitters", amount:"1 dash", kind:"Chocolate Bitters"},
+    ],
+    steps:["Combine all in a mixing glass over ice.","Stir 30-35 rotations until well chilled.","Strain into a rocks glass over one large cube.","Express an orange peel over the drink, drop it in and float a star anise pod."],
+    notes:"The liqueur replaces the sugar entirely — at 19% it sweetens and spices at once without thinning the drink. Use JD Bonded Rye: the 50% proof keeps the whiskey in front of the cassia. Xocolatl Mole's own cinnamon locks onto the liqueur. Taste before serving and add a bar spoon of simple syrup only if the liqueur runs dry. Variations: El Supremo 8 for a rum version, or Torres 10 for a brandy one."
+  }
+  ,{
+    id:"c66", name:"Star Anise Sour", glass:"Coupe", method:"Shake", liked:false, house:true,
+    garnish:"Grated cinnamon over the foam",
+    source:"Vadi Bar original",
+    mood:["sour","spiced","bright"],
+    ingredients:[
+      {name:"Cognac", amount:"1 1/2 oz", kind:"Cognac"},
+      {name:"Jungle Brews Cinnamon & Anise", amount:"3/4 oz", kind:"Spice Liqueur"},
+      {name:"Lemon Juice", amount:"3/4 oz", kind:"Lemon Juice"},
+      {name:"Honey Ginger Syrup", amount:"1/4 oz", kind:"Honey Ginger Syrup"},
+      {name:"Egg White", amount:"1", kind:"Egg White"},
+    ],
+    steps:["Dry shake all without ice for 15 seconds.","Add ice and shake hard for 12 seconds.","Double strain into a chilled coupe.","Grate a little cinnamon over the foam."],
+    notes:"A spiced brandy sour. Torres 10's dried fruit sits naturally under the cinnamon and anise; Courvoisier VS gives a lighter, cleaner build. The liqueur carries most of the sweetness, so the honey-ginger is only a small amount — raise it to 1/2 oz if the lemon dominates. Once the Georgian brandies arrive, Kakhetian XO's bitter-cocoa edge should work well here."
+  }
+  ,{
+    id:"c67", name:"Tonkin Mule", glass:"Highball", method:"Build", liked:false, house:true,
+    garnish:"Lime wheel + cinnamon stick",
+    source:"Vadi Bar original",
+    mood:["refreshing","spiced","easy"],
+    ingredients:[
+      {name:"Aged Rum", amount:"1 1/2 oz", kind:"Rum"},
+      {name:"Jungle Brews Cinnamon & Anise", amount:"3/4 oz", kind:"Spice Liqueur"},
+      {name:"Lime Juice", amount:"1/2 oz", kind:"Lime Juice"},
+      {name:"Ginger Beer", amount:"Top", kind:"Ginger Beer"},
+    ],
+    steps:["Fill a highball glass with ice.","Add rum, liqueur and lime juice; stir briefly.","Top with ginger beer and give it one gentle lift with a bar spoon.","Garnish with a lime wheel and a cinnamon stick."],
+    notes:"An easy long drink that shows off the liqueur. Use El Supremo 8 or Jang & Wulff Barbados No. 3 as the rum. Skip the Kraken, because it already carries cinnamon and clove and would pile the spice on top of the liqueur. For a smoky version, swap the rum for Se Busca Reposado mezcal."
+  }
 ];
-
-
-
