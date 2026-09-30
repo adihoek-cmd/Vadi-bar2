@@ -147,6 +147,8 @@ const DEFAULT_INVENTORY = [
 
   // Honey Liqueur
   { id:"i165", cat:"Modifier", kind:"Honey Liqueur", label:"Rakomelo", on:true, info:{ abv:"~22%", origin:"Crete, Greece", description:"Rakomelo is a traditional Cretan liqueur made from tsikoudia (Cretan grappa) infused with honey and herbs (typically cinnamon and cloves). Warm, aromatic and slightly sweet — drunk warm in winter or over ice." } },
+  // Spice Liqueur
+  { id:"i180", cat:"Modifier", kind:"Spice Liqueur", label:"Jungle Brews Cinnamon & Anise", sizeMl:500, on:true, info:{ abv:"19%", origin:"Mai Châu, Vietnam", description:"Quế Hồi Hoa by Jungle Brews, a small craft producer in Mai Châu in northern Vietnam — a naturally fermented liqueur of Vietnamese cassia cinnamon and star anise. Warm, sweet-spiced and gently licorice-edged, lighter in proof than most modifiers. Works as a spice accent in stirred whiskey, rum or brandy builds, in hot toddies and winter punches, or neat as a digestif." } },
   // Rhubarb Liqueur
   { id:"i167", cat:"Modifier", kind:"Rhubarb Liqueur", label:"Rabarbara Rhubarb Liqueur", on:true, info:{ abv:"21%", origin:"Reykjavik, Iceland", description:"Rabarbara by Reykjavik Distillery is an Icelandic rhubarb liqueur — bright, tart and fruity with a distinctive Nordic rhubarb character. Excellent in spritz cocktails and as a sour modifier." } },
   // Homemade Liqueur
