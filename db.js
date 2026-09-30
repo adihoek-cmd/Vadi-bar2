@@ -25,6 +25,8 @@ const DEFAULT_INVENTORY = [
   { id:"i14", cat:"Spirit", kind:"Vodka", label:"Stolichnaya Vanilla", priceNIS:99, sizeMl:700, on:true, info:{ abv:"37.5%", origin:"Latvia (Stoli)", description:"Stoli Vanil is a vanilla-flavored vodka with smooth, sweet Madagascar-vanilla character. Easy in dessert cocktails, White Russians and coffee drinks." } },
   { id:"i15", cat:"Spirit", kind:"Vodka", label:"Van Gogh Acai Blueberry", on:true },
   { id:"i16", cat:"Spirit", kind:"Vodka", label:"Zubrówka Palona", priceNIS:89, sizeMl:700, on:true, info:{ abv:"40%", origin:"Białystok, Poland", description:"Żubrówka is a Polish rye vodka infused with bison grass from the Białowieża Forest, giving notes of vanilla, almond and fresh-cut grass. The Palona expression adds a toasted, caramel character." } },
+  // Soju
+  { id:"i181", cat:"Spirit", kind:"Soju", label:"Lotte Chum Churum Saero", sizeMl:375, on:true, info:{ abv:"16%", origin:"Seoul, South Korea", description:"Saero (\uc0c8\ub85c) is Lotte Chilsung's zero-sugar diluted soju \u2014 clean, very light and slightly sweet-grainy with no added sugar. At 16% it behaves more like a low-proof base than a spirit: best ice-cold neat in shots, or long with soda, citrus or fruit." } },
   // Irish Whiskey
   { id:"i103", cat:"Spirit", kind:"Irish Whiskey", label:"Jameson Irish Whiskey", priceNIS:99, sizeMl:700, on:true, info:{ abv:"40%", origin:"Ireland", description:"Jameson is a triple-distilled blend of pot still and grain whiskey, matured in oak. Smooth and approachable with notes of vanilla, toasted wood and light spice." } },
   // Blended Scotch
