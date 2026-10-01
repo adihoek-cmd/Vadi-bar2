@@ -1408,6 +1408,9 @@
     color: var(--text3); margin-bottom: 3px; display: block;
   }
   .bottle-info-value { font-size: 15px; color: var(--gold2); font-weight: 500; }
+  .bottle-serve-note { margin-bottom: 12px; }
+  .bottle-serve-note:last-child { margin-bottom: 0; }
+  .bottle-serve-note-name { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--text); margin-bottom: 2px; }
   .bottle-info-desc {
     font-size: 14px; line-height: 1.55; color: var(--text2);
     font-family: 'Cormorant Garamond', serif; font-size: 17px;
@@ -2331,7 +2334,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=69"></script>
+<script src="db.js?v=70"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2425,8 +2428,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 69; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.69'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 70; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.70'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -5241,6 +5244,23 @@ const KIND_TO_COCKTAILDB = {
 
 // ── BOTTLE INFO (ABV / origin / tasting notes) ───────────────────────────────
 
+// Serving notes (v1.70): informal pours shown on the bottle card only — not
+// part of the cocktail menu. Read from DEFAULT_INVENTORY so db.js stays
+// authoritative regardless of what's in saved/cloud state.
+function renderServeNotes(item) {
+  var def = DEFAULT_INVENTORY.find(function(d){ return d.id === item.id; });
+  var notes = (def && def.serveNotes) || item.serveNotes;
+  if (!notes || !notes.length) return '';
+  var h = '<div class="bottle-section">';
+  h += '<div class="bottle-section-title">Serving Notes</div>';
+  notes.forEach(function(n) {
+    h += '<div class="bottle-serve-note"><div class="bottle-serve-note-name">' + n.name + '</div>'
+       + '<div class="bottle-info-desc">' + n.build + '</div></div>';
+  });
+  h += '</div>';
+  return h;
+}
+
 function renderBottleInfoSection(item) {
   var info = item.info || {};
   var hasInfo = info.abv || info.origin || info.description || item.priceNIS;
@@ -5404,6 +5424,7 @@ async function openBottleModal(itemId) {
 
     // ── Bottle info card (ABV / origin / description) ──
     html += renderBottleInfoSection(item);
+    html += renderServeNotes(item);
 
     html += '<div class="bottle-section">';
     html += '<div class="bottle-section-title">In Your Collection</div>';
