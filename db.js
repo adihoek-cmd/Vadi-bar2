@@ -48,6 +48,7 @@ const DEFAULT_INVENTORY = [
   { id:"i41", cat:"Spirit", kind:"Bourbon", label:"Woodford Reserve Bourbon", priceNIS:239, sizeMl:700, on:true, info:{ abv:"43.2%", origin:"Kentucky, USA", description:"Woodford Reserve is a small-batch bourbon with rich notes of dried fruit, vanilla, toffee and spice, distilled partly in copper pot stills." } },
   // Rye Whiskey
   { id:"i45", cat:"Spirit", kind:"Rye Whiskey", label:"Woodford Reserve Rye", priceNIS:189, sizeMl:700, on:true, info:{ abv:"45.2%", origin:"Kentucky, USA", description:"Woodford Reserve Rye is a spicy, full-bodied rye with black pepper, mint and baking-spice notes balanced by sweet oak." } },
+  { id:"i182", cat:"Spirit", kind:"Rye Whiskey", label:"Rittenhouse Bottled-in-Bond Rye", on:true, info:{ abv:"50%", origin:"Kentucky, USA (Heaven Hill)", description:"Rittenhouse Rye Bottled-in-Bond from Heaven Hill: at least 4 years old, 100 proof, Pennsylvania (Monongahela)-style rye. Cocoa, dried fruit, cinnamon and black pepper over a rich, oily body. The bartender's standard for Manhattans, Sazeracs and Vieux Carr\u00e9s \u2014 its proof holds up to Campari, B\u00e9n\u00e9dictine and heavy dilution." } },
   // English Whisky
   { id:"i46", cat:"Spirit", kind:"English Whisky", label:"The Lakes Respeber", priceNIS:219, sizeMl:700, on:true },
 
