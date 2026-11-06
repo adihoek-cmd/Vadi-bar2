@@ -105,7 +105,7 @@ const DEFAULT_INVENTORY = [
   { id:"i93", cat:"Modifier", kind:"Amaro", label:"Picon", priceNIS:99, sizeMl:700, on:true, info:{ abv:"21%", origin:"France", description:"Picon is an orange-flavored bitter apéritif with gentian and quinine, traditionally added to beer or used to deepen a Negroni." } },
   // Triple Sec
   { id:"i95", cat:"Modifier", kind:"Triple Sec", label:"Cointreau", priceNIS:139, sizeMl:700, on:true, info:{ abv:"40%", origin:"France", description:"Cointreau is a premium triple sec — clear, balanced sweet-and-bitter orange from sun-dried peels. Essential in the Margarita, Sidecar and Cosmopolitan." } },
-  { id:"i156", cat:"Modifier", kind:"Whiskey Liqueur", label:"Southern Comfort", priceNIS:83, sizeMl:700, on:true, info:{ abv:"35%", origin:"USA", description:"Southern Comfort is a fruit-and-spice whiskey liqueur with peach, citrus and warm baking spice. Sweet and smooth, used in punches and the Alabama Slammer." } },
+  { id:"i156", cat:"Modifier", kind:"Whiskey Liqueur", label:"Southern Comfort", priceNIS:83, sizeMl:700, on:true, info:{ abv:"35%", origin:"USA", description:"Southern Comfort is a fruit-and-spice whiskey liqueur with peach, citrus and warm baking spice. Sweet and smooth, used in punches and the Alabama Slammer. Simplest serve: SoCo & Lime \u2014 2 oz SoCo with the juice of half a lime over ice, short, or topped with soda for a long drink." } },
   { id:"i96", cat:"Modifier", kind:"Triple Sec", label:"Grand Marnier", priceNIS:199, sizeMl:700, on:true, info:{ abv:"40%", origin:"France", description:"Grand Marnier blends cognac with bitter-orange liqueur for a richer, oakier orange note than plain triple sec." } },
   // Herbal Liqueur
   { id:"i100", cat:"Modifier", kind:"Herbal Liqueur", label:"Benedictine", priceNIS:99.9, sizeMl:700, on:true, info:{ abv:"40%", origin:"France", description:"Bénédictine is a herbal liqueur of 27 plants and spices with honeyed, saffron and citrus-peel sweetness. Found in the Vieux Carré and Singapore Sling." } },
@@ -1061,5 +1061,44 @@ const DEFAULT_COCKTAILS = [
     ],
     steps:["Fill a highball glass with ice.","Add rum, liqueur and lime juice; stir briefly.","Top with ginger beer and give it one gentle lift with a bar spoon.","Garnish with a lime wheel and a cinnamon stick."],
     notes:"An easy long drink that shows off the liqueur. Use El Supremo 8 or Jang & Wulff Barbados No. 3 as the rum. Skip the Kraken, because it already carries cinnamon and clove and would pile the spice on top of the liqueur. For a smoky version, swap the rum for Se Busca Reposado mezcal."
+  }
+,{
+    id:"c68", name:"Split-Base Old Fashioned", glass:"Rocks", method:"Stir", liked:false, house:true,
+    garnish:"Orange peel",
+    source:"Vadi Bar original",
+    mood:["strong","classic","nightcap"],
+    ingredients:[
+      {name:"Rye Whiskey", amount:"1 oz", kind:"Rye Whiskey"},
+      {name:"Southern Comfort", amount:"1 oz", kind:"Whiskey Liqueur"},
+      {name:"Angostura Bitters", amount:"2 dashes", kind:"Angostura Bitters"},
+    ],
+    steps:["Add bitters, rye and Southern Comfort to a mixing glass with ice.","Stir 30-40 rotations until well chilled.","Strain into a rocks glass over one large cube.","Express an orange peel over the surface and drop it in."],
+    notes:"An Old Fashioned with no added sugar \u2014 Southern Comfort supplies the sweetness plus peach and orange. Use Rittenhouse Bottled-in-Bond: its 50% proof keeps the drink from going cloying. If it reads too sweet, move to 1 1/2 oz rye and 1/2 oz SoCo."
+  }
+  ,{
+    id:"c69", name:"Peychaud's Comfort", glass:"Rocks", method:"Stir", liked:false, house:true,
+    garnish:"Lemon peel",
+    source:"Vadi Bar original",
+    mood:["strong","aromatic","nightcap"],
+    ingredients:[
+      {name:"Rye Whiskey", amount:"1 oz", kind:"Rye Whiskey"},
+      {name:"Southern Comfort", amount:"1 oz", kind:"Whiskey Liqueur"},
+      {name:"Peychaud's Bitters", amount:"3 dashes", kind:"Peychaud's Bitters"},
+    ],
+    steps:["Add rye, Southern Comfort and bitters to a mixing glass with ice.","Stir 30-40 rotations until well chilled.","Strain into a chilled rocks glass, neat.","Express a lemon peel over the drink and discard it."],
+    notes:"A Sazerac-adjacent drink you can make without absinthe \u2014 SoCo, born in New Orleans, stands in for the sugar cube, and Peychaud's anise-cherry gives the Sazerac signature. Use Rittenhouse Bottled-in-Bond for the rye. Once absinthe is in, rinse the glass with it for the full effect."
+  }
+  ,{
+    id:"c70", name:"Southern Comfort Manhattan", glass:"Coupe", method:"Stir", liked:false, house:false,
+    garnish:"Cherry",
+    source:"Classic Southern Comfort serve",
+    mood:["classic","smooth","nightcap"],
+    ingredients:[
+      {name:"Southern Comfort", amount:"2 oz", kind:"Whiskey Liqueur"},
+      {name:"Dry Vermouth", amount:"3/4 oz", kind:"Dry Vermouth"},
+      {name:"Angostura Bitters", amount:"2 dashes", kind:"Angostura Bitters"},
+    ],
+    steps:["Combine all in a mixing glass over ice.","Stir 30-40 rotations until well chilled.","Strain into a chilled coupe.","Garnish with a cherry."],
+    notes:"Uses dry vermouth rather than sweet, because Southern Comfort already brings the sugar. Dolin Dry keeps it light and herbal. A Luxardo cherry is the natural garnish."
   }
 ];
