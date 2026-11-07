@@ -2334,7 +2334,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=73"></script>
+<script src="db.js?v=74"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2428,8 +2428,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 73; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.73'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 74; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.74'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -6470,6 +6470,47 @@ setInterval(function() {
       });
     });
   }
+
+// ── BACK BUTTON CLOSES POPUPS (v1.74) ────────────────────────────────────────
+// Each popup opening adds a history entry; the phone's back button pops it and
+// closes the top popup instead of leaving the app.
+(function(){
+  var ids = ['modal-overlay','rdetail-overlay','mood-modal-overlay','bottle-modal-overlay','cloud-modal-overlay'];
+  var stack = [];        // open overlays, most recent last
+  var depth = 0;         // history entries we pushed
+  var ignorePop = 0;     // popstates caused by our own history.back()
+  var closingFromPop = false;
+  function onChange(changes){
+    var net = 0;
+    changes.forEach(function(ch){
+      var el = ch.el, isOpen = el.classList.contains('open'), i = stack.indexOf(el);
+      if (isOpen && i < 0) { stack.push(el); net++; }
+      else if (!isOpen && i >= 0) { stack.splice(i,1); if (!closingFromPop) net--; }
+    });
+    while (net > 0) { history.pushState({vadiModal:true}, ''); depth++; net--; }
+    while (net < 0 && depth > 0) { depth--; ignorePop++; history.back(); net++; }
+  }
+  var obs = new MutationObserver(function(muts){
+    var seen = [];
+    muts.forEach(function(m){ if (seen.indexOf(m.target) < 0) seen.push(m.target); });
+    onChange(seen.map(function(el){ return {el:el}; }));
+  });
+  ids.forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) obs.observe(el, {attributes:true, attributeFilter:['class']});
+  });
+  window.addEventListener('popstate', function(){
+    if (ignorePop > 0) { ignorePop--; return; }
+    if (depth > 0) depth--;
+    var top = stack.pop();
+    if (top) {
+      closingFromPop = true;
+      top.classList.remove('open');
+      obs.takeRecords();
+      closingFromPop = false;
+    }
+  });
+})();
 </script>
 </body>
 </html>
