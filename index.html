@@ -203,6 +203,12 @@
 
   .search-icon { color: var(--text3); font-size: 14px; }
 
+  .inv-search-box { width: 100%; box-sizing: border-box; margin: 0 0 14px; }
+  .inv-search-box input::-webkit-search-cancel-button { display: none; }
+  .inv-search-clear { background: none; border: none; color: var(--text3); font-size: 18px; line-height: 1; padding: 0 2px; cursor: pointer; }
+  .inv-search-empty { color: var(--text3); font-size: 13px; text-align: center; padding: 28px 0; }
+  .inv-search-hit { color: var(--gold); }
+
   /* ── COCKTAIL GRID ── */
   .cocktail-grid {
     display: grid;
@@ -2082,6 +2088,13 @@
       <button class="btn btn-gold" onclick="document.getElementById('inv-add-section').scrollIntoView({behavior:'smooth'})">+ Add Bottle</button>
     </div>
 
+    <!-- v1.75: Bar search (name or kind) -->
+    <div class="search-box inv-search-box">
+      <span class="search-icon">⌕</span>
+      <input type="search" id="inv-search-input" placeholder="Search bottles or kind… (e.g. Rye, Amaro)" oninput="renderInventory()" autocomplete="off">
+      <button class="inv-search-clear" id="inv-search-clear" onclick="clearInvSearch()" style="display:none" aria-label="Clear search">×</button>
+    </div>
+
     <!-- Tree inventory -->
     <div class="inv-tree" id="inv-tree"></div>
 
@@ -2334,7 +2347,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=74"></script>
+<script src="db.js?v=75"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2428,8 +2441,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 74; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.74'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 75; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.75'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -2691,7 +2704,13 @@ runDataMigrations();
   }
 })();
 
+// v1.75: storage & cart carry a change timestamp so cloud merges keep the newer copy
+var _storageSnap = JSON.stringify(state.storage);
+var _cartSnap    = JSON.stringify(state.cart);
 function save() {
+  var sj = JSON.stringify(state.storage), cj = JSON.stringify(state.cart);
+  if (sj !== _storageSnap) { _storageSnap = sj; localStorage.setItem('vadi_storage_ts', String(Date.now())); }
+  if (cj !== _cartSnap)    { _cartSnap = cj;    localStorage.setItem('vadi_cart_ts',    String(Date.now())); }
   localStorage.setItem('vadi_inv', JSON.stringify(state.inventory));
   localStorage.setItem('vadi_cocktails', JSON.stringify(state.cocktails));
   localStorage.setItem('vadi_cart', JSON.stringify(state.cart));
@@ -3265,6 +3284,18 @@ function renderInventory() {
   const cats = ['Spirit','Modifier','Syrup','Pantry'];
   let html = '';
 
+  // v1.75: search by bottle name, kind or category; all words must match
+  const qEl = document.getElementById('inv-search-input');
+  const q = qEl ? qEl.value.trim().toLowerCase() : '';
+  const clr = document.getElementById('inv-search-clear');
+  if (clr) clr.style.display = q ? 'inline' : 'none';
+  const words = q ? q.split(/\s+/) : [];
+  const matches = item => {
+    if (!words.length) return true;
+    const hay = ((item.label || '') + ' ' + (item.kind || '') + ' ' + (item.cat || '')).toLowerCase();
+    return words.every(w => hay.indexOf(w) !== -1);
+  };
+
   // Canonical kind order derived from db.js (curated: related styles adjacent —
   // Sweet → Dry → Blanc vermouth, Campari/Aperol/Bitter Bianco together,
   // bitters together, the whisky family in sequence, etc.)
@@ -3272,7 +3303,7 @@ function renderInventory() {
   DEFAULT_INVENTORY.forEach(d => { if (!(d.kind in kindRank)) kindRank[d.kind] = Object.keys(kindRank).length; });
 
   cats.forEach(cat => {
-    const items = state.inventory.filter(i => i.cat === cat);
+    const items = state.inventory.filter(i => i.cat === cat && matches(i));
     if (!items.length) return;
     const meta = CAT_META[cat];
 
@@ -3328,7 +3359,14 @@ function renderInventory() {
     html += `</div></div>`;
   });
 
+  if (!html && q) html = '<div class="inv-search-empty">No bottles match “' + q.replace(/[<>&"]/g, '') + '”</div>';
   tree.innerHTML = html;
+}
+
+function clearInvSearch() {
+  const el = document.getElementById('inv-search-input');
+  if (el) { el.value = ''; el.focus(); }
+  renderInventory();
 }
 
 function toggleTreeCat(cat) {
@@ -3353,7 +3391,7 @@ function deleteInvItem(id) {
 
 function toggleInv(id) {
   const item = state.inventory.find(i => i.id === id);
-  if (item) { item.on = !item.on; save(); renderInventory(); renderCocktails(); }
+  if (item) { item.on = !item.on; item.onTs = Date.now(); save(); renderInventory(); renderCocktails(); }
 }
 
 // ── PENDING ARRIVALS / OUT OF STOCK (v1.42) ─────────────────────────────────
@@ -3376,6 +3414,7 @@ function markArrived(id) {
   var item = state.inventory.find(function(i){ return i.id === id; });
   if (!item) return;
   item.on = true;
+  item.onTs = Date.now();
   save();
   syncToCloud();
   renderCart();
@@ -6123,6 +6162,7 @@ var syncTimeout = null;
 var SYNC_CONFIGURED = true;
 var _pushPending = false; // v1.66
 var _localRev = 0;        // v1.66: bumped on every local save
+var _cloudLoaded = false; // v1.75: no push until this device has pulled the cloud copy once
 
 if (!localStorage.getItem('vadi_bar_code')) localStorage.setItem('vadi_bar_code', barCode);
 
@@ -6176,13 +6216,21 @@ function syncFromCloud() {
     .then(function(doc) {
       clearTimeout(watchdog);
       if (revAtStart !== _localRev) { updateSyncBtn('idle'); return; } // v1.66: user changed something mid-pull
+      // v1.75: a failed read must never be followed by a push of local defaults
+      if (doc && doc.error && doc.error.code !== 404) {
+        console.warn('syncFromCloud error:', doc.error);
+        updateSyncBtn('error');
+        return;
+      }
       if (doc.fields) {
         // v1.66: fromFS returns the flat document; wrap it so the data.fields.* reads below work
         var data = { fields: fromFS({mapValue: doc}) || {} };
         // v1.66: cloud pull never succeeded before this version, so the cloud copy may be
         // stale. On this device's FIRST successful merge, local on/off, cart and storage win;
         // a backup of the pre-merge local state is kept in localStorage.
-        var localWinsOnce = !localStorage.getItem('vadi_sync_fix_166');
+        // v1.75: the v1.66 "local wins once" rule also fired on every NEW device,
+        // pushing db.js defaults + empty storage over the real cloud data. Disabled.
+        var localWinsOnce = false;
         if (localWinsOnce) {
           try {
             localStorage.setItem('vadi_backup_pre166', JSON.stringify({
@@ -6281,8 +6329,12 @@ function syncFromCloud() {
           var cloud = cloudInvById[di.id];
           var local = localInvById[di.id];
           var result = JSON.parse(JSON.stringify(di));
+          // v1.75: on/off — newest onTs wins; without timestamps the cloud copy wins
+          var cOnTs = (cloud && cloud.onTs) || 0, lOnTs = (local && local.onTs) || 0;
           if (cloud && typeof cloud.on === 'boolean') result.on = cloud.on;
-          if (local && typeof local.on === 'boolean' && (localWinsOnce || !cloud)) result.on = local.on;
+          if (local && typeof local.on === 'boolean' && (!cloud || lOnTs > cOnTs)) result.on = local.on;
+          var onTs = Math.max(cOnTs, lOnTs);
+          if (onTs) result.onTs = onTs;
           // Carry bottle info — keep whichever side has the newer infoTs
           var cInfo = cloud && cloud.info, cTs = (cloud && cloud.infoTs) || 0;
           var lInfo = local && local.info, lTs = (local && local.infoTs) || 0;
@@ -6312,8 +6364,26 @@ function syncFromCloud() {
         });
         state.inventory = mergedInv;
 
-        if (data.fields.cart && !localWinsOnce) state.cart = data.fields.cart;
-        if (data.fields.storage && !localWinsOnce) state.storage = data.fields.storage;
+        // v1.75: storage & cart — newer timestamp wins. Legacy copies without a
+        // timestamp: never let an empty list replace a non-empty one (recovery).
+        function pickList(cloudList, localList, cloudTs, localKey) {
+          var lTs = parseInt(localStorage.getItem(localKey) || '0');
+          var cTs = cloudTs || 0;
+          var c = Array.isArray(cloudList) ? cloudList : [];
+          var l = Array.isArray(localList) ? localList : [];
+          if (lTs > cTs) return l;
+          if (cTs > lTs) { localStorage.setItem(localKey, String(cTs)); return c; }
+          if (!c.length && l.length) return l;
+          return c;
+        }
+        var prevStorage = state.storage;
+        state.storage = pickList(data.fields.storage, state.storage, data.fields.storageTs, 'vadi_storage_ts');
+        state.cart    = pickList(data.fields.cart,    state.cart,    data.fields.cartTs,    'vadi_cart_ts');
+        if (prevStorage && prevStorage.length && JSON.stringify(prevStorage) !== JSON.stringify(state.storage)) {
+          try { localStorage.setItem('vadi_storage_backup', JSON.stringify({ ts: Date.now(), storage: prevStorage })); } catch (e) {}
+        }
+        _storageSnap = JSON.stringify(state.storage);
+        _cartSnap    = JSON.stringify(state.cart);
         localStorage.setItem('vadi_sync_fix_166', '1');
         localStorage.setItem('vadi_storage', JSON.stringify(state.storage));
         localStorage.setItem('vadi_deleted', JSON.stringify(state.deleted));
@@ -6322,7 +6392,9 @@ function syncFromCloud() {
         localStorage.setItem('vadi_inv',       JSON.stringify(state.inventory));
         localStorage.setItem('vadi_cart',      JSON.stringify(state.cart));
       }
+      _cloudLoaded = true;
       renderCocktails(); renderInventory(); updateCartBadge();
+      if (typeof renderStorage === 'function') renderStorage();
       updateSyncBtn('synced');
       syncToCloud(); // write back merged state
     })
@@ -6335,6 +6407,7 @@ function syncFromCloud() {
 
 function syncToCloud() {
   if (!SYNC_CONFIGURED) return;
+  if (!_cloudLoaded) return; // v1.75: the first pull pushes the merged state itself
   clearTimeout(syncTimeout);
   _pushPending = true;
   syncTimeout = setTimeout(function() {
@@ -6345,6 +6418,8 @@ function syncToCloud() {
       inventory:  state.inventory,
       cart:       state.cart,
       storage:    state.storage,
+      storageTs:  parseInt(localStorage.getItem('vadi_storage_ts') || '0'),
+      cartTs:     parseInt(localStorage.getItem('vadi_cart_ts') || '0'),
       deleted:    state.deleted,
       deletedCocktails: state.deletedCocktails,
       updatedAt:  new Date().toISOString()
