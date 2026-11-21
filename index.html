@@ -1589,6 +1589,34 @@
     font-size:16px; padding:2px 6px; transition:color 0.2s; flex-shrink:0;
   }
   .cart-item-del:hover { color:var(--red); }
+  /* ── Price Scout ── */
+  .scout-bar { display:flex; gap:8px; align-items:center; margin:4px 0 14px; }
+  .scout-go { flex:1; justify-content:center; }
+  .scout-icon { background:transparent; border:1px solid var(--border); color:var(--gold); border-radius:10px; width:38px; height:38px; font-size:16px; cursor:pointer; }
+  .scout-icon:disabled, .scout-go:disabled { opacity:0.5; }
+  .scout-line { font-size:11px; color:var(--gold); margin-top:2px; opacity:0.9; }
+  .scout-line.scout-err { color:var(--red); opacity:0.7; }
+  .cart-item-scout { background:transparent; border:1px solid var(--border); color:var(--gold); border-radius:8px; font-size:12px; padding:3px 7px; margin-right:6px; cursor:pointer; }
+  .scout-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 16px; margin:0 0 14px; }
+  .scout-card-title { font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); margin-bottom:8px; }
+  .scout-total { font-size:24px; color:var(--cream); font-family:inherit; }
+  .scout-total span { font-size:12px; color:var(--text); opacity:0.6; }
+  .scout-save { font-size:12px; color:var(--green); margin:4px 0 6px; }
+  .scout-store { border-top:1px solid var(--border); padding-top:10px; margin-top:10px; }
+  .scout-store-head { display:flex; justify-content:space-between; font-weight:600; color:var(--cream); margin-bottom:4px; }
+  .scout-row, .scout-offer { display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:13px; padding:3px 0; }
+  .scout-row i { opacity:0.5; font-style:normal; font-size:11px; }
+  .scout-row a, .scout-offer a { color:var(--gold); text-decoration:none; white-space:nowrap; }
+  .scout-ship, .scout-ref { font-size:11px; opacity:0.6; margin-top:4px; }
+  .scout-item { border-top:1px solid var(--border); padding:8px 0; }
+  .scout-item summary { display:flex; justify-content:space-between; cursor:pointer; list-style:none; color:var(--cream); font-size:14px; }
+  .scout-item summary::-webkit-details-marker { display:none; }
+  .scout-item summary span:last-child { font-size:11px; opacity:0.6; }
+  .scout-offer-main { display:flex; flex-direction:column; min-width:0; }
+  .scout-offer-main span { font-size:11px; opacity:0.65; }
+  .scout-offer-ship { opacity:0.5 !important; }
+  .scout-offer.oos { opacity:0.45; }
+
   .cart-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
   .cart-bought-info { font-size:12px; color:var(--text3); margin-top:16px; font-style:italic; }
 
@@ -2182,6 +2210,7 @@
       <div class="cart-autocomplete" id="cart-autocomplete"></div>
     </div>
 
+    <div id="scout-panel"></div>
     <div id="cart-list"></div>
 
     <!-- Pending arrivals / out of stock -->
@@ -2347,7 +2376,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=75"></script>
+<script src="db.js?v=76"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2441,8 +2470,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 75; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.75'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 76; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.76'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -5881,6 +5910,7 @@ function renderCart() {
 
   renderPendingArrivals();
   updateCartBadge();
+  renderScout();
 
   const total = state.cart.length;
   const bought = state.cart.filter(i => i.bought).length;
@@ -5927,7 +5957,9 @@ function renderCart() {
       html += '<div class="cart-item-info">';
       html += '<div class="cart-item-name">' + item.name + '</div>';
       html += '<div class="cart-item-kind">' + item.kind + '</div>';
+      if (!item.bought) html += scoutBestLine(item.name);
       html += '</div>';
+      if (!item.bought) html += '<button class="cart-item-scout" onclick="runScout(\'' + item.id + '\')" title="Survey prices for this item">₪</button>';
       html += '<button class="cart-item-del" onclick="removeCartItem(\'' + item.id + '\')" title="Remove">×</button>';
       html += '</div>';
     });
@@ -5938,6 +5970,230 @@ function renderCart() {
     html += '<div class="cart-bought-info">✓ Tap "+ Add bought to Bar" above to add checked items to your inventory.</div>';
   }
 
+  el.innerHTML = html;
+}
+
+// ── PRICE SCOUT — Israeli market survey for cart items ───────────────────────
+var SCOUT_DEFAULT_URL = 'https://vadi-price-scout.adi-hoek.workers.dev';
+var SCOUT_DEFAULT_SHIP = 35; // ₪ assumed when a store's delivery fee is unknown
+var scoutBusy = {};          // name -> true while a scan is running
+
+function scoutCfg() {
+  var c = {};
+  try { c = JSON.parse(localStorage.getItem('vadi_scout_cfg') || '{}'); } catch (e) {}
+  return { url: c.url || SCOUT_DEFAULT_URL, key: c.key || '' };
+}
+function scoutData() {
+  var d = null;
+  try { d = JSON.parse(localStorage.getItem('vadi_scout') || 'null'); } catch (e) {}
+  return d && d.items ? d : { items: {}, stores: {} };
+}
+function scoutSave(d) {
+  try { localStorage.setItem('vadi_scout', JSON.stringify(d)); } catch (e) {}
+}
+function scoutKey(name) { return String(name || '').trim().toLowerCase(); }
+function scoutEsc(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function scoutNIS(n) { return '₪' + (Math.round(n * 10) / 10).toLocaleString('en-US'); }
+
+function scoutSettings() {
+  var c = scoutCfg();
+  var url = prompt('Price Scout worker URL:', c.url);
+  if (url === null) return;
+  var key = prompt('App key (X-App-Key, leave empty if none):', c.key);
+  if (key === null) return;
+  localStorage.setItem('vadi_scout_cfg', JSON.stringify({ url: url.trim().replace(/\/+$/, ''), key: key.trim() }));
+  toast('Price Scout settings saved');
+}
+
+function scoutTargets(onlyId) {
+  return state.cart.filter(function (ci) { return !ci.bought && (!onlyId || ci.id === onlyId); })
+    .map(function (ci) {
+      var inv = state.inventory.find(function (x) { return x.label && x.label.toLowerCase() === ci.name.toLowerCase(); });
+      return { name: ci.name, kind: ci.kind || '', sizeMl: inv && inv.sizeMl ? inv.sizeMl : undefined };
+    });
+}
+
+async function runScout(onlyId, refresh) {
+  var items = scoutTargets(onlyId);
+  if (!items.length) { toast('Nothing to scout'); return; }
+  var c = scoutCfg();
+  items.forEach(function (i) { scoutBusy[scoutKey(i.name)] = true; });
+  renderCart();
+  toast('Scouting ' + items.length + ' item' + (items.length > 1 ? 's' : '') + '… (≈1 min)');
+  try {
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 240000) : null;
+    var headers = { 'Content-Type': 'application/json' };
+    if (c.key) headers['X-App-Key'] = c.key;
+    var resp = await fetch(c.url + '/scout', {
+      method: 'POST', headers: headers,
+      body: JSON.stringify({ items: items, refresh: !!refresh }),
+      signal: ctrl ? ctrl.signal : undefined
+    });
+    if (timer) clearTimeout(timer);
+    var res = await resp.json().catch(function () { return {}; });
+    if (!resp.ok) throw new Error(res.error || ('HTTP ' + resp.status));
+    var d = scoutData();
+    (res.items || []).forEach(function (r) { d.items[scoutKey(r.name)] = r; });
+    Object.keys(res.stores || {}).forEach(function (k) { d.stores[k] = res.stores[k]; });
+    d.at = res.searchedAt;
+    scoutSave(d);
+    var errs = (res.items || []).filter(function (r) { return r.error; }).length;
+    toast(errs ? ('Done — ' + errs + ' item(s) failed') : 'Price survey ready ₪');
+  } catch (e) {
+    toast('Price Scout failed: ' + (e.name === 'AbortError' ? 'timeout' : e.message));
+  } finally {
+    items.forEach(function (i) { delete scoutBusy[scoutKey(i.name)]; });
+    renderCart();
+  }
+}
+
+// Delivery fee for a store at a given subtotal
+function scoutShip(storeInfo, subtotal) {
+  if (!storeInfo || storeInfo.shipCost == null) return { fee: SCOUT_DEFAULT_SHIP, est: true };
+  if (storeInfo.freeOver != null && subtotal >= storeInfo.freeOver) return { fee: 0, est: false };
+  return { fee: storeInfo.shipCost, est: false };
+}
+
+// Exact basket optimizer (branch & bound). items: [{name, opts:[{store, price, offer}]}]
+function scoutOptimize(items, stores) {
+  function cost(assign) {
+    var by = {}, total = 0;
+    assign.forEach(function (o, idx) {
+      if (!by[o.store]) by[o.store] = { items: [], subtotal: 0 };
+      by[o.store].items.push({ name: items[idx].name, offer: o.offer, price: o.price });
+      by[o.store].subtotal += o.price;
+    });
+    Object.keys(by).forEach(function (s) {
+      var sh = scoutShip(stores[s], by[s].subtotal);
+      by[s].ship = sh.fee; by[s].shipEst = sh.est;
+      total += by[s].subtotal + sh.fee;
+    });
+    return { total: total, byStore: by };
+  }
+  // Greedy baseline = cheapest bottle for each item, independently
+  var greedy = items.map(function (it) { return it.opts[0]; });
+  var naive = cost(greedy);
+  var best = { assign: greedy.slice(), res: naive };
+  // Suffix of minimal remaining prices for the lower bound
+  var minRest = new Array(items.length + 1).fill(0);
+  for (var i = items.length - 1; i >= 0; i--) minRest[i] = minRest[i + 1] + items[i].opts[0].price;
+  var nodes = 0, cur = [];
+  (function dfs(i, priceSum) {
+    if (++nodes > 400000) return;
+    if (priceSum + minRest[i] >= best.res.total - 0.001) return;
+    if (i === items.length) {
+      var r = cost(cur);
+      if (r.total < best.res.total - 0.001) best = { assign: cur.slice(), res: r };
+      return;
+    }
+    for (var k = 0; k < items[i].opts.length; k++) {
+      cur.push(items[i].opts[k]);
+      dfs(i + 1, priceSum + items[i].opts[k].price);
+      cur.pop();
+    }
+  })(0, 0);
+  return { best: best.res, naive: naive };
+}
+
+function scoutBasketItems(d) {
+  var list = [];
+  state.cart.filter(function (ci) { return !ci.bought; }).forEach(function (ci) {
+    var r = d.items[scoutKey(ci.name)];
+    if (!r || !r.offers || !r.offers.length) return;
+    var offers = r.offers.filter(function (o) { return o.inStock !== false; });
+    if (!offers.length) return;
+    var perStore = {};
+    offers.forEach(function (o) {
+      if (!perStore[o.store] || o.price < perStore[o.store].price) perStore[o.store] = { store: o.store, price: o.price, offer: o };
+    });
+    var opts = Object.keys(perStore).map(function (s) { return perStore[s]; }).sort(function (a, b) { return a.price - b.price; });
+    list.push({ name: ci.name, opts: opts });
+  });
+  return list;
+}
+
+function scoutBestLine(name) {
+  var r = scoutData().items[scoutKey(name)];
+  if (scoutBusy[scoutKey(name)]) return '<div class="scout-line">⏳ scanning stores…</div>';
+  if (!r) return '';
+  if (r.error) return '<div class="scout-line scout-err">scan failed</div>';
+  var o = (r.offers || []).filter(function (x) { return x.inStock !== false; }).sort(function (a, b) { return a.price - b.price; })[0];
+  if (!o) return '<div class="scout-line scout-err">not found in IL stores</div>';
+  return '<div class="scout-line">from <b>' + scoutNIS(o.price) + '</b> · ' + scoutEsc(o.store) + '</div>';
+}
+
+function renderScout() {
+  var el = document.getElementById('scout-panel');
+  if (!el) return;
+  var pending = state.cart.filter(function (ci) { return !ci.bought; });
+  if (!pending.length) { el.innerHTML = ''; return; }
+  var d = scoutData();
+  var anyBusy = Object.keys(scoutBusy).length > 0;
+
+  var html = '<div class="scout-bar">' +
+    '<button class="btn btn-outline scout-go" ' + (anyBusy ? 'disabled' : '') + ' onclick="runScout()">' +
+      (anyBusy ? '⏳ Scanning…' : '₪ Price Scout · ' + pending.length + ' item' + (pending.length > 1 ? 's' : '')) + '</button>' +
+    '<button class="scout-icon" title="Re-scan (ignore cache)" onclick="runScout(null,true)" ' + (anyBusy ? 'disabled' : '') + '>↻</button>' +
+    '<button class="scout-icon" title="Settings" onclick="scoutSettings()">⚙</button>' +
+    '</div>';
+
+  var basket = scoutBasketItems(d);
+  if (basket.length) {
+    var opt = scoutOptimize(basket, d.stores || {});
+    var b = opt.best, saved = opt.naive.total - b.total;
+    html += '<div class="scout-card">' +
+      '<div class="scout-card-title">Best combined order</div>' +
+      '<div class="scout-total">' + scoutNIS(b.total) + ' <span>incl. delivery · ' + basket.length + ' item' + (basket.length > 1 ? 's' : '') + '</span></div>';
+    if (saved > 0.5) {
+      html += '<div class="scout-save">Saves ' + scoutNIS(saved) + ' vs. buying each at its cheapest store (' + scoutNIS(opt.naive.total) + ')</div>';
+    }
+    Object.keys(b.byStore).sort(function (a, c) { return b.byStore[c].subtotal - b.byStore[a].subtotal; }).forEach(function (s) {
+      var g = b.byStore[s], info = (d.stores || {})[s] || {};
+      html += '<div class="scout-store">' +
+        '<div class="scout-store-head"><span>' + scoutEsc(s) + '</span><span>' + scoutNIS(g.subtotal + g.ship) + '</span></div>';
+      g.items.forEach(function (it) {
+        html += '<div class="scout-row"><span>' + scoutEsc(it.name) +
+          (it.offer.sizeMl ? ' <i>' + it.offer.sizeMl + 'ml</i>' : '') + '</span>' +
+          (it.offer.url ? '<a href="' + scoutEsc(it.offer.url) + '" target="_blank" rel="noopener">' + scoutNIS(it.price) + ' ↗</a>' : '<span>' + scoutNIS(it.price) + '</span>') +
+          '</div>';
+      });
+      var shipTxt = g.ship === 0 ? 'Free delivery' : ('Delivery ' + scoutNIS(g.ship) + (g.shipEst ? ' (est.)' : ''));
+      if (info.freeOver != null && g.ship > 0) shipTxt += ' · free over ' + scoutNIS(info.freeOver) + ' (' + scoutNIS(info.freeOver - g.subtotal) + ' to go)';
+      if (info.pickup) shipTxt += ' · pickup available';
+      html += '<div class="scout-ship">' + shipTxt + '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  // Per-item offers (collapsible)
+  var shown = pending.filter(function (ci) { var r = d.items[scoutKey(ci.name)]; return r && (r.offers || []).length; });
+  if (shown.length) {
+    html += '<div class="scout-card"><div class="scout-card-title">Prices by item</div>';
+    shown.forEach(function (ci) {
+      var r = d.items[scoutKey(ci.name)];
+      var inv = state.inventory.find(function (x) { return x.label && x.label.toLowerCase() === ci.name.toLowerCase(); });
+      html += '<details class="scout-item"><summary><span>' + scoutEsc(ci.name) + '</span><span>' +
+        r.offers.length + ' offer' + (r.offers.length > 1 ? 's' : '') + ' ▾</span></summary>';
+      if (inv && inv.priceNIS) html += '<div class="scout-ref">Last paid: ' + scoutNIS(inv.priceNIS) + (inv.sizeMl ? ' / ' + inv.sizeMl + 'ml' : '') + '</div>';
+      r.offers.forEach(function (o) {
+        var info = (d.stores || {})[o.store] || {};
+        var ship = info.shipCost == null ? 'delivery ?' : (info.shipCost === 0 ? 'free delivery' :
+          'delivery ' + scoutNIS(info.shipCost) + (info.freeOver != null ? ', free over ' + scoutNIS(info.freeOver) : ''));
+        html += '<div class="scout-offer' + (o.inStock === false ? ' oos' : '') + '">' +
+          '<div class="scout-offer-main"><b>' + scoutEsc(o.store) + '</b><span>' + scoutEsc(o.title) +
+            (o.sizeMl ? ' · ' + o.sizeMl + 'ml' : '') + (o.inStock === false ? ' · out of stock' : '') + '</span>' +
+            '<span class="scout-offer-ship">' + ship + '</span></div>' +
+          (o.url ? '<a href="' + scoutEsc(o.url) + '" target="_blank" rel="noopener">' + scoutNIS(o.price) + ' ↗</a>' : '<span>' + scoutNIS(o.price) + '</span>') +
+          '</div>';
+      });
+      html += '</details>';
+    });
+    if (d.at) html += '<div class="scout-ref">Surveyed ' + new Date(d.at).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' }) + ' · prices may change at checkout</div>';
+    html += '</div>';
+  }
   el.innerHTML = html;
 }
 
