@@ -1596,6 +1596,10 @@
   .scout-icon:disabled, .scout-go:disabled { opacity:0.5; }
   .scout-line { font-size:11px; color:var(--gold); margin-top:2px; opacity:0.9; }
   .scout-line.scout-err { color:var(--red); opacity:0.7; }
+  .cart-qty { display:flex; align-items:center; gap:2px; margin-right:6px; border:1px solid var(--border); border-radius:8px; }
+  .cart-qty button { background:transparent; border:none; color:var(--gold); font-size:15px; width:26px; height:26px; cursor:pointer; }
+  .cart-qty button:disabled { opacity:0.3; }
+  .cart-qty span { min-width:16px; text-align:center; font-size:13px; color:var(--cream); }
   .cart-item-scout { background:transparent; border:1px solid var(--border); color:var(--gold); border-radius:8px; font-size:12px; padding:3px 7px; margin-right:6px; cursor:pointer; }
   .scout-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 16px; margin:0 0 14px; }
   .scout-card-title { font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); margin-bottom:8px; }
@@ -2376,7 +2380,7 @@
 
 <div id="app-version-footer" style="text-align:center;padding:18px 0 28px;font-size:11px;letter-spacing:0.1em;color:var(--text3);font-family:'Jost',sans-serif;"></div>
 
-<script src="db.js?v=76"></script>
+<script src="db.js?v=77"></script>
   <script>
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -2470,8 +2474,8 @@ const INV_VERSION = "v11";
 // Rebuild cocktail list: always start from DEFAULT_COCKTAILS, overlay user flags,
 // then append user-created recipes. Guarantees new defaults always appear.
 // Also force-rebuilds when DB_VERSION changes so recipe updates always show.
-var DB_VERSION = 76; // bump whenever db.js recipe content changes
-var APP_VERSION = '1.76'; // shown in the page footer; bump on every deploy
+var DB_VERSION = 77; // bump whenever db.js recipe content changes
+var APP_VERSION = '1.77'; // shown in the page footer; bump on every deploy
 (function() {
   var storedDbVer = parseInt(localStorage.getItem('vadi_db_version') || '0');
   var forceRebuild = storedDbVer !== DB_VERSION;
@@ -5858,6 +5862,14 @@ function toggleCartBought(id) {
   renderCart();
 }
 
+function setCartQty(id, delta) {
+  const item = state.cart.find(i => i.id === id);
+  if (!item) return;
+  item.qty = Math.max(1, Math.min(24, (item.qty > 1 ? item.qty : 1) + delta));
+  save();
+  renderCart();
+}
+
 function removeCartItem(id) {
   state.cart = state.cart.filter(i => i.id !== id);
   save();
@@ -5959,6 +5971,11 @@ function renderCart() {
       html += '<div class="cart-item-kind">' + item.kind + '</div>';
       if (!item.bought) html += scoutBestLine(item.name);
       html += '</div>';
+      var q = item.qty > 1 ? item.qty : 1;
+      html += '<div class="cart-qty">' +
+        '<button onclick="setCartQty(\'' + item.id + '\',-1)"' + (q <= 1 ? ' disabled' : '') + '>−</button>' +
+        '<span>' + q + '</span>' +
+        '<button onclick="setCartQty(\'' + item.id + '\',1)">+</button></div>';
       if (!item.bought) html += '<button class="cart-item-scout" onclick="runScout(\'' + item.id + '\')" title="Survey prices for this item">₪</button>';
       html += '<button class="cart-item-del" onclick="removeCartItem(\'' + item.id + '\')" title="Remove">×</button>';
       html += '</div>';
@@ -6063,7 +6080,7 @@ function scoutOptimize(items, stores) {
     var by = {}, total = 0;
     assign.forEach(function (o, idx) {
       if (!by[o.store]) by[o.store] = { items: [], subtotal: 0 };
-      by[o.store].items.push({ name: items[idx].name, offer: o.offer, price: o.price });
+      by[o.store].items.push({ name: items[idx].name, offer: o.offer, price: o.price, unit: o.unit, qty: o.qty });
       by[o.store].subtotal += o.price;
     });
     Object.keys(by).forEach(function (s) {
@@ -6105,12 +6122,13 @@ function scoutBasketItems(d) {
     if (!r || !r.offers || !r.offers.length) return;
     var offers = r.offers.filter(function (o) { return o.inStock !== false; });
     if (!offers.length) return;
+    var qty = ci.qty > 1 ? ci.qty : 1;
     var perStore = {};
     offers.forEach(function (o) {
-      if (!perStore[o.store] || o.price < perStore[o.store].price) perStore[o.store] = { store: o.store, price: o.price, offer: o };
+      if (!perStore[o.store] || o.price * qty < perStore[o.store].price) perStore[o.store] = { store: o.store, price: o.price * qty, unit: o.price, qty: qty, offer: o };
     });
     var opts = Object.keys(perStore).map(function (s) { return perStore[s]; }).sort(function (a, b) { return a.price - b.price; });
-    list.push({ name: ci.name, opts: opts });
+    list.push({ name: ci.name + (qty > 1 ? ' ×' + qty : ''), opts: opts });
   });
   return list;
 }
@@ -6157,7 +6175,7 @@ function renderScout() {
       g.items.forEach(function (it) {
         html += '<div class="scout-row"><span>' + scoutEsc(it.name) +
           (it.offer.sizeMl ? ' <i>' + it.offer.sizeMl + 'ml</i>' : '') + '</span>' +
-          (it.offer.url ? '<a href="' + scoutEsc(it.offer.url) + '" target="_blank" rel="noopener">' + scoutNIS(it.price) + ' ↗</a>' : '<span>' + scoutNIS(it.price) + '</span>') +
+          (it.offer.url ? '<a href="' + scoutEsc(it.offer.url) + '" target="_blank" rel="noopener">' + (it.qty > 1 ? it.qty + '×' + scoutNIS(it.unit) + ' = ' : '') + scoutNIS(it.price) + ' ↗</a>' : '<span>' + (it.qty > 1 ? it.qty + '×' + scoutNIS(it.unit) + ' = ' : '') + scoutNIS(it.price) + '</span>') +
           '</div>';
       });
       var shipTxt = g.ship === 0 ? 'Free delivery' : ('Delivery ' + scoutNIS(g.ship) + (g.shipEst ? ' (est.)' : ''));
